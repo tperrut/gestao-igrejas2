@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Helmet } from 'react-helmet';
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Users } from 'lucide-react';
 import MembersList from '@/components/members/MembersList';
@@ -9,10 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 const Members: React.FC = () => {
   return (
     <>
-      <Helmet>
-        <title>Membros | ChurchConnect</title>
-      </Helmet>
-      
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>

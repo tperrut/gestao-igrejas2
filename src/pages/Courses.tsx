@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Helmet } from 'react-helmet';
 import { Button } from "@/components/ui/button";
 import { PlusCircle, BookOpen, GraduationCap } from 'lucide-react';
 import CoursesList from '@/components/courses/CoursesList';
@@ -9,10 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 const Courses: React.FC = () => {
   return (
     <>
-      <Helmet>
-        <title>Cursos | ChurchConnect</title>
-      </Helmet>
-      
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
