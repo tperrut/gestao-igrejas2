@@ -1,11 +1,57 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Calendar } from 'lucide-react';
 import EventsList from '@/components/events/EventsList';
+import EventModal from '@/components/events/EventModal';
+import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
+export type EventType = 'culto' | 'reuniao' | 'conferencia' | 'treinamento' | 'social';
+
+interface Event {
+  id?: number;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  type: EventType;
+  organizer: string;
+  capacity: number;
+  description?: string;
+}
+
 const Events: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | undefined>(undefined);
+  const { toast } = useToast();
+
+  const handleOpenCreateModal = () => {
+    setEditingEvent(undefined);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (event: Event) => {
+    setEditingEvent(event);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveEvent = (event: Omit<Event, 'id'>) => {
+    if (editingEvent?.id) {
+      // Update existing event
+      toast({
+        title: "Evento atualizado",
+        description: `${event.title} foi atualizado com sucesso.`
+      });
+    } else {
+      // Create new event
+      toast({
+        title: "Evento adicionado",
+        description: `${event.title} foi adicionado com sucesso.`
+      });
+    }
+    setIsModalOpen(false);
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -16,7 +62,7 @@ const Events: React.FC = () => {
               Gerencie todos os eventos da igreja nesta seção.
             </p>
           </div>
-          <Button className="sm:self-end">
+          <Button className="sm:self-end" onClick={handleOpenCreateModal}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Novo Evento
           </Button>
@@ -81,7 +127,15 @@ const Events: React.FC = () => {
           </Card>
         </div>
 
-        <EventsList />
+        <EventsList onEdit={handleOpenEditModal} />
+
+        <EventModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSaveEvent}
+          event={editingEvent}
+          title={editingEvent ? "Editar Evento" : "Novo Evento"}
+        />
       </div>
     </>
   );

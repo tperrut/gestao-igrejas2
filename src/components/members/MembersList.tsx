@@ -1,29 +1,23 @@
 
-import React, { useState } from 'react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  MoreHorizontal, 
-  Search, 
-  ArrowUpDown, 
-  ChevronDown, 
-  Check 
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import React from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
 
 interface Member {
   id: number;
@@ -35,149 +29,125 @@ interface Member {
   joinDate: string;
 }
 
+// Mock data for member list
 const mockMembers: Member[] = [
-  { 
-    id: 1, 
-    name: 'João Silva', 
-    email: 'joao.silva@email.com', 
-    phone: '(11) 99999-1234', 
-    status: 'active',
-    role: 'Pastor',
-    joinDate: '12/05/2018'
+  {
+    id: 1,
+    name: "João Silva",
+    email: "joao@exemplo.com",
+    phone: "(11) 99999-1111",
+    status: "active",
+    role: "Pastor",
+    joinDate: "2020-01-15"
   },
-  { 
-    id: 2, 
-    name: 'Maria Oliveira', 
-    email: 'maria.oliveira@email.com', 
-    phone: '(11) 99999-5678', 
-    status: 'active',
-    role: 'Líder de Louvor',
-    joinDate: '03/11/2019'
+  {
+    id: 2,
+    name: "Maria Oliveira",
+    email: "maria@exemplo.com",
+    phone: "(11) 99999-2222",
+    status: "active",
+    role: "Líder de Louvor",
+    joinDate: "2020-03-20"
   },
-  { 
-    id: 3, 
-    name: 'Pedro Santos', 
-    email: 'pedro.santos@email.com', 
-    phone: '(11) 99999-9012', 
-    status: 'inactive',
-    role: 'Membro',
-    joinDate: '28/02/2020'
+  {
+    id: 3,
+    name: "Pedro Santos",
+    email: "pedro@exemplo.com",
+    phone: "(11) 99999-3333",
+    status: "inactive",
+    role: "Membro",
+    joinDate: "2019-05-10"
   },
-  { 
-    id: 4, 
-    name: 'Ana Costa', 
-    email: 'ana.costa@email.com', 
-    phone: '(11) 99999-3456', 
-    status: 'active',
-    role: 'Diácono',
-    joinDate: '15/07/2017'
-  },
-  { 
-    id: 5, 
-    name: 'Lucas Ferreira', 
-    email: 'lucas.ferreira@email.com', 
-    phone: '(11) 99999-7890', 
-    status: 'active',
-    role: 'Membro',
-    joinDate: '22/09/2021'
-  },
+  {
+    id: 4,
+    name: "Ana Costa",
+    email: "ana@exemplo.com",
+    phone: "(11) 99999-4444",
+    status: "active",
+    role: "Diácono",
+    joinDate: "2021-02-08"
+  }
 ];
 
-const MembersList: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [members, setMembers] = useState<Member[]>(mockMembers);
+interface MembersListProps {
+  onEdit?: (member: Member) => void;
+}
 
-  const filteredMembers = members.filter(member => 
-    member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.phone.includes(searchTerm)
-  );
+const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
+  const { toast } = useToast();
+
+  const handleDelete = (memberId: number) => {
+    toast({
+      title: "Membro removido",
+      description: "O membro foi removido com sucesso."
+    });
+  };
+
+  const handleView = (memberId: number) => {
+    toast({
+      title: "Visualizar detalhes",
+      description: "Esta funcionalidade será implementada em breve."
+    });
+  };
 
   return (
     <div className="rounded-md border">
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-2">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar membros..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-8 w-[150px] sm:w-[250px]"
-          />
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8 gap-1">
-              <span>Status</span>
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem className="flex items-center gap-2">
-              <Check className="h-4 w-4" /> Todos
-            </DropdownMenuItem>
-            <DropdownMenuItem>Ativos</DropdownMenuItem>
-            <DropdownMenuItem>Inativos</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[250px]">
-              <div className="flex items-center gap-1">
-                Nome
-                <ArrowUpDown className="h-3 w-3" />
-              </div>
-            </TableHead>
+            <TableHead className="w-[200px]">Nome</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Telefone</TableHead>
-            <TableHead>Status</TableHead>
             <TableHead>Função</TableHead>
-            <TableHead>Data de Entrada</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="w-[100px]">Data de Entrada</TableHead>
+            <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredMembers.length > 0 ? (
-            filteredMembers.map((member) => (
-              <TableRow key={member.id}>
-                <TableCell className="font-medium">{member.name}</TableCell>
-                <TableCell>{member.email}</TableCell>
-                <TableCell>{member.phone}</TableCell>
-                <TableCell>
-                  <Badge variant={member.status === 'active' ? 'default' : 'secondary'}>
-                    {member.status === 'active' ? 'Ativo' : 'Inativo'}
-                  </Badge>
-                </TableCell>
-                <TableCell>{member.role}</TableCell>
-                <TableCell>{member.joinDate}</TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Abrir menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>Editar</DropdownMenuItem>
-                      <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
-                        Remover
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={7} className="h-24 text-center">
-                Nenhum membro encontrado.
+          {mockMembers.map((member) => (
+            <TableRow key={member.id}>
+              <TableCell className="font-medium">{member.name}</TableCell>
+              <TableCell>{member.email}</TableCell>
+              <TableCell>{member.phone}</TableCell>
+              <TableCell>{member.role}</TableCell>
+              <TableCell>
+                <Badge 
+                  variant={member.status === 'active' ? "default" : "outline"}
+                  className={member.status === 'active' ? "bg-green-500" : ""}
+                >
+                  {member.status === 'active' ? 'Ativo' : 'Inativo'}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                {new Date(member.joinDate).toLocaleDateString('pt-BR')}
+              </TableCell>
+              <TableCell className="text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <span className="sr-only">Abrir menu</span>
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleView(member.id)}>
+                      <Eye className="mr-2 h-4 w-4" /> Visualizar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onEdit && onEdit(member)}>
+                      <Edit className="mr-2 h-4 w-4" /> Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="text-red-600" 
+                      onClick={() => handleDelete(member.id)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
-          )}
+          ))}
         </TableBody>
       </Table>
     </div>

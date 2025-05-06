@@ -1,11 +1,53 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Users } from 'lucide-react';
 import MembersList from '@/components/members/MembersList';
+import MemberModal from '@/components/members/MemberModal';
+import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
+interface Member {
+  id?: number;
+  name: string;
+  email: string;
+  phone: string;
+  status: 'active' | 'inactive';
+  role: string;
+  joinDate: string;
+}
+
 const Members: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<Member | undefined>(undefined);
+  const { toast } = useToast();
+
+  const handleOpenCreateModal = () => {
+    setEditingMember(undefined);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (member: Member) => {
+    setEditingMember(member);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveMember = (member: Omit<Member, 'id'>) => {
+    if (editingMember?.id) {
+      // Update existing member
+      toast({
+        title: "Membro atualizado",
+        description: `${member.name} foi atualizado com sucesso.`
+      });
+    } else {
+      // Create new member
+      toast({
+        title: "Membro adicionado",
+        description: `${member.name} foi adicionado com sucesso.`
+      });
+    }
+    setIsModalOpen(false);
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -16,7 +58,7 @@ const Members: React.FC = () => {
               Gerencie todos os membros da igreja nesta seção.
             </p>
           </div>
-          <Button className="sm:self-end">
+          <Button className="sm:self-end" onClick={handleOpenCreateModal}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Novo Membro
           </Button>
@@ -81,7 +123,15 @@ const Members: React.FC = () => {
           </Card>
         </div>
 
-        <MembersList />
+        <MembersList onEdit={handleOpenEditModal} />
+
+        <MemberModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSaveMember}
+          member={editingMember}
+          title={editingMember ? "Editar Membro" : "Novo Membro"}
+        />
       </div>
     </>
   );

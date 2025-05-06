@@ -1,11 +1,61 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { PlusCircle, BookOpen, GraduationCap } from 'lucide-react';
 import CoursesList from '@/components/courses/CoursesList';
+import CourseModal from '@/components/courses/CourseModal';
+import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
+export type CourseStatus = 'active' | 'upcoming' | 'completed' | 'archived';
+export type CourseCategory = 'biblia' | 'lideranca' | 'discipulado' | 'evangelismo' | 'familia';
+
+interface Course {
+  id?: number;
+  title: string;
+  instructor: string;
+  startDate: string;
+  endDate: string;
+  status: CourseStatus;
+  category: CourseCategory;
+  maxStudents: number;
+  students?: number;
+  description?: string;
+  location?: string;
+  prerequisites?: string;
+}
+
 const Courses: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCourse, setEditingCourse] = useState<Course | undefined>(undefined);
+  const { toast } = useToast();
+
+  const handleOpenCreateModal = () => {
+    setEditingCourse(undefined);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (course: Course) => {
+    setEditingCourse(course);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveCourse = (course: Omit<Course, 'id' | 'students'>) => {
+    if (editingCourse?.id) {
+      // Update existing course
+      toast({
+        title: "Curso atualizado",
+        description: `${course.title} foi atualizado com sucesso.`
+      });
+    } else {
+      // Create new course
+      toast({
+        title: "Curso adicionado",
+        description: `${course.title} foi adicionado com sucesso.`
+      });
+    }
+    setIsModalOpen(false);
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -16,7 +66,7 @@ const Courses: React.FC = () => {
               Gerencie os cursos e treinamentos da igreja.
             </p>
           </div>
-          <Button className="sm:self-end">
+          <Button className="sm:self-end" onClick={handleOpenCreateModal}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Novo Curso
           </Button>
@@ -81,7 +131,15 @@ const Courses: React.FC = () => {
           </Card>
         </div>
 
-        <CoursesList />
+        <CoursesList onEdit={handleOpenEditModal} />
+
+        <CourseModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSaveCourse}
+          course={editingCourse}
+          title={editingCourse ? "Editar Curso" : "Novo Curso"}
+        />
       </div>
     </>
   );

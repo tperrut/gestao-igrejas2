@@ -1,29 +1,23 @@
 
-import React, { useState } from 'react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  MoreHorizontal, 
-  Search, 
-  ArrowUpDown, 
-  ChevronDown, 
-  Filter 
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import React from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal, Edit, Trash2, Eye, Users } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
 
 export type CourseStatus = 'active' | 'upcoming' | 'completed' | 'archived';
 export type CourseCategory = 'biblia' | 'lideranca' | 'discipulado' | 'evangelismo' | 'familia';
@@ -36,221 +30,203 @@ interface Course {
   endDate: string;
   status: CourseStatus;
   category: CourseCategory;
-  students: number;
   maxStudents: number;
+  students: number;
+  description?: string;
+  location?: string;
+  prerequisites?: string;
 }
 
+// Mock data for course list
 const mockCourses: Course[] = [
   {
     id: 1,
-    title: 'Fundamentos da Fé',
-    instructor: 'Pastor João',
-    startDate: '01/05/2023',
-    endDate: '30/06/2023',
-    status: 'active',
-    category: 'biblia',
-    students: 15,
-    maxStudents: 20
+    title: "Fundamentos da Fé",
+    instructor: "Pastor João",
+    startDate: "2023-05-10",
+    endDate: "2023-07-12",
+    status: "active",
+    category: "biblia",
+    maxStudents: 30,
+    students: 25,
+    description: "Curso para novos convertidos aprenderem os fundamentos da fé cristã.",
+    location: "Sala 2",
+    prerequisites: "Nenhum"
   },
   {
     id: 2,
-    title: 'Liderança Cristã',
-    instructor: 'Pastor André',
-    startDate: '15/07/2023',
-    endDate: '30/08/2023',
-    status: 'upcoming',
-    category: 'lideranca',
-    students: 0,
-    maxStudents: 15
+    title: "Liderança Cristã",
+    instructor: "Pastor Carlos",
+    startDate: "2023-06-05",
+    endDate: "2023-08-28",
+    status: "upcoming",
+    category: "lideranca",
+    maxStudents: 20,
+    students: 12,
+    description: "Curso para desenvolvimento de líderes na igreja.",
+    location: "Sala 3",
+    prerequisites: "Ser membro ativo por pelo menos 1 ano"
   },
   {
     id: 3,
-    title: 'Discipulado Básico',
-    instructor: 'Diác. Marina',
-    startDate: '01/03/2023',
-    endDate: '15/04/2023',
-    status: 'completed',
-    category: 'discipulado',
-    students: 18,
-    maxStudents: 20
+    title: "Discipulado Eficaz",
+    instructor: "Ana Oliveira",
+    startDate: "2023-04-15",
+    endDate: "2023-06-17",
+    status: "active",
+    category: "discipulado",
+    maxStudents: 15,
+    students: 15,
+    description: "Como fazer discipulado de forma eficaz.",
+    location: "Sala 1",
+    prerequisites: "Fundamentos da Fé"
   },
   {
     id: 4,
-    title: 'Evangelismo Prático',
-    instructor: 'Ev. Paulo',
-    startDate: '10/06/2023',
-    endDate: '10/07/2023',
-    status: 'upcoming',
-    category: 'evangelismo',
-    students: 5,
-    maxStudents: 30
-  },
-  {
-    id: 5,
-    title: 'Família Cristã',
-    instructor: 'Pastor João e Rebeca',
-    startDate: '01/02/2023',
-    endDate: '28/02/2023',
-    status: 'completed',
-    category: 'familia',
+    title: "Evangelismo Prático",
+    instructor: "Lucas Silva",
+    startDate: "2023-03-10",
+    endDate: "2023-04-28",
+    status: "completed",
+    category: "evangelismo",
+    maxStudents: 25,
     students: 22,
-    maxStudents: 25
-  },
+    description: "Métodos práticos de evangelismo para o dia a dia.",
+    location: "Auditório",
+    prerequisites: "Nenhum"
+  }
 ];
 
-const getStatusLabel = (status: CourseStatus) => {
+const getStatusBadge = (status: CourseStatus) => {
+  const styles = {
+    active: "bg-green-500 hover:bg-green-600",
+    upcoming: "bg-blue-500 hover:bg-blue-600",
+    completed: "bg-gray-500 hover:bg-gray-600",
+    archived: "bg-amber-500 hover:bg-amber-600"
+  };
+
   const labels = {
-    active: 'Ativo',
-    upcoming: 'Em breve',
-    completed: 'Concluído',
-    archived: 'Arquivado'
+    active: "Ativo",
+    upcoming: "Em breve",
+    completed: "Concluído",
+    archived: "Arquivado"
   };
-  return labels[status];
-};
 
-const getStatusBadgeVariant = (status: CourseStatus): "default" | "secondary" | "destructive" | "outline" => {
-  const variants = {
-    active: 'default',
-    upcoming: 'secondary',
-    completed: 'outline',
-    archived: 'destructive'
-  };
-  return variants[status] as "default" | "secondary" | "destructive" | "outline";
-};
-
-const getCategoryLabel = (category: CourseCategory) => {
-  const labels = {
-    biblia: 'Bíblia',
-    lideranca: 'Liderança',
-    discipulado: 'Discipulado',
-    evangelismo: 'Evangelismo',
-    familia: 'Família'
-  };
-  return labels[category];
-};
-
-const CoursesList: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [courses] = useState<Course[]>(mockCourses);
-
-  const filteredCourses = courses.filter(course => 
-    course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.instructor.toLowerCase().includes(searchTerm.toLowerCase())
+  return (
+    <Badge className={styles[status]}>{labels[status]}</Badge>
   );
+};
+
+const getCategoryBadge = (category: CourseCategory) => {
+  const styles = {
+    biblia: "bg-purple-500 hover:bg-purple-600",
+    lideranca: "bg-blue-500 hover:bg-blue-600",
+    discipulado: "bg-green-500 hover:bg-green-600",
+    evangelismo: "bg-red-500 hover:bg-red-600",
+    familia: "bg-pink-500 hover:bg-pink-600"
+  };
+
+  const labels = {
+    biblia: "Bíblia",
+    lideranca: "Liderança",
+    discipulado: "Discipulado",
+    evangelismo: "Evangelismo",
+    familia: "Família"
+  };
+
+  return (
+    <Badge className={styles[category]}>{labels[category]}</Badge>
+  );
+};
+
+interface CoursesListProps {
+  onEdit?: (course: Course) => void;
+}
+
+const CoursesList: React.FC<CoursesListProps> = ({ onEdit }) => {
+  const { toast } = useToast();
+
+  const handleDelete = (courseId: number) => {
+    toast({
+      title: "Curso removido",
+      description: "O curso foi removido com sucesso."
+    });
+  };
+
+  const handleView = (courseId: number) => {
+    toast({
+      title: "Visualizar detalhes",
+      description: "Esta funcionalidade será implementada em breve."
+    });
+  };
+
+  const handleStudents = (courseId: number) => {
+    toast({
+      title: "Gerenciar alunos",
+      description: "Esta funcionalidade será implementada em breve."
+    });
+  };
 
   return (
     <div className="rounded-md border">
-      <div className="flex flex-col sm:flex-row justify-between gap-4 p-4">
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar cursos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-8 w-full sm:w-[250px]"
-          />
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 gap-1 w-full sm:w-auto">
-                <Filter className="h-4 w-4" />
-                <span>Status</span>
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>Todos</DropdownMenuItem>
-              <DropdownMenuItem>Ativos</DropdownMenuItem>
-              <DropdownMenuItem>Em breve</DropdownMenuItem>
-              <DropdownMenuItem>Concluídos</DropdownMenuItem>
-              <DropdownMenuItem>Arquivados</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 gap-1 w-full sm:w-auto">
-                <Filter className="h-4 w-4" />
-                <span>Categoria</span>
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>Todas</DropdownMenuItem>
-              <DropdownMenuItem>Bíblia</DropdownMenuItem>
-              <DropdownMenuItem>Liderança</DropdownMenuItem>
-              <DropdownMenuItem>Discipulado</DropdownMenuItem>
-              <DropdownMenuItem>Evangelismo</DropdownMenuItem>
-              <DropdownMenuItem>Família</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[250px]">
-              <div className="flex items-center gap-1">
-                Título
-                <ArrowUpDown className="h-3 w-3" />
-              </div>
-            </TableHead>
+            <TableHead className="w-[250px]">Título</TableHead>
             <TableHead>Instrutor</TableHead>
             <TableHead>Período</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Categoria</TableHead>
-            <TableHead>Vagas</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
+            <TableHead>Alunos</TableHead>
+            <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredCourses.length > 0 ? (
-            filteredCourses.map((course) => (
-              <TableRow key={course.id}>
-                <TableCell className="font-medium">{course.title}</TableCell>
-                <TableCell>{course.instructor}</TableCell>
-                <TableCell>{course.startDate} a {course.endDate}</TableCell>
-                <TableCell>
-                  <Badge variant={getStatusBadgeVariant(course.status)}>
-                    {getStatusLabel(course.status)}
-                  </Badge>
-                </TableCell>
-                <TableCell>{getCategoryLabel(course.category)}</TableCell>
-                <TableCell>
-                  {course.students}/{course.maxStudents}
-                  {course.status === 'active' && course.students < course.maxStudents && (
-                    <span className="ml-2 text-xs text-green-600">
-                      ({course.maxStudents - course.students} disponíveis)
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Abrir menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>Editar</DropdownMenuItem>
-                      <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
-                      <DropdownMenuItem>Ver alunos</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
-                        Arquivar
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={7} className="h-24 text-center">
-                Nenhum curso encontrado.
+          {mockCourses.map((course) => (
+            <TableRow key={course.id}>
+              <TableCell className="font-medium">{course.title}</TableCell>
+              <TableCell>{course.instructor}</TableCell>
+              <TableCell>
+                {new Date(course.startDate).toLocaleDateString('pt-BR')} - {new Date(course.endDate).toLocaleDateString('pt-BR')}
+              </TableCell>
+              <TableCell>
+                {getStatusBadge(course.status)}
+              </TableCell>
+              <TableCell>
+                {getCategoryBadge(course.category)}
+              </TableCell>
+              <TableCell>
+                {course.students}/{course.maxStudents}
+              </TableCell>
+              <TableCell className="text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <span className="sr-only">Abrir menu</span>
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleView(course.id)}>
+                      <Eye className="mr-2 h-4 w-4" /> Visualizar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onEdit && onEdit(course)}>
+                      <Edit className="mr-2 h-4 w-4" /> Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleStudents(course.id)}>
+                      <Users className="mr-2 h-4 w-4" /> Gerenciar Alunos
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="text-red-600" 
+                      onClick={() => handleDelete(course.id)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
-          )}
+          ))}
         </TableBody>
       </Table>
     </div>

@@ -1,29 +1,23 @@
 
-import React, { useState } from 'react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  MoreHorizontal, 
-  Search, 
-  ArrowUpDown, 
-  ChevronDown, 
-  Filter 
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import React from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
 
 export type EventType = 'culto' | 'reuniao' | 'conferencia' | 'treinamento' | 'social';
 
@@ -36,182 +30,151 @@ interface Event {
   type: EventType;
   organizer: string;
   capacity: number;
+  description?: string;
 }
 
+// Mock data for event list
 const mockEvents: Event[] = [
   {
     id: 1,
-    title: 'Culto de Domingo',
-    date: '12/05/2023',
-    time: '10:00 - 12:00',
-    location: 'Auditório Principal',
-    type: 'culto',
-    organizer: 'Pastor João',
-    capacity: 200
+    title: "Culto de Domingo",
+    date: "2023-05-07",
+    time: "10:00 - 12:00",
+    location: "Auditório Principal",
+    type: "culto",
+    organizer: "Pastor João",
+    capacity: 200,
+    description: "Culto dominical com louvor e pregação."
   },
   {
     id: 2,
-    title: 'Reunião de Líderes',
-    date: '15/05/2023',
-    time: '19:00 - 21:00',
-    location: 'Sala 103',
-    type: 'reuniao',
-    organizer: 'Pastor João',
-    capacity: 30
+    title: "Reunião de Líderes",
+    date: "2023-05-10",
+    time: "19:30 - 21:00",
+    location: "Sala de Reuniões",
+    type: "reuniao",
+    organizer: "Pastor Carlos",
+    capacity: 30,
+    description: "Reunião mensal dos líderes de ministério."
   },
   {
     id: 3,
-    title: 'Conferência de Louvor',
-    date: '20/05/2023',
-    time: '15:00 - 21:00',
-    location: 'Auditório Principal',
-    type: 'conferencia',
-    organizer: 'Ministério de Louvor',
-    capacity: 150
+    title: "Conferência de Jovens",
+    date: "2023-05-20",
+    time: "16:00 - 22:00",
+    location: "Auditório Principal",
+    type: "conferencia",
+    organizer: "Ministério de Jovens",
+    capacity: 150,
+    description: "Conferência anual para jovens com palestrantes convidados."
   },
   {
     id: 4,
-    title: 'Treinamento de Novos Membros',
-    date: '25/05/2023',
-    time: '14:00 - 16:00',
-    location: 'Sala 102',
-    type: 'treinamento',
-    organizer: 'Diác. Marina',
-    capacity: 40
-  },
-  {
-    id: 5,
-    title: 'Café & Comunhão',
-    date: '28/05/2023',
-    time: '09:00 - 10:00',
-    location: 'Área Externa',
-    type: 'social',
-    organizer: 'Ministério de Integração',
-    capacity: 100
-  },
+    title: "Treinamento de Novos Membros",
+    date: "2023-05-14",
+    time: "09:00 - 12:00",
+    location: "Sala 3",
+    type: "treinamento",
+    organizer: "Equipe de Integração",
+    capacity: 40,
+    description: "Treinamento para integração de novos membros à igreja."
+  }
 ];
 
-const getTypeLabel = (type: EventType) => {
+const getEventTypeBadge = (type: EventType) => {
+  const styles = {
+    culto: "bg-blue-500 hover:bg-blue-600",
+    reuniao: "bg-green-500 hover:bg-green-600",
+    conferencia: "bg-purple-500 hover:bg-purple-600",
+    treinamento: "bg-amber-500 hover:bg-amber-600",
+    social: "bg-pink-500 hover:bg-pink-600"
+  };
+
   const labels = {
-    culto: 'Culto',
-    reuniao: 'Reunião',
-    conferencia: 'Conferência',
-    treinamento: 'Treinamento',
-    social: 'Social'
+    culto: "Culto",
+    reuniao: "Reunião",
+    conferencia: "Conferência",
+    treinamento: "Treinamento",
+    social: "Social"
   };
-  return labels[type];
-};
 
-const getTypeBadgeVariant = (type: EventType): "default" | "secondary" | "destructive" | "outline" => {
-  const variants = {
-    culto: 'default',
-    reuniao: 'secondary',
-    conferencia: 'destructive',
-    treinamento: 'outline',
-    social: 'secondary'
-  };
-  return variants[type] as "default" | "secondary" | "destructive" | "outline";
-};
-
-const EventsList: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [events, setEvents] = useState<Event[]>(mockEvents);
-
-  const filteredEvents = events.filter(event => 
-    event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    event.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    event.organizer.toLowerCase().includes(searchTerm.toLowerCase())
+  return (
+    <Badge className={styles[type]}>{labels[type]}</Badge>
   );
+};
+
+interface EventsListProps {
+  onEdit?: (event: Event) => void;
+}
+
+const EventsList: React.FC<EventsListProps> = ({ onEdit }) => {
+  const { toast } = useToast();
+
+  const handleDelete = (eventId: number) => {
+    toast({
+      title: "Evento removido",
+      description: "O evento foi removido com sucesso."
+    });
+  };
+
+  const handleView = (eventId: number) => {
+    toast({
+      title: "Visualizar detalhes",
+      description: "Esta funcionalidade será implementada em breve."
+    });
+  };
 
   return (
     <div className="rounded-md border">
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-2">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar eventos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-8 w-[150px] sm:w-[250px]"
-          />
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8 gap-1">
-              <Filter className="h-4 w-4" />
-              <span>Filtrar</span>
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>Todos</DropdownMenuItem>
-            <DropdownMenuItem>Cultos</DropdownMenuItem>
-            <DropdownMenuItem>Reuniões</DropdownMenuItem>
-            <DropdownMenuItem>Conferências</DropdownMenuItem>
-            <DropdownMenuItem>Treinamentos</DropdownMenuItem>
-            <DropdownMenuItem>Eventos Sociais</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[250px]">
-              <div className="flex items-center gap-1">
-                Título
-                <ArrowUpDown className="h-3 w-3" />
-              </div>
-            </TableHead>
+            <TableHead className="w-[250px]">Título</TableHead>
             <TableHead>Data</TableHead>
             <TableHead>Horário</TableHead>
             <TableHead>Local</TableHead>
             <TableHead>Tipo</TableHead>
             <TableHead>Organizador</TableHead>
-            <TableHead>Capacidade</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
+            <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredEvents.length > 0 ? (
-            filteredEvents.map((event) => (
-              <TableRow key={event.id}>
-                <TableCell className="font-medium">{event.title}</TableCell>
-                <TableCell>{event.date}</TableCell>
-                <TableCell>{event.time}</TableCell>
-                <TableCell>{event.location}</TableCell>
-                <TableCell>
-                  <Badge variant={getTypeBadgeVariant(event.type)}>
-                    {getTypeLabel(event.type)}
-                  </Badge>
-                </TableCell>
-                <TableCell>{event.organizer}</TableCell>
-                <TableCell>{event.capacity}</TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Abrir menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>Editar</DropdownMenuItem>
-                      <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
-                        Cancelar Evento
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={8} className="h-24 text-center">
-                Nenhum evento encontrado.
+          {mockEvents.map((event) => (
+            <TableRow key={event.id}>
+              <TableCell className="font-medium">{event.title}</TableCell>
+              <TableCell>{new Date(event.date).toLocaleDateString('pt-BR')}</TableCell>
+              <TableCell>{event.time}</TableCell>
+              <TableCell>{event.location}</TableCell>
+              <TableCell>
+                {getEventTypeBadge(event.type)}
+              </TableCell>
+              <TableCell>{event.organizer}</TableCell>
+              <TableCell className="text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <span className="sr-only">Abrir menu</span>
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleView(event.id)}>
+                      <Eye className="mr-2 h-4 w-4" /> Visualizar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onEdit && onEdit(event)}>
+                      <Edit className="mr-2 h-4 w-4" /> Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="text-red-600" 
+                      onClick={() => handleDelete(event.id)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
-          )}
+          ))}
         </TableBody>
       </Table>
     </div>

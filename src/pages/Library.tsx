@@ -1,17 +1,25 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PlusCircle, Book } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
+import BookModal from '@/components/library/BookModal';
 
 interface Book {
   id: number;
   title: string;
   author: string;
   category: string;
+  isbn?: string;
+  publisher?: string;
+  publicationYear?: string;
   available: boolean;
+  copies: number;
   cover: string;
+  description?: string;
 }
 
 const mockBooks: Book[] = [
@@ -65,7 +73,7 @@ const mockBooks: Book[] = [
   },
 ];
 
-const BookCard: React.FC<{ book: Book }> = ({ book }) => (
+const BookCard: React.FC<{ book: Book; onEdit: () => void }> = ({ book, onEdit }) => (
   <Card className="card-hover">
     <CardHeader className="p-0">
       <div className="h-48 overflow-hidden rounded-t-lg">
@@ -88,15 +96,57 @@ const BookCard: React.FC<{ book: Book }> = ({ book }) => (
         </span>
       </div>
     </CardContent>
-    <CardFooter className="p-4 pt-0">
-      <Button variant={book.available ? "default" : "outline"} className="w-full" disabled={!book.available}>
+    <CardFooter className="p-4 pt-0 flex gap-2">
+      <Button variant={book.available ? "default" : "outline"} className="flex-1" disabled={!book.available}>
         {book.available ? 'Emprestar Livro' : 'Reservar Livro'}
+      </Button>
+      <Button variant="outline" size="icon" onClick={onEdit}>
+        <Book className="h-4 w-4" />
       </Button>
     </CardFooter>
   </Card>
 );
 
 const Library: React.FC = () => {
+  const [books, setBooks] = useState<Book[]>(mockBooks);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingBook, setEditingBook] = useState<Book | undefined>(undefined);
+  const { toast } = useToast();
+
+  const filteredBooks = books.filter(book => 
+    book.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    book.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleOpenCreateModal = () => {
+    setEditingBook(undefined);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (book: Book) => {
+    setEditingBook(book);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveBook = (book: Omit<Book, 'id' | 'available'>) => {
+    if (editingBook?.id) {
+      // Update existing book
+      toast({
+        title: "Livro atualizado",
+        description: `${book.title} foi atualizado com sucesso.`
+      });
+    } else {
+      // Create new book
+      toast({
+        title: "Livro adicionado",
+        description: `${book.title} foi adicionado com sucesso.`
+      });
+    }
+    setIsModalOpen(false);
+  };
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div>
@@ -111,13 +161,16 @@ const Library: React.FC = () => {
           <Input
             placeholder="Pesquisar livros por título, autor ou categoria..."
             className="w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <div className="flex gap-2">
-          <Button variant="default" className="btn-primary">
+          <Button variant="default" className="btn-primary" onClick={handleOpenCreateModal}>
+            <PlusCircle className="mr-2 h-4 w-4" />
             Adicionar Novo Livro
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => window.location.href = '/loans'}>
             Gerenciar Empréstimos
           </Button>
         </div>
@@ -132,22 +185,22 @@ const Library: React.FC = () => {
         </TabsList>
         <TabsContent value="all" className="mt-0">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {mockBooks.map((book) => (
-              <BookCard key={book.id} book={book} />
+            {filteredBooks.map((book) => (
+              <BookCard key={book.id} book={book} onEdit={() => handleOpenEditModal(book)} />
             ))}
           </div>
         </TabsContent>
         <TabsContent value="available" className="mt-0">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {mockBooks.filter(book => book.available).map((book) => (
-              <BookCard key={book.id} book={book} />
+            {filteredBooks.filter(book => book.available).map((book) => (
+              <BookCard key={book.id} book={book} onEdit={() => handleOpenEditModal(book)} />
             ))}
           </div>
         </TabsContent>
         <TabsContent value="borrowed" className="mt-0">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {mockBooks.filter(book => !book.available).map((book) => (
-              <BookCard key={book.id} book={book} />
+            {filteredBooks.filter(book => !book.available).map((book) => (
+              <BookCard key={book.id} book={book} onEdit={() => handleOpenEditModal(book)} />
             ))}
           </div>
         </TabsContent>
@@ -157,6 +210,14 @@ const Library: React.FC = () => {
           </p>
         </TabsContent>
       </Tabs>
+
+      <BookModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveBook}
+        book={editingBook}
+        title={editingBook ? "Editar Livro" : "Novo Livro"}
+      />
     </div>
   );
 };
