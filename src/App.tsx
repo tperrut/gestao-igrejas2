@@ -8,6 +8,10 @@ import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Library from "./pages/Library";
+import Members from "./pages/Members";
+import Events from "./pages/Events";
+import Calendar from "./pages/Calendar";
+import Courses from "./pages/Courses";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +27,10 @@ const App = () => (
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/library" element={<Library />} />
+            <Route path="/members" element={<Members />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/courses" element={<Courses />} />
             {/* Add other routes here */}
           </Route>
           <Route path="*" element={<NotFound />} />
