@@ -29,6 +29,7 @@ const mockBooks: Book[] = [
     author: 'João Oliveira',
     category: 'Vida Cristã',
     available: true,
+    copies: 3,
     cover: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=200',
   },
   {
@@ -37,6 +38,7 @@ const mockBooks: Book[] = [
     author: 'Maria Santos',
     category: 'Estudo Bíblico',
     available: false,
+    copies: 1,
     cover: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=200',
   },
   {
@@ -45,6 +47,7 @@ const mockBooks: Book[] = [
     author: 'Pedro Lima',
     category: 'Liderança',
     available: true,
+    copies: 2,
     cover: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=200',
   },
   {
@@ -53,6 +56,7 @@ const mockBooks: Book[] = [
     author: 'Ana Costa',
     category: 'Música',
     available: true,
+    copies: 4,
     cover: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=200',
   },
   {
@@ -61,6 +65,7 @@ const mockBooks: Book[] = [
     author: 'Carlos Ferreira',
     category: 'História',
     available: true,
+    copies: 2,
     cover: 'https://images.unsplash.com/photo-1576872381149-7847515ce5d8?q=80&w=200',
   },
   {
@@ -69,6 +74,7 @@ const mockBooks: Book[] = [
     author: 'Marcos Silva',
     category: 'Discipulado',
     available: false,
+    copies: 1,
     cover: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=200',
   },
 ];
