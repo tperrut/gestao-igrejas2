@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -32,11 +31,16 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
           </Button>
           
           <Link to="/" className="flex items-center gap-2">
+            <img 
+              src="https://images.seeklogo.com/logo-png/27/1/imw-igreja-metodista-wesleyana-logo-png_seeklogo-275760.png?v=1962823770704272104" 
+              alt="Igreja Metodista Wesleyana Logo" 
+              className="h-10 w-auto" 
+            />
             <span className="hidden font-montserrat font-bold text-xl text-church-blue sm:inline-block">
-              ChurchConnect
+              Igreja Metodista Wesleyana
             </span>
             <span className="font-montserrat font-bold text-xl text-church-blue sm:hidden">
-              CC
+              IMW
             </span>
           </Link>
         </div>
