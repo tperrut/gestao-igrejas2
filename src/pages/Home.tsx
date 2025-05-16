@@ -13,7 +13,7 @@ const Home: React.FC = () => {
         <div className="container mx-auto px-4 relative z-10 text-white">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-              Sua Igreja Aqui
+              Igreja Metodista Wesleyana
             </h1>
             <p className="text-xl md:text-2xl mb-8">
               A plataforma completa para gestão da sua igreja. Integre membros, recursos e atividades em um só lugar.
