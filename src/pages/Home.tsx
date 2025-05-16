@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, CreditCard, Book, Users } from 'lucide-react';
+import { Calendar, CreditCard, Book, Users, LayoutDashboard, GraduationCap, MessageSquare } from 'lucide-react';
 
 const Home: React.FC = () => {
   return (
@@ -45,7 +45,7 @@ const Home: React.FC = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-8">
             <Card className="card-hover">
               <CardHeader className="pb-2 text-center">
                 <div className="mx-auto p-3 rounded-full bg-church-blue/10 mb-4">
@@ -118,6 +118,46 @@ const Home: React.FC = () => {
               <CardFooter className="pt-0 justify-center">
                 <Link to="/members">
                   <Button variant="outline" className="text-amber-600">Saiba Mais</Button>
+                </Link>
+              </CardFooter>
+            </Card>
+            
+            {/* Novo card - Dashboard Personalizado */}
+            <Card className="card-hover">
+              <CardHeader className="pb-2 text-center">
+                <div className="mx-auto p-3 rounded-full bg-purple-100 mb-4">
+                  <LayoutDashboard className="h-8 w-8 text-purple-600" />
+                </div>
+                <CardTitle className="text-xl">Dashboard Personalizado</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <p className="text-gray-600">
+                  Visualize dados importantes da sua igreja em um painel interativo.
+                </p>
+              </CardContent>
+              <CardFooter className="pt-0 justify-center">
+                <Link to="/dashboard">
+                  <Button variant="outline" className="text-purple-600">Saiba Mais</Button>
+                </Link>
+              </CardFooter>
+            </Card>
+            
+            {/* Novo card - Cursos */}
+            <Card className="card-hover">
+              <CardHeader className="pb-2 text-center">
+                <div className="mx-auto p-3 rounded-full bg-blue-100 mb-4">
+                  <GraduationCap className="h-8 w-8 text-blue-600" />
+                </div>
+                <CardTitle className="text-xl">Cursos</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <p className="text-gray-600">
+                  Gerencie cursos, matrículas e acompanhe o progresso dos alunos.
+                </p>
+              </CardContent>
+              <CardFooter className="pt-0 justify-center">
+                <Link to="/courses">
+                  <Button variant="outline" className="text-blue-600">Saiba Mais</Button>
                 </Link>
               </CardFooter>
             </Card>

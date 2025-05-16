@@ -10,7 +10,9 @@ import {
   Home, 
   Settings, 
   Users,
-  Mail
+  Mail,
+  MessageSquare,
+  GraduationCap
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -50,9 +52,19 @@ const mainNavItems: NavItem[] = [
     path: '/finance',
   },
   {
+    title: 'Cursos',
+    icon: GraduationCap,
+    path: '/courses',
+  },
+  {
     title: 'Relatórios',
     icon: ChartBar,
     path: '/reports',
+  },
+  {
+    title: 'Fale com o Pastor',
+    icon: MessageSquare,
+    path: '/pastoral-appointment',
   },
   {
     title: 'Contato',
