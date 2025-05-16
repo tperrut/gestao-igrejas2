@@ -316,7 +316,7 @@ const Home: React.FC = () => {
             </div>
           </div>
           <div className="border-t border-gray-700 pt-4 text-center text-gray-400">
-            <p>&copy; 2025 Plataforma  Plataforma AltarHub<span className="font-bold text-church-red">AltarHub</span>. Todos os direitos reservados.</p>
+            <p>&copy; 2025 Plataforma <span className="font-bold text-church-red">AltarHub</span>. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>
