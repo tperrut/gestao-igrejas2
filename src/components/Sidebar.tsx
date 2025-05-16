@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -6,7 +5,7 @@ import {
   Book, 
   Calendar, 
   ChartBar, 
-  CreditCard, 
+  CircleDollarSign, 
   Home, 
   Settings, 
   Users 
@@ -45,7 +44,7 @@ const mainNavItems: NavItem[] = [
   },
   {
     title: 'Financeiro',
-    icon: CreditCard,
+    icon: CircleDollarSign,
     path: '/finance',
   },
   {
