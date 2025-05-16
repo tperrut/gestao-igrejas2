@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Calendar, CalendarIcon } from "lucide-react";
+import { Calendar, CalendarIcon, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/use-toast";
 import { EventType } from '@/pages/Events';
+import EventModal from './EventModal';
 
 interface ScheduledEvent {
   id: number;
@@ -88,6 +89,7 @@ const EventSchedule: React.FC = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { toast } = useToast();
   const [events] = useState<ScheduledEvent[]>(mockEvents);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Filtra eventos pela data selecionada
   const selectedDayEvents = date ? events.filter(event => 
@@ -97,10 +99,15 @@ const EventSchedule: React.FC = () => {
   ) : [];
 
   const handleScheduleEvent = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleSaveEvent = (eventData: any) => {
     toast({
-      title: "Agendar novo evento",
-      description: "Funcionalidade em desenvolvimento."
+      title: "Evento agendado",
+      description: "O evento foi agendado com sucesso."
     });
+    setIsModalOpen(false);
   };
 
   // Função para marcar dias com eventos no calendário
@@ -122,13 +129,14 @@ const EventSchedule: React.FC = () => {
           </p>
         </div>
         <Button onClick={handleScheduleEvent}>
+          <Plus className="mr-2 h-4 w-4" />
           Agendar Novo Evento
         </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
-          <Card>
+          <Card className="h-full">
             <CardHeader>
               <CardTitle>Calendário</CardTitle>
               <CardDescription>
@@ -142,7 +150,7 @@ const EventSchedule: React.FC = () => {
                   selected={date}
                   onSelect={setDate}
                   locale={ptBR}
-                  className="rounded-md border"
+                  className="rounded-md border pointer-events-auto"
                   modifiers={{
                     hasEvent: isDayWithEvent
                   }}
@@ -175,11 +183,17 @@ const EventSchedule: React.FC = () => {
 
         <div className="lg:col-span-2">
           <Card className="h-full">
-            <CardHeader>
-              <CardTitle>Eventos do Dia</CardTitle>
-              <CardDescription>
-                {date ? format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "Selecione uma data"}
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Eventos do Dia</CardTitle>
+                <CardDescription>
+                  {date ? format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "Selecione uma data"}
+                </CardDescription>
+              </div>
+              <Button size="sm" variant="outline" onClick={handleScheduleEvent}>
+                <Plus className="mr-2 h-4 w-4" />
+                Adicionar
+              </Button>
             </CardHeader>
             <CardContent>
               {selectedDayEvents.length === 0 ? (
@@ -229,6 +243,13 @@ const EventSchedule: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      <EventModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveEvent}
+        title="Agendar Novo Evento"
+      />
     </div>
   );
 };

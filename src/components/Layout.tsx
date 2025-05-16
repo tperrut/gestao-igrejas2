@@ -19,7 +19,7 @@ const Layout: React.FC = () => {
         <Sidebar isOpen={sidebarOpen} />
         <main 
           className={cn(
-            "flex-1 transition-all duration-300 ease-in-out p-4 md:p-8", 
+            "flex-1 transition-all duration-300 ease-in-out p-4 md:p-8 overflow-x-hidden", 
             "md:ml-[80px]"
           )}
         >

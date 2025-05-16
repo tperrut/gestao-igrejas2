@@ -14,6 +14,7 @@ import {
   MessageSquare,
   GraduationCap
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ interface NavItem {
   title: string;
   icon: React.ElementType;
   path: string;
+  highlight?: boolean;
 }
 
 const mainNavItems: NavItem[] = [
@@ -47,6 +49,11 @@ const mainNavItems: NavItem[] = [
     path: '/members',
   },
   {
+    title: 'Eventos',
+    icon: Calendar,
+    path: '/events',
+  },
+  {
     title: 'Financeiro',
     icon: CircleDollarSign,
     path: '/finance',
@@ -65,6 +72,7 @@ const mainNavItems: NavItem[] = [
     title: 'Fale com o Pastor',
     icon: MessageSquare,
     path: '/pastoral-appointment',
+    highlight: true,
   },
   {
     title: 'Contato',
@@ -87,6 +95,30 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
   const NavLink = ({ item }: { item: NavItem }) => {
     const isActive = location.pathname === item.path;
     
+    if (item.highlight) {
+      return (
+        <Link
+          to={item.path}
+          className="px-3 py-1 mb-2"
+        >
+          <Button 
+            variant={isActive ? "default" : "outline"}
+            className={cn(
+              "w-full flex items-center justify-start gap-3",
+              isActive ? "bg-primary text-primary-foreground" : "hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+            )}
+          >
+            <item.icon className="h-5 w-5" />
+            <span className={cn(
+              !isOpen && "md:hidden"
+            )}>
+              {item.title}
+            </span>
+          </Button>
+        </Link>
+      );
+    }
+    
     return (
       <Link
         to={item.path}
@@ -98,7 +130,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
         )}
       >
         <item.icon className="h-5 w-5" />
-        <span>{item.title}</span>
+        <span className={cn(
+          !isOpen && "md:hidden"
+        )}>
+          {item.title}
+        </span>
       </Link>
     );
   };
@@ -145,7 +181,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
                       to={item.path}
                       className={cn(
                         "flex flex-col items-center justify-center rounded-lg p-2 text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
-                        location.pathname === item.path && "bg-sidebar-accent text-sidebar-accent-foreground"
+                        location.pathname === item.path && "bg-sidebar-accent text-sidebar-accent-foreground",
+                        item.highlight && "border border-primary text-primary"
                       )}
                       title={item.title}
                     >
