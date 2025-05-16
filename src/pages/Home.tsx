@@ -25,7 +25,7 @@ const Home: React.FC = () => {
                 </Button>
               </Link>
               <Link to="/contact">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-orange/10">
+                <Button size="lg" className="bg-white text-church-blue hover:bg-orange-100">
                   Fale Conosco
                 </Button>
               </Link>
