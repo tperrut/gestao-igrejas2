@@ -1,10 +1,13 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Calendar } from 'lucide-react';
 import EventsList from '@/components/events/EventsList';
 import EventModal from '@/components/events/EventModal';
+import EventSchedule from '@/components/events/EventSchedule';
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export type EventType = 'culto' | 'reuniao' | 'conferencia' | 'treinamento' | 'social';
 
@@ -24,6 +27,7 @@ const Events: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | undefined>(undefined);
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("lista");
 
   const handleOpenCreateModal = () => {
     setEditingEvent(undefined);
@@ -127,7 +131,18 @@ const Events: React.FC = () => {
           </Card>
         </div>
 
-        <EventsList onEdit={handleOpenEditModal} />
+        <Tabs defaultValue="lista" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-2 w-[400px] max-w-full">
+            <TabsTrigger value="lista">Lista de Eventos</TabsTrigger>
+            <TabsTrigger value="agenda">Agendamento</TabsTrigger>
+          </TabsList>
+          <TabsContent value="lista">
+            <EventsList onEdit={handleOpenEditModal} />
+          </TabsContent>
+          <TabsContent value="agenda">
+            <EventSchedule />
+          </TabsContent>
+        </Tabs>
 
         <EventModal
           isOpen={isModalOpen}

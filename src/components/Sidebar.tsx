@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -8,7 +9,8 @@ import {
   CircleDollarSign, 
   Home, 
   Settings, 
-  Users 
+  Users,
+  Mail
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -51,6 +53,11 @@ const mainNavItems: NavItem[] = [
     title: 'Relatórios',
     icon: ChartBar,
     path: '/reports',
+  },
+  {
+    title: 'Contato',
+    icon: Mail,
+    path: '/contact',
   },
 ];
 

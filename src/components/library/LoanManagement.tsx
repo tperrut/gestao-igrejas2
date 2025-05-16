@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -23,10 +22,13 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  PlusCircle,
 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
+import LoanModal from './LoanModal';
 
 type LoanStatus = 'active' | 'returned' | 'overdue' | 'reserved';
 
@@ -38,6 +40,14 @@ interface Loan {
   dueDate: string;
   returnDate?: string;
   status: LoanStatus;
+}
+
+interface LoanFormValues {
+  bookId: string;
+  borrowerName: string;
+  borrowDate: string;
+  dueDate: string;
+  notes?: string;
 }
 
 const mockLoans: Loan[] = [
@@ -107,6 +117,9 @@ const getStatusLabel = (status: LoanStatus) => {
 const LoanManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loans] = useState<Loan[]>(mockLoans);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingLoan, setEditingLoan] = useState<Partial<LoanFormValues> | undefined>(undefined);
+  const { toast } = useToast();
 
   const filteredLoans = loans.filter(loan => 
     loan.bookTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -118,6 +131,19 @@ const LoanManagement: React.FC = () => {
   const returnedLoans = filteredLoans.filter(loan => loan.status === 'returned');
   const reservedBooks = filteredLoans.filter(loan => loan.status === 'reserved');
 
+  const handleOpenCreateModal = () => {
+    setEditingLoan(undefined);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveLoan = (loan: LoanFormValues) => {
+    toast({
+      title: "Empréstimo registrado",
+      description: `O livro foi emprestado para ${loan.borrowerName}.`
+    });
+    setIsModalOpen(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -127,7 +153,8 @@ const LoanManagement: React.FC = () => {
             Controle os empréstimos e reservas de livros da biblioteca.
           </p>
         </div>
-        <Button className="sm:self-end">
+        <Button className="sm:self-end" onClick={handleOpenCreateModal}>
+          <PlusCircle className="mr-2 h-4 w-4" />
           Novo Empréstimo
         </Button>
       </div>
@@ -144,31 +171,41 @@ const LoanManagement: React.FC = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="active" className="w-full">
-        <TabsList>
-          <TabsTrigger value="active">
-            Ativos
-            <Badge variant="default" className="ml-2">{activeLoans.length}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="overdue">
-            Atrasados
-            <Badge variant="destructive" className="ml-2">{overdueLoans.length}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="returned">
-            Devolvidos
-            <Badge variant="outline" className="ml-2">{returnedLoans.length}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="reserved">
-            Reservados
-            <Badge variant="secondary" className="ml-2">{reservedBooks.length}</Badge>
-          </TabsTrigger>
-        </TabsList>
+      <div className="overflow-x-auto">
+        <Tabs defaultValue="active" className="w-full">
+          <TabsList className="flex flex-wrap">
+            <TabsTrigger value="active" className="flex-grow sm:flex-grow-0">
+              Ativos
+              <Badge variant="default" className="ml-2">{activeLoans.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="overdue" className="flex-grow sm:flex-grow-0">
+              Atrasados
+              <Badge variant="destructive" className="ml-2">{overdueLoans.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="returned" className="flex-grow sm:flex-grow-0">
+              Devolvidos
+              <Badge variant="outline" className="ml-2">{returnedLoans.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="reserved" className="flex-grow sm:flex-grow-0">
+              Reservados
+              <Badge variant="secondary" className="ml-2">{reservedBooks.length}</Badge>
+            </TabsTrigger>
+          </TabsList>
 
-        <LoanTable loans={activeLoans} type="active" />
-        <LoanTable loans={overdueLoans} type="overdue" />
-        <LoanTable loans={returnedLoans} type="returned" />
-        <LoanTable loans={reservedBooks} type="reserved" />
-      </Tabs>
+          <LoanTable loans={activeLoans} type="active" />
+          <LoanTable loans={overdueLoans} type="overdue" />
+          <LoanTable loans={returnedLoans} type="returned" />
+          <LoanTable loans={reservedBooks} type="reserved" />
+        </Tabs>
+      </div>
+
+      <LoanModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveLoan}
+        loan={editingLoan}
+        title="Novo Empréstimo"
+      />
     </div>
   );
 };
@@ -181,25 +218,25 @@ interface LoanTableProps {
 const LoanTable: React.FC<LoanTableProps> = ({ loans, type }) => {
   return (
     <TabsContent value={type} className="p-0">
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[250px]">
+              <TableHead className="w-[250px] min-w-[150px]">
                 <div className="flex items-center gap-1">
                   Livro
                   <ArrowUpDown className="h-3 w-3" />
                 </div>
               </TableHead>
-              <TableHead>Membro</TableHead>
+              <TableHead className="min-w-[120px]">Membro</TableHead>
               {type !== 'reserved' && (
                 <>
-                  <TableHead>Data de Empréstimo</TableHead>
-                  <TableHead>Data de Devolução</TableHead>
+                  <TableHead className="min-w-[120px]">Data de Empréstimo</TableHead>
+                  <TableHead className="min-w-[120px]">Data de Devolução</TableHead>
                 </>
               )}
-              {type === 'returned' && <TableHead>Devolvido em</TableHead>}
-              <TableHead>Status</TableHead>
+              {type === 'returned' && <TableHead className="min-w-[120px]">Devolvido em</TableHead>}
+              <TableHead className="min-w-[100px]">Status</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>

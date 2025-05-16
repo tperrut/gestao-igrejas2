@@ -14,6 +14,7 @@ import Calendar from "./pages/Calendar";
 import Courses from "./pages/Courses";
 import Loans from "./pages/Loans";
 import Finance from "./pages/Finance";
+import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,7 +36,7 @@ const App = () => (
             <Route path="/courses" element={<Courses />} />
             <Route path="/loans" element={<Loans />} />
             <Route path="/finance" element={<Finance />} />
-            {/* Add other routes here */}
+            <Route path="/contact" element={<Contact />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
