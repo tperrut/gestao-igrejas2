@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,9 +11,20 @@ const Home: React.FC = () => {
       <section className="relative bg-church-blue py-16 md:py-24">
         <div className="container mx-auto px-4 relative z-10 text-white">
           <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-              Plataforma AltarHub, a gestão da sua igreja 100% Online!
-            </h1>
+            <div className="flex items-center gap-4 mb-6">
+              <div className="bg-white rounded-full p-2 flex items-center justify-center">
+                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-church-blue">
+                  <path d="M30 10L10 20V50L30 40L50 50V20L30 10Z" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="rgba(59, 130, 246, 0.1)" />
+                  <path d="M30 10V40" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M10 20L30 30L50 20" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="30" cy="5" r="3" fill="currentColor" />
+                  <circle cx="30" cy="45" r="3" fill="currentColor" />
+                </svg>
+              </div>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold">
+                <span className="bg-gradient-to-r from-white to-gray-300 text-transparent bg-clip-text font-bold">Plataforma</span> <span className="bg-gradient-to-r from-church-red to-amber-400 text-transparent bg-clip-text font-bold">AltarHub</span>, a gestão da sua igreja 100% Online!
+              </h1>
+            </div>
             <p className="text-xl md:text-2xl mb-8">
               A plataforma completa para gestão da sua igreja. Integre membros, recursos e atividades em um só lugar.
             </p>
@@ -253,7 +263,7 @@ const Home: React.FC = () => {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-6">Pronto para transformar a gestão da sua igreja?</h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Junte-se a centenas de igrejas que estão usando a plataforma da Igreja Metodista Wesleyana para simplificar sua administração.
+            Junte-se a centenas de igrejas que estão usando a <span className="font-bold text-yellow-200">Plataforma AltarHub</span> para simplificar sua administração.
           </p>
           <Link to="/dashboard">
             <Button size="lg" className="bg-white text-church-red hover:bg-gray-100">
@@ -268,7 +278,21 @@ const Home: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <div>
-              <h3 className="text-xl font-bold mb-4">Igreja Metodista Wesleyana</h3>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-white rounded-full p-1 flex items-center justify-center">
+                  <svg width="32" height="32" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-church-blue">
+                    <path d="M30 10L10 20V50L30 40L50 50V20L30 10Z" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="rgba(59, 130, 246, 0.1)" />
+                    <path d="M30 10V40" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M10 20L30 30L50 20" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                    <circle cx="30" cy="5" r="3" fill="currentColor" />
+                    <circle cx="30" cy="45" r="3" fill="currentColor" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold">
+                  <span className="text-church-red">Altar</span>
+                  <span className="text-white">Hub</span>
+                </h3>
+              </div>
               <p className="text-gray-400">
                 A solução completa para gestão da sua igreja.
               </p>
@@ -291,7 +315,7 @@ const Home: React.FC = () => {
             </div>
           </div>
           <div className="border-t border-gray-700 pt-4 text-center text-gray-400">
-            <p>&copy; 2025  Plataforma AltarHub. Todos os direitos reservados.</p>
+            <p>&copy; 2025 Plataforma <span className="font-bold text-church-red">AltarHub</span>. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>
