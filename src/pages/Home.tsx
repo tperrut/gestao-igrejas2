@@ -13,7 +13,7 @@ const Home: React.FC = () => {
         <div className="container mx-auto px-4 relative z-10 text-white">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-              Igreja Metodista Wesleyana
+              Plataforma AltarHub, a gestão da sua igreja 100% Online!
             </h1>
             <p className="text-xl md:text-2xl mb-8">
               A plataforma completa para gestão da sua igreja. Integre membros, recursos e atividades em um só lugar.
@@ -291,7 +291,7 @@ const Home: React.FC = () => {
             </div>
           </div>
           <div className="border-t border-gray-700 pt-4 text-center text-gray-400">
-            <p>&copy; 2024 Igreja Metodista Wesleyana. Todos os direitos reservados.</p>
+            <p>&copy; 2025  Plataforma AltarHub. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>
