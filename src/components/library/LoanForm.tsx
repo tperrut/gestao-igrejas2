@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -15,24 +15,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from '@/integrations/supabase/client';
+import { Book } from './BookModal';
+import { Member } from '../members/MembersList';
 
 const loanFormSchema = z.object({
-  bookId: z.string().min(1, { message: "Selecione um livro" }),
-  borrowerName: z.string().min(2, { message: "Nome deve ter pelo menos 2 caracteres" }),
-  borrowDate: z.string().min(1, { message: "Data de empréstimo é obrigatória" }),
-  dueDate: z.string().min(1, { message: "Data de devolução é obrigatória" }),
+  book_id: z.string().min(1, { message: "Selecione um livro" }),
+  member_id: z.string().min(1, { message: "Selecione um membro" }),
+  borrow_date: z.string().min(1, { message: "Data de empréstimo é obrigatória" }),
+  due_date: z.string().min(1, { message: "Data de devolução é obrigatória" }),
   notes: z.string().optional(),
 });
 
-type LoanFormValues = z.infer<typeof loanFormSchema>;
-
-// Mock de dados para o exemplo
-const mockBooks = [
-  { id: "1", title: "A Vida Cristã Prática" },
-  { id: "2", title: "Comentário Bíblico" },
-  { id: "3", title: "Liderança na Igreja" },
-  { id: "4", title: "Adoração e Louvor" },
-];
+export type LoanFormValues = z.infer<typeof loanFormSchema>;
 
 interface LoanFormProps {
   onSubmit: (data: LoanFormValues) => void;
@@ -44,25 +39,63 @@ const LoanForm: React.FC<LoanFormProps> = ({
   onSubmit,
   onCancel,
   defaultValues = {
-    bookId: "",
-    borrowerName: "",
-    borrowDate: new Date().toISOString().split('T')[0],
-    dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    book_id: "",
+    member_id: "",
+    borrow_date: new Date().toISOString().split('T')[0],
+    due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     notes: "",
   },
 }) => {
+  const [books, setBooks] = useState<Book[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
+  
   const form = useForm<LoanFormValues>({
     resolver: zodResolver(loanFormSchema),
     defaultValues,
   });
   const { toast } = useToast();
 
+  useEffect(() => {
+    fetchBooksAndMembers();
+  }, []);
+
+  async function fetchBooksAndMembers() {
+    setLoading(true);
+    try {
+      // Buscar livros disponíveis
+      const { data: booksData, error: booksError } = await supabase
+        .from('books')
+        .select('*')
+        .gt('available_copies', 0)
+        .order('title');
+      
+      // Buscar membros ativos
+      const { data: membersData, error: membersError } = await supabase
+        .from('members')
+        .select('*')
+        .eq('status', 'active')
+        .order('name');
+      
+      if (booksError) throw booksError;
+      if (membersError) throw membersError;
+      
+      setBooks(booksData as Book[]);
+      setMembers(membersData as Member[]);
+    } catch (error) {
+      toast({
+        title: "Erro ao carregar dados",
+        description: "Não foi possível carregar livros e membros.",
+        variant: "destructive"
+      });
+      console.error("Erro ao carregar dados:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const handleSubmit = (data: LoanFormValues) => {
     onSubmit(data);
-    toast({
-      title: "Empréstimo registrado",
-      description: "O empréstimo foi registrado com sucesso.",
-    });
   };
 
   return (
@@ -70,13 +103,14 @@ const LoanForm: React.FC<LoanFormProps> = ({
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="bookId"
+          name="book_id"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Livro</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
                 defaultValue={field.value}
+                disabled={loading}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -84,9 +118,9 @@ const LoanForm: React.FC<LoanFormProps> = ({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {mockBooks.map((book) => (
+                  {books.map((book) => (
                     <SelectItem key={book.id} value={book.id}>
-                      {book.title}
+                      {book.title} - {book.author} ({book.available_copies} disponíveis)
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -98,13 +132,28 @@ const LoanForm: React.FC<LoanFormProps> = ({
 
         <FormField
           control={form.control}
-          name="borrowerName"
+          name="member_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nome do Solicitante</FormLabel>
-              <FormControl>
-                <Input placeholder="Nome completo" {...field} />
-              </FormControl>
+              <FormLabel>Membro</FormLabel>
+              <Select 
+                onValueChange={field.onChange} 
+                defaultValue={field.value}
+                disabled={loading}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um membro" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {members.map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -113,7 +162,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="borrowDate"
+            name="borrow_date"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Data de Empréstimo</FormLabel>
@@ -127,7 +176,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
 
           <FormField
             control={form.control}
-            name="dueDate"
+            name="due_date"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Data de Devolução</FormLabel>
@@ -158,7 +207,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
           <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">
             Cancelar
           </Button>
-          <Button type="submit" className="w-full sm:w-auto">
+          <Button type="submit" className="w-full sm:w-auto" disabled={loading}>
             Registrar Empréstimo
           </Button>
         </div>

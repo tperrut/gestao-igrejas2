@@ -21,10 +21,10 @@ const memberFormSchema = z.object({
   phone: z.string().min(10, { message: "Telefone deve ter pelo menos 10 dígitos" }),
   status: z.enum(["active", "inactive"]),
   role: z.string().min(1, { message: "Função é obrigatória" }),
-  joinDate: z.string().min(1, { message: "Data de entrada é obrigatória" }),
+  join_date: z.string().min(1, { message: "Data de entrada é obrigatória" }),
 });
 
-type MemberFormValues = z.infer<typeof memberFormSchema>;
+export type MemberFormValues = z.infer<typeof memberFormSchema>;
 
 interface MemberFormProps {
   defaultValues?: Partial<MemberFormValues>;
@@ -39,7 +39,7 @@ const MemberForm: React.FC<MemberFormProps> = ({
     phone: "",
     status: "active",
     role: "",
-    joinDate: "",
+    join_date: "",
   },
   onSubmit,
   onCancel
@@ -146,7 +146,7 @@ const MemberForm: React.FC<MemberFormProps> = ({
 
         <FormField
           control={form.control}
-          name="joinDate"
+          name="join_date"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Data de Entrada</FormLabel>
