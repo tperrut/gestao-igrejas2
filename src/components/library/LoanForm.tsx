@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -16,8 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
-import { Book } from './BookModal';
-import { Member } from '../members/MembersList';
+import { Book, Member } from '@/types/libraryTypes';
 
 const loanFormSchema = z.object({
   book_id: z.string().min(1, { message: "Selecione um livro" }),
