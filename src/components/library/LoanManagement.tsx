@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -129,7 +128,7 @@ const LoanManagement: React.FC = () => {
         status: loan.status as LoanStatus
       })) || [];
 
-      // Verificar empréstimos vencidos
+      // Fix the comparison bug in this loop
       const today = new Date();
       formattedLoans.forEach(async loan => {
         if (loan.status === 'active' && new Date(loan.due_date) < today && loan.status !== 'overdue') {
@@ -272,7 +271,7 @@ const LoanManagement: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Gerenciamento de Empréstimos</h1>
           <p className="text-muted-foreground">
-            Controle os empréstimos e reservas de livros da biblioteca.
+            Controle os empr��stimos e reservas de livros da biblioteca.
           </p>
         </div>
         <Button className="sm:self-end" onClick={handleOpenCreateModal}>
