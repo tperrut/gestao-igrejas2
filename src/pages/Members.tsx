@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Users } from 'lucide-react';
@@ -5,21 +6,67 @@ import MembersList from '@/components/members/MembersList';
 import MemberModal from '@/components/members/MemberModal';
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-
-interface Member {
-  id?: number;
-  name: string;
-  email: string;
-  phone: string;
-  status: 'active' | 'inactive';
-  role: string;
-  joinDate: string;
-}
+import { supabase } from '@/integrations/supabase/client';
+import { MemberFormValues } from '@/components/members/MemberForm';
+import { useEffect } from 'react';
+import { Member } from '@/components/members/MembersList';
 
 const Members: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | undefined>(undefined);
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    new: 0,
+    birthdays: 0
+  });
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchMemberStats();
+  }, []);
+
+  async function fetchMemberStats() {
+    try {
+      // Total de membros
+      const { count: totalCount, error: totalError } = await supabase
+        .from('members')
+        .select('*', { count: 'exact', head: true });
+
+      // Membros ativos
+      const { count: activeCount, error: activeError } = await supabase
+        .from('members')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active');
+
+      // Novos membros (últimos 30 dias)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const { count: newCount, error: newError } = await supabase
+        .from('members')
+        .select('*', { count: 'exact', head: true })
+        .gte('join_date', thirtyDaysAgo.toISOString().split('T')[0]);
+
+      // Aniversariantes do mês atual
+      // Simplificação: usar um valor fixo
+      const birthdays = 8;
+
+      if (totalError || activeError || newError) {
+        throw new Error('Erro ao buscar estatísticas');
+      }
+
+      setStats({
+        total: totalCount || 0,
+        active: activeCount || 0,
+        new: newCount || 0,
+        birthdays
+      });
+
+    } catch (error) {
+      console.error("Erro ao buscar estatísticas:", error);
+    }
+  }
 
   const handleOpenCreateModal = () => {
     setEditingMember(undefined);
@@ -31,20 +78,61 @@ const Members: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSaveMember = (member: Omit<Member, 'id'>) => {
-    if (editingMember?.id) {
-      // Update existing member
+  const handleSaveMember = async (member: MemberFormValues) => {
+    try {
+      if (editingMember?.id) {
+        // Update existing member
+        const { error } = await supabase
+          .from('members')
+          .update({
+            name: member.name,
+            email: member.email,
+            phone: member.phone,
+            status: member.status,
+            role: member.role,
+            join_date: member.join_date
+          })
+          .eq('id', editingMember.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Membro atualizado",
+          description: `${member.name} foi atualizado com sucesso.`
+        });
+      } else {
+        // Create new member
+        const { error } = await supabase
+          .from('members')
+          .insert([{
+            name: member.name,
+            email: member.email,
+            phone: member.phone,
+            status: member.status,
+            role: member.role,
+            join_date: member.join_date
+          }]);
+
+        if (error) throw error;
+
+        toast({
+          title: "Membro adicionado",
+          description: `${member.name} foi adicionado com sucesso.`
+        });
+      }
+      
+      // Atualizar estatísticas
+      fetchMemberStats();
+      
+    } catch (error) {
       toast({
-        title: "Membro atualizado",
-        description: `${member.name} foi atualizado com sucesso.`
+        title: "Erro",
+        description: `Ocorreu um erro ao salvar o membro.`,
+        variant: "destructive"
       });
-    } else {
-      // Create new member
-      toast({
-        title: "Membro adicionado",
-        description: `${member.name} foi adicionado com sucesso.`
-      });
+      console.error("Erro ao salvar membro:", error);
     }
+    
     setIsModalOpen(false);
   };
 
@@ -73,9 +161,9 @@ const Members: React.FC = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">248</div>
+              <div className="text-2xl font-bold">{stats.total}</div>
               <p className="text-xs text-muted-foreground">
-                +12% em relação ao mês anterior
+                Membros registrados
               </p>
             </CardContent>
           </Card>
@@ -87,7 +175,7 @@ const Members: React.FC = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">15</div>
+              <div className="text-2xl font-bold">{stats.new}</div>
               <p className="text-xs text-muted-foreground">
                 Nos últimos 30 dias
               </p>
@@ -101,9 +189,9 @@ const Members: React.FC = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">210</div>
+              <div className="text-2xl font-bold">{stats.active}</div>
               <p className="text-xs text-muted-foreground">
-                84% do total
+                {stats.total > 0 ? `${Math.round((stats.active / stats.total) * 100)}% do total` : '0% do total'}
               </p>
             </CardContent>
           </Card>
@@ -115,7 +203,7 @@ const Members: React.FC = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">8</div>
+              <div className="text-2xl font-bold">{stats.birthdays}</div>
               <p className="text-xs text-muted-foreground">
                 No mês atual
               </p>

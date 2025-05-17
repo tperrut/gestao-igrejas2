@@ -6,22 +6,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import MemberForm from './MemberForm';
-
-interface Member {
-  id?: number;
-  name: string;
-  email: string;
-  phone: string;
-  status: 'active' | 'inactive';
-  role: string;
-  joinDate: string;
-}
+import MemberForm, { MemberFormValues } from './MemberForm';
+import { Member } from './MembersList';
 
 interface MemberModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (member: Omit<Member, 'id'>) => void;
+  onSave: (member: MemberFormValues) => void;
   member?: Member;
   title: string;
 }

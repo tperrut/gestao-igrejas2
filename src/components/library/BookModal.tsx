@@ -6,26 +6,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import BookForm from './BookForm';
+import BookForm, { BookFormValues } from './BookForm';
 
-interface Book {
-  id?: number;
+export interface Book {
+  id: string;
   title: string;
   author: string;
   category: string;
   isbn?: string;
   publisher?: string;
-  publicationYear?: string;
+  publication_year?: string;
   copies: number;
+  available_copies: number;
+  cover_url?: string;
   description?: string;
-  cover?: string;
-  available?: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 interface BookModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (book: Omit<Book, 'id' | 'available'>) => void;
+  onSave: (book: BookFormValues) => void;
   book?: Book;
   title: string;
 }

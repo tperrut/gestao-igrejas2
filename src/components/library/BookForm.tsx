@@ -22,13 +22,13 @@ const bookFormSchema = z.object({
   category: z.string().min(1, { message: "Categoria é obrigatória" }),
   isbn: z.string().optional(),
   publisher: z.string().optional(),
-  publicationYear: z.string().optional(),
+  publication_year: z.string().optional(),
   copies: z.coerce.number().min(1, { message: "Quantidade deve ser pelo menos 1" }),
   description: z.string().optional(),
-  cover: z.string().optional(),
+  cover_url: z.string().optional(),
 });
 
-type BookFormValues = z.infer<typeof bookFormSchema>;
+export type BookFormValues = z.infer<typeof bookFormSchema>;
 
 interface BookFormProps {
   defaultValues?: Partial<BookFormValues>;
@@ -43,10 +43,10 @@ const BookForm: React.FC<BookFormProps> = ({
     category: "",
     isbn: "",
     publisher: "",
-    publicationYear: "",
+    publication_year: "",
     copies: 1,
     description: "",
-    cover: "",
+    cover_url: "",
   },
   onSubmit,
   onCancel
@@ -162,7 +162,7 @@ const BookForm: React.FC<BookFormProps> = ({
 
         <FormField
           control={form.control}
-          name="publicationYear"
+          name="publication_year"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Ano de Publicação</FormLabel>
@@ -176,7 +176,7 @@ const BookForm: React.FC<BookFormProps> = ({
 
         <FormField
           control={form.control}
-          name="cover"
+          name="cover_url"
           render={({ field }) => (
             <FormItem>
               <FormLabel>URL da Capa</FormLabel>
@@ -202,9 +202,9 @@ const BookForm: React.FC<BookFormProps> = ({
           )}
         />
 
-        <div className="flex justify-end space-x-2 pt-4">
-          <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
-          <Button type="submit">Salvar</Button>
+        <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-4">
+          <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">Cancelar</Button>
+          <Button type="submit" className="w-full sm:w-auto">Salvar</Button>
         </div>
       </form>
     </Form>
