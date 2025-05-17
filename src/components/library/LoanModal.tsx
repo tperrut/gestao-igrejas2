@@ -6,15 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import LoanForm from './LoanForm';
-
-interface LoanFormValues {
-  bookId: string;
-  borrowerName: string;
-  borrowDate: string;
-  dueDate: string;
-  notes?: string;
-}
+import LoanForm, { LoanFormValues } from './LoanForm';
 
 interface LoanModalProps {
   isOpen: boolean;
