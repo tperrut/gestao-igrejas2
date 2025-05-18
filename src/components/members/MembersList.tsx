@@ -21,6 +21,8 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { Member } from "@/types/libraryTypes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { format, parse } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface MembersListProps {
   onEdit?: (member: Member) => void;
@@ -105,8 +107,18 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
       .substring(0, 2);
   };
 
+  const formatDate = (dateString: string | undefined): string => {
+    if (!dateString) return '-';
+    try {
+      const date = parse(dateString, 'yyyy-MM-dd', new Date());
+      return format(date, 'dd/MM/yyyy', { locale: ptBR });
+    } catch (error) {
+      return dateString;
+    }
+  };
+
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
@@ -114,6 +126,7 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
             <TableHead>Email</TableHead>
             <TableHead>Telefone</TableHead>
             <TableHead>Função</TableHead>
+            <TableHead>Data de Nascimento</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="w-[100px]">Data de Entrada</TableHead>
             <TableHead className="text-right">Ações</TableHead>
@@ -122,13 +135,13 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
         <TableBody>
           {loading ? (
             <TableRow>
-              <TableCell colSpan={7} className="h-24 text-center">
+              <TableCell colSpan={8} className="h-24 text-center">
                 Carregando membros...
               </TableCell>
             </TableRow>
           ) : members.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="h-24 text-center">
+              <TableCell colSpan={8} className="h-24 text-center">
                 Nenhum membro encontrado.
               </TableCell>
             </TableRow>
@@ -150,6 +163,7 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
                 <TableCell>{member.email}</TableCell>
                 <TableCell>{member.phone || '-'}</TableCell>
                 <TableCell>{member.role || '-'}</TableCell>
+                <TableCell>{formatDate(member.birth_date)}</TableCell>
                 <TableCell>
                   <Badge 
                     variant={member.status === 'active' ? "default" : "outline"}
@@ -159,7 +173,7 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {new Date(member.join_date).toLocaleDateString('pt-BR')}
+                  {formatDate(member.join_date)}
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>

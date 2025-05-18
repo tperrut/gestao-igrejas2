@@ -49,3 +49,34 @@ export interface Loan {
 }
 
 export type LoanStatus = 'active' | 'returned' | 'overdue' | 'reserved';
+
+export interface Course {
+  id: string;
+  title: string;
+  instructor: string;
+  description?: string;
+  start_date: string;
+  end_date: string;
+  category: string;
+  status: string;
+  location?: string;
+  max_students?: number;
+  students?: number;
+  prerequisites?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Event {
+  id: string;
+  title: string;
+  description?: string;
+  date: string;
+  time: string;
+  location: string;
+  organizer: string;
+  type: string;
+  capacity?: number;
+  created_at: string;
+  updated_at: string;
+}

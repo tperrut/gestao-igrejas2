@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, CreditCard, Book, Users, LayoutDashboard, GraduationCap, MessageSquare } from 'lucide-react';
+import { Calendar, CreditCard, Book, Users, LayoutDashboard, GraduationCap } from 'lucide-react';
 
 const Home: React.FC = () => {
   return (
@@ -13,13 +13,11 @@ const Home: React.FC = () => {
           <div className="max-w-3xl">
             <div className="flex items-center gap-4 mb-6">
               <div className="bg-white rounded-full p-2 flex items-center justify-center">
-                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-church-blue">
-                  <path d="M30 10L10 20V50L30 40L50 50V20L30 10Z" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="rgba(59, 130, 246, 0.1)" />
-                  <path d="M30 10V40" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M10 20L30 30L50 20" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                  <circle cx="30" cy="5" r="3" fill="currentColor" />
-                  <circle cx="30" cy="45" r="3" fill="currentColor" />
-                </svg>
+                <img 
+                  src="/lovable-uploads/5b587a7e-6cfb-401a-9bf4-17e540f0f7bf.png" 
+                  alt="AltarHub Logo" 
+                  className="w-16 h-16"
+                />
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold">
                 <span className="bg-gradient-to-r from-white to-gray-300 text-transparent bg-clip-text font-bold">Plataforma</span> <span className="bg-gradient-to-r from-church-red to-amber-400 text-transparent bg-clip-text font-bold">AltarHub</span>, a gestão da sua igreja 100% Online!
@@ -278,16 +276,14 @@ const Home: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <div>
-              <h3 className="text-xl font-bold mb-4"> Plataforma AltarHub</h3>
+              <h3 className="text-xl font-bold mb-4">Plataforma AltarHub</h3>
               <div className="flex items-center gap-3 mb-4">
                 <div className="bg-white rounded-full p-1 flex items-center justify-center">
-                  <svg width="32" height="32" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-church-blue">
-                    <path d="M30 10L10 20V50L30 40L50 50V20L30 10Z" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="rgba(59, 130, 246, 0.1)" />
-                    <path d="M30 10V40" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M10 20L30 30L50 20" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                    <circle cx="30" cy="5" r="3" fill="currentColor" />
-                    <circle cx="30" cy="45" r="3" fill="currentColor" />
-                  </svg>
+                  <img 
+                    src="/lovable-uploads/b666f503-43c7-4e77-b023-c97477365070.png" 
+                    alt="AltarHub Logo" 
+                    className="w-8 h-8"
+                  />
                 </div>
                 <h3 className="text-xl font-bold">
                   <span className="text-church-red">Altar</span>

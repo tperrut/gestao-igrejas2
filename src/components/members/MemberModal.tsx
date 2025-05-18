@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import MemberForm, { MemberFormValues } from './MemberForm';
-import { Member } from './MembersList';
+import { Member } from '@/types/libraryTypes';
 
 interface MemberModalProps {
   isOpen: boolean;
