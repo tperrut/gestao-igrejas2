@@ -49,10 +49,14 @@ const Members: React.FC = () => {
         .gte('join_date', thirtyDaysAgo.toISOString().split('T')[0]);
 
       // Aniversariantes do mês atual
-      // Simplificação: usar um valor fixo
-      const birthdays = 8;
+      const currentMonth = new Date().getMonth() + 1; // Janeiro é 0
+      const { count: birthdayCount, error: birthdayError } = await supabase
+        .from('members')
+        .select('*', { count: 'exact', head: true })
+        .not('birth_date', 'is', null)
+        .filter('birth_date', 'ilike', `%-${currentMonth.toString().padStart(2, '0')}-%`);
 
-      if (totalError || activeError || newError) {
+      if (totalError || activeError || newError || birthdayError) {
         throw new Error('Erro ao buscar estatísticas');
       }
 
@@ -60,7 +64,7 @@ const Members: React.FC = () => {
         total: totalCount || 0,
         active: activeCount || 0,
         new: newCount || 0,
-        birthdays
+        birthdays: birthdayCount || 0
       });
 
     } catch (error) {
@@ -90,7 +94,8 @@ const Members: React.FC = () => {
             phone: member.phone,
             status: member.status,
             role: member.role,
-            join_date: member.join_date
+            join_date: member.join_date,
+            birth_date: member.birth_date || null
           })
           .eq('id', editingMember.id);
 
@@ -110,7 +115,8 @@ const Members: React.FC = () => {
             phone: member.phone,
             status: member.status,
             role: member.role,
-            join_date: member.join_date
+            join_date: member.join_date,
+            birth_date: member.birth_date || null
           }]);
 
         if (error) throw error;

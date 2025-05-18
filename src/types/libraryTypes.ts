@@ -1,3 +1,4 @@
+
 export interface Book {
   id: string;
   title: string;
@@ -22,6 +23,7 @@ export interface Member {
   status: string;
   role?: string;
   join_date: string;
+  birth_date?: string;
   created_at: string;
   updated_at: string;
 }

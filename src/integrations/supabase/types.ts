@@ -57,6 +57,99 @@ export type Database = {
         }
         Relationships: []
       }
+      courses: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          end_date: string
+          id: string
+          instructor: string
+          location: string | null
+          max_students: number | null
+          prerequisites: string | null
+          start_date: string
+          status: string
+          students: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          end_date: string
+          id?: string
+          instructor: string
+          location?: string | null
+          max_students?: number | null
+          prerequisites?: string | null
+          start_date: string
+          status: string
+          students?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          instructor?: string
+          location?: string | null
+          max_students?: number | null
+          prerequisites?: string | null
+          start_date?: string
+          status?: string
+          students?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          capacity: number | null
+          created_at: string
+          date: string
+          description: string | null
+          id: string
+          location: string
+          organizer: string
+          time: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string
+          date: string
+          description?: string | null
+          id?: string
+          location: string
+          organizer: string
+          time: string
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          location?: string
+          organizer?: string
+          time?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       loans: {
         Row: {
           book_id: string
@@ -113,6 +206,7 @@ export type Database = {
       }
       members: {
         Row: {
+          birth_date: string | null
           created_at: string
           email: string
           id: string
@@ -124,6 +218,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          birth_date?: string | null
           created_at?: string
           email: string
           id?: string
@@ -135,6 +230,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          birth_date?: string | null
           created_at?: string
           email?: string
           id?: string

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Book, Calendar, CreditCard, Users } from 'lucide-react';
+import BirthdayCard from '@/components/dashboard/BirthdayCard';
 
 const StatCard: React.FC<{
   title: string;
@@ -123,58 +124,52 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="card-hover">
-          <CardHeader>
-            <CardTitle>Atividade Recente</CardTitle>
-            <CardDescription>
-              Atividades realizadas nos últimos 7 dias.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-8">
-              <div className="flex items-center">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    Novo membro cadastrado: Ana Silva
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Hoje às 14:32
-                  </p>
+        <div className="grid grid-rows-1 gap-4">
+          <BirthdayCard />
+          
+          <Card className="card-hover">
+            <CardHeader>
+              <CardTitle>Atividade Recente</CardTitle>
+              <CardDescription>
+                Últimas atividades registradas.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      Novo membro cadastrado: Ana Silva
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Hoje às 14:32
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      Reserva de sala: Reunião de Jovens
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Ontem às 09:15
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      Devolução de livro: Vida Cristã Prática
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      05/05/2024 às 16:20
+                    </p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    Reserva de sala: Reunião de Jovens
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Ontem às 09:15
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    Devolução de livro: Vida Cristã Prática
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    05/05/2024 às 16:20
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    Doação recebida: R$ 250,00
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    03/05/2024 às 11:40
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

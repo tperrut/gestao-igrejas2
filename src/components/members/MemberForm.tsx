@@ -22,6 +22,7 @@ const memberFormSchema = z.object({
   status: z.enum(["active", "inactive"]),
   role: z.string().min(1, { message: "Função é obrigatória" }),
   join_date: z.string().min(1, { message: "Data de entrada é obrigatória" }),
+  birth_date: z.string().optional(),
 });
 
 export type MemberFormValues = z.infer<typeof memberFormSchema>;
@@ -40,6 +41,7 @@ const MemberForm: React.FC<MemberFormProps> = ({
     status: "active",
     role: "",
     join_date: "",
+    birth_date: "",
   },
   onSubmit,
   onCancel
@@ -144,19 +146,35 @@ const MemberForm: React.FC<MemberFormProps> = ({
           />
         </div>
 
-        <FormField
-          control={form.control}
-          name="join_date"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Data de Entrada</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="join_date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Data de Entrada</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="birth_date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Data de Nascimento</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-4">
           <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">Cancelar</Button>
