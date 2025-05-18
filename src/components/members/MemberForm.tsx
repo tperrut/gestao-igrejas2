@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -14,6 +14,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from "@/components/ui/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Upload, UserRound } from 'lucide-react';
 
 const memberFormSchema = z.object({
   name: z.string().min(2, { message: "Nome deve ter pelo menos 2 caracteres" }),
@@ -25,7 +29,9 @@ const memberFormSchema = z.object({
   birth_date: z.string().optional(),
 });
 
-export type MemberFormValues = z.infer<typeof memberFormSchema>;
+export type MemberFormValues = z.infer<typeof memberFormSchema> & {
+  avatar_url?: string;
+};
 
 interface MemberFormProps {
   defaultValues?: Partial<MemberFormValues>;
@@ -42,6 +48,7 @@ const MemberForm: React.FC<MemberFormProps> = ({
     role: "",
     join_date: "",
     birth_date: "",
+    avatar_url: "",
   },
   onSubmit,
   onCancel
@@ -50,10 +57,93 @@ const MemberForm: React.FC<MemberFormProps> = ({
     resolver: zodResolver(memberFormSchema),
     defaultValues,
   });
+  const { toast } = useToast();
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(defaultValues.avatar_url);
+  const [uploading, setUploading] = useState(false);
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      if (!event.target.files || event.target.files.length === 0) {
+        return;
+      }
+      
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${Date.now()}.${fileExt}`;
+      
+      setUploading(true);
+      
+      // Upload da imagem para o bucket "members"
+      const { error: uploadError, data } = await supabase.storage
+        .from('members')
+        .upload(filePath, file);
+        
+      if (uploadError) {
+        throw uploadError;
+      }
+      
+      // Obter a URL pública da imagem
+      const { data: { publicUrl } } = supabase.storage
+        .from('members')
+        .getPublicUrl(filePath);
+        
+      setAvatarUrl(publicUrl);
+      toast({
+        title: "Imagem carregada com sucesso",
+        description: "A imagem do membro foi carregada."
+      });
+    } catch (error) {
+      console.error("Erro ao fazer upload da imagem:", error);
+      toast({
+        title: "Erro ao carregar imagem",
+        description: "Ocorreu um erro ao fazer upload da imagem.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFormSubmit = (data: MemberFormValues) => {
+    onSubmit({ ...data, avatar_url: avatarUrl });
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
+        <div className="flex flex-col items-center mb-6">
+          <Avatar className="h-24 w-24 mb-4">
+            {avatarUrl ? (
+              <AvatarImage src={avatarUrl} alt="Foto do membro" />
+            ) : (
+              <AvatarFallback>
+                <UserRound className="h-12 w-12 text-gray-400" />
+              </AvatarFallback>
+            )}
+          </Avatar>
+          
+          <div className="flex items-center">
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              disabled={uploading}
+              className="hidden"
+              id="avatar-upload"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => document.getElementById('avatar-upload')?.click()}
+              disabled={uploading}
+              className="flex items-center"
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              {uploading ? "Carregando..." : "Upload de Foto"}
+            </Button>
+          </div>
+        </div>
+
         <FormField
           control={form.control}
           name="name"

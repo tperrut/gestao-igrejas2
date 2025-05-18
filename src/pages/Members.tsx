@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { supabase } from '@/integrations/supabase/client';
 import { MemberFormValues } from '@/components/members/MemberForm';
 import { useEffect } from 'react';
-import { Member } from '@/components/members/MembersList';
+import { Member } from '@/types/libraryTypes';
+import BirthdayCard from '@/components/dashboard/BirthdayCard';
 
 const Members: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -95,7 +96,8 @@ const Members: React.FC = () => {
             status: member.status,
             role: member.role,
             join_date: member.join_date,
-            birth_date: member.birth_date || null
+            birth_date: member.birth_date || null,
+            avatar_url: member.avatar_url
           })
           .eq('id', editingMember.id);
 
@@ -116,7 +118,8 @@ const Members: React.FC = () => {
             status: member.status,
             role: member.role,
             join_date: member.join_date,
-            birth_date: member.birth_date || null
+            birth_date: member.birth_date || null,
+            avatar_url: member.avatar_url
           }]);
 
         if (error) throw error;
@@ -217,7 +220,14 @@ const Members: React.FC = () => {
           </Card>
         </div>
 
-        <MembersList onEdit={handleOpenEditModal} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2">
+            <MembersList onEdit={handleOpenEditModal} />
+          </div>
+          <div>
+            <BirthdayCard />
+          </div>
+        </div>
 
         <MemberModal
           isOpen={isModalOpen}

@@ -19,16 +19,8 @@ import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-
-export interface Member {
-  id: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  status: 'active' | 'inactive';
-  role: string | null;
-  join_date: string;
-}
+import { Member } from "@/types/libraryTypes";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface MembersListProps {
   onEdit?: (member: Member) => void;
@@ -105,12 +97,20 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
     });
   };
 
+  const getInitials = (name: string): string => {
+    return name.split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
   return (
     <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[200px]">Nome</TableHead>
+            <TableHead className="w-[250px]">Nome</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Telefone</TableHead>
             <TableHead>Função</TableHead>
@@ -135,7 +135,18 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
           ) : (
             members.map((member) => (
               <TableRow key={member.id}>
-                <TableCell className="font-medium">{member.name}</TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      {member.avatar_url ? (
+                        <AvatarImage src={member.avatar_url} alt={member.name} />
+                      ) : (
+                        <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
+                      )}
+                    </Avatar>
+                    {member.name}
+                  </div>
+                </TableCell>
                 <TableCell>{member.email}</TableCell>
                 <TableCell>{member.phone || '-'}</TableCell>
                 <TableCell>{member.role || '-'}</TableCell>
