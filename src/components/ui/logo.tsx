@@ -24,7 +24,7 @@ export const Logo: React.FC<LogoProps> = ({
         <img 
           src="https://gecwfcexufkvdkndbjip.supabase.co/storage/v1/object/sign/lp-altar-hub/logo2_com_texto.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzZiZmIxZTU3LTU0MTMtNGUyNi1iZTkwLTc2MDU5MDM4NTdmNyJ9.eyJ1cmwiOiJscC1hbHRhci1odWIvbG9nbzJfY29tX3RleHRvLnBuZyIsImlhdCI6MTc0NzYxNzQ1NSwiZXhwIjoxNzc5MTUzNDU1fQ.gqxWIUtU-JvMSPalX2Md8ZD7iteB9HqRz5myHvaSn0U" 
           alt="AltarHub Logo" 
-          className="w-full h-full object-contain"
+          className="bg-white rounded-full p-2 flex items-center justify-center"
         />
       </div>
       
