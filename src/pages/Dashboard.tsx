@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Book, Calendar, CreditCard, Users } from 'lucide-react';
 import BirthdayCard from '@/components/dashboard/BirthdayCard';
-import RecentActivity from '@/components/dashboard/RecentActivity';
+import RecentActivityList from '@/components/dashboard/RecentActivityList';
 
 const StatCard: React.FC<{
   title: string;
@@ -125,9 +125,9 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        <div className="grid grid-rows-1 gap-4">
+        <div className="grid grid-rows-2 gap-4">
           <BirthdayCard />
-          <RecentActivity />
+          <RecentActivityList />
         </div>
       </div>
     </div>

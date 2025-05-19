@@ -1,263 +1,326 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Calendar } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PlusCircle } from 'lucide-react';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import EventsList from '@/components/events/EventsList';
 import EventModal from '@/components/events/EventModal';
 import EventSchedule from '@/components/events/EventSchedule';
-import { useToast } from "@/components/ui/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
+import { useToast } from '@/components/ui/use-toast';
+import { Event } from '@/types/appTypes';
+import { supabase } from '@/integrations/supabase/client';
 
-export type EventType = 'culto' | 'reuniao' | 'conferencia' | 'treinamento' | 'social';
-
-export interface Event {
-  id?: string;
-  title: string;
-  date: string;
-  time: string;
-  location: string;
-  type: EventType;
-  organizer: string;
-  capacity: number;
-  description?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-const Events: React.FC = () => {
+const Events = () => {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<Event | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<Event | undefined>(undefined);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [mode, setMode] = useState<'create' | 'edit'>('create');
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("lista");
-  const [stats, setStats] = useState({
-    total: 0,
-    recurring: 0,
-    special: 0,
-    today: 0
-  });
 
   useEffect(() => {
-    fetchEventStats();
+    fetchEvents();
   }, []);
 
-  async function fetchEventStats() {
+  const fetchEvents = async () => {
+    setIsLoading(true);
     try {
-      // Total de eventos nos próximos 30 dias
-      const thirtyDaysAhead = new Date();
-      thirtyDaysAhead.setDate(thirtyDaysAhead.getDate() + 30);
-      
-      const { count: totalCount, error: totalError } = await supabase
+      const { data, error } = await supabase
         .from('events')
-        .select('*', { count: 'exact', head: true })
-        .lte('date', thirtyDaysAhead.toISOString().split('T')[0])
-        .gte('date', new Date().toISOString().split('T')[0]);
+        .select('*')
+        .order('date', { ascending: true });
 
-      // Eventos recorrentes (cultos e reuniões)
-      const { count: recurringCount, error: recurringError } = await supabase
-        .from('events')
-        .select('*', { count: 'exact', head: true })
-        .in('type', ['culto', 'reuniao']);
-
-      // Eventos especiais (conferências)
-      const { count: specialCount, error: specialError } = await supabase
-        .from('events')
-        .select('*', { count: 'exact', head: true })
-        .eq('type', 'conferencia');
-
-      // Eventos de hoje
-      const today = new Date().toISOString().split('T')[0];
-      const { count: todayCount, error: todayError } = await supabase
-        .from('events')
-        .select('*', { count: 'exact', head: true })
-        .eq('date', today);
-
-      if (totalError || recurringError || specialError || todayError) {
-        throw new Error('Erro ao buscar estatísticas');
+      if (error) {
+        throw error;
       }
 
-      setStats({
-        total: totalCount || 0,
-        recurring: recurringCount || 0,
-        special: specialCount || 0,
-        today: todayCount || 0
-      });
+      const formattedEvents: Event[] = data.map(event => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        date: event.date,
+        time: event.time,
+        location: event.location,
+        type: event.type,
+        organizer: event.organizer,
+        status: event.status as 'scheduled' | 'cancelled' | 'completed',
+        imageUrl: event.image_url,
+      }));
 
+      setEvents(formattedEvents);
     } catch (error) {
-      console.error("Erro ao buscar estatísticas:", error);
+      console.error('Error fetching events:', error);
+      toast({
+        title: "Erro ao carregar eventos",
+        description: "Não foi possível carregar a lista de eventos.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
-  const handleOpenCreateModal = () => {
-    setEditingEvent(undefined);
+  const handleCreateEvent = () => {
+    setMode('create');
+    setSelectedEvent(undefined);
     setIsModalOpen(true);
   };
 
-  const handleOpenEditModal = (event: Event) => {
-    setEditingEvent(event);
+  const handleEditEvent = (event: Event) => {
+    setMode('edit');
+    setSelectedEvent(event);
     setIsModalOpen(true);
   };
 
-  const handleSaveEvent = async (event: Omit<Event, 'id'>) => {
+  const handleDeleteEvent = (event: Event) => {
+    setSelectedEvent(event);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedEvent) return;
+    
     try {
-      if (editingEvent?.id) {
-        // Update existing event
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', selectedEvent.id);
+        
+      if (error) throw error;
+      
+      setEvents(events.filter(e => e.id !== selectedEvent.id));
+      toast({
+        title: "Evento excluído",
+        description: `O evento ${selectedEvent.title} foi excluído com sucesso.`,
+      });
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast({
+        title: "Erro ao excluir evento",
+        description: "Não foi possível excluir o evento. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setSelectedEvent(undefined);
+    }
+  };
+
+  const handleSaveEvent = async (eventData: Omit<Event, 'id'>) => {
+    try {
+      if (mode === 'create') {
+        const { data, error } = await supabase
+          .from('events')
+          .insert([
+            {
+              title: eventData.title,
+              description: eventData.description,
+              date: eventData.date,
+              time: eventData.time,
+              location: eventData.location,
+              type: eventData.type,
+              organizer: eventData.organizer,
+              status: eventData.status,
+              image_url: eventData.imageUrl,
+            }
+          ])
+          .select();
+
+        if (error) throw error;
+        
+        if (data && data[0]) {
+          const newEvent: Event = {
+            id: data[0].id,
+            title: data[0].title,
+            description: data[0].description,
+            date: data[0].date,
+            time: data[0].time,
+            location: data[0].location,
+            type: data[0].type,
+            organizer: data[0].organizer,
+            status: data[0].status as 'scheduled' | 'cancelled' | 'completed',
+            imageUrl: data[0].image_url,
+          };
+          
+          setEvents([...events, newEvent]);
+          toast({
+            title: "Evento criado",
+            description: `O evento ${eventData.title} foi criado com sucesso.`,
+          });
+        }
+      } else if (mode === 'edit' && selectedEvent) {
         const { error } = await supabase
           .from('events')
           .update({
-            title: event.title,
-            date: event.date,
-            time: event.time,
-            location: event.location,
-            type: event.type,
-            organizer: event.organizer,
-            capacity: event.capacity,
-            description: event.description || null
+            title: eventData.title,
+            description: eventData.description,
+            date: eventData.date,
+            time: eventData.time,
+            location: eventData.location,
+            type: eventData.type,
+            organizer: eventData.organizer,
+            status: eventData.status,
+            image_url: eventData.imageUrl,
           })
-          .eq('id', editingEvent.id);
+          .eq('id', selectedEvent.id);
 
         if (error) throw error;
         
+        const updatedEvent: Event = {
+          ...selectedEvent,
+          title: eventData.title,
+          description: eventData.description,
+          date: eventData.date,
+          time: eventData.time,
+          location: eventData.location,
+          type: eventData.type,
+          organizer: eventData.organizer,
+          status: eventData.status,
+          imageUrl: eventData.imageUrl,
+        };
+        
+        setEvents(events.map(e => e.id === selectedEvent.id ? updatedEvent : e));
         toast({
           title: "Evento atualizado",
-          description: `${event.title} foi atualizado com sucesso.`
-        });
-      } else {
-        // Create new event
-        const { error } = await supabase
-          .from('events')
-          .insert([{
-            title: event.title,
-            date: event.date,
-            time: event.time,
-            location: event.location,
-            type: event.type,
-            organizer: event.organizer,
-            capacity: event.capacity,
-            description: event.description || null
-          }]);
-
-        if (error) throw error;
-        
-        toast({
-          title: "Evento adicionado",
-          description: `${event.title} foi adicionado com sucesso.`
+          description: `O evento ${eventData.title} foi atualizado com sucesso.`,
         });
       }
-
-      // Atualizar estatísticas
-      fetchEventStats();
-      
     } catch (error) {
+      console.error('Error saving event:', error);
       toast({
-        title: "Erro",
-        description: `Ocorreu um erro ao salvar o evento.`,
-        variant: "destructive"
+        title: "Erro ao salvar evento",
+        description: "Não foi possível salvar o evento. Verifique os dados e tente novamente.",
+        variant: "destructive",
       });
-      console.error("Erro ao salvar evento:", error);
+    } finally {
+      setIsModalOpen(false);
     }
-    
-    setIsModalOpen(false);
   };
 
+  
   return (
-    <>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Eventos</h1>
-            <p className="text-muted-foreground">
-              Gerencie todos os eventos da igreja nesta seção.
-            </p>
-          </div>
-          <Button className="sm:self-end" onClick={handleOpenCreateModal}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Novo Evento
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Eventos</h1>
+          <p className="text-muted-foreground">
+            Gerencie todos os eventos da igreja
+          </p>
+        </div>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button onClick={handleCreateEvent} className="bg-church-blue flex-1 sm:flex-none">
+            <PlusCircle className="mr-2 h-4 w-4" /> Novo Evento
           </Button>
         </div>
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total de Eventos
-              </CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
-              <p className="text-xs text-muted-foreground">
-                Nos próximos 30 dias
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Eventos Recorrentes
-              </CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.recurring}</div>
-              <p className="text-xs text-muted-foreground">
-                Cultos e reuniões semanais
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Eventos Especiais
-              </CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.special}</div>
-              <p className="text-xs text-muted-foreground">
-                Conferências e celebrações
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Eventos Agendados Hoje
-              </CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.today}</div>
-              <p className="text-xs text-muted-foreground">
-                Acontecendo hoje
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs defaultValue="lista" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-2 w-[400px] max-w-full">
-            <TabsTrigger value="lista">Lista de Eventos</TabsTrigger>
-            <TabsTrigger value="agenda">Agendamento</TabsTrigger>
-          </TabsList>
-          <TabsContent value="lista">
-            <EventsList onEdit={handleOpenEditModal} />
-          </TabsContent>
-          <TabsContent value="agenda">
-            <EventSchedule />
-          </TabsContent>
-        </Tabs>
-
-        <EventModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSave={handleSaveEvent}
-          event={editingEvent}
-          title={editingEvent ? "Editar Evento" : "Novo Evento"}
-        />
       </div>
-    </>
+
+      <Tabs defaultValue="list" className="w-full" onValueChange={(value) => setViewMode(value as 'list' | 'calendar')}>
+        <TabsList className="mb-4">
+          <TabsTrigger value="list">Lista</TabsTrigger>
+          <TabsTrigger value="calendar">Calendário</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="list" className="mt-0 space-y-4">
+          <Tabs defaultValue="all" className="w-full">
+            <TabsList>
+              <TabsTrigger value="all">Todos</TabsTrigger>
+              <TabsTrigger value="scheduled">Agendados</TabsTrigger>
+              <TabsTrigger value="cancelled">Cancelados</TabsTrigger>
+              <TabsTrigger value="completed">Concluídos</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="all" className="mt-4">
+              <EventsList 
+                events={events} 
+                isLoading={isLoading} 
+                onEdit={handleEditEvent} 
+                onDelete={handleDeleteEvent} 
+              />
+            </TabsContent>
+            
+            <TabsContent value="scheduled" className="mt-4">
+              <EventsList 
+                events={events.filter(event => event.status === 'scheduled')} 
+                isLoading={isLoading} 
+                onEdit={handleEditEvent} 
+                onDelete={handleDeleteEvent} 
+              />
+            </TabsContent>
+            
+            <TabsContent value="cancelled" className="mt-4">
+              <EventsList 
+                events={events.filter(event => event.status === 'cancelled')} 
+                isLoading={isLoading} 
+                onEdit={handleEditEvent} 
+                onDelete={handleDeleteEvent} 
+              />
+            </TabsContent>
+            
+            <TabsContent value="completed" className="mt-4">
+              <EventsList 
+                events={events.filter(event => event.status === 'completed')} 
+                isLoading={isLoading} 
+                onEdit={handleEditEvent} 
+                onDelete={handleDeleteEvent} 
+              />
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+        
+        <TabsContent value="calendar" className="mt-0">
+          <EventSchedule events={events} onEventClick={handleEditEvent} />
+        </TabsContent>
+      </Tabs>
+
+      {selectedEvent && mode === 'edit' ? (
+        <EventModal 
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          onSave={handleSaveEvent}
+          event={selectedEvent}
+          mode="edit"
+        />
+      ) : (
+        <EventModal 
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          onSave={handleSaveEvent}
+          mode="create"
+        />
+      )}
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isto irá excluir permanentemente o evento{' '}
+              <span className="font-bold">{selectedEvent?.title}</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 };
 

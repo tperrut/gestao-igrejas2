@@ -6,35 +6,51 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import MemberForm, { MemberFormValues } from './MemberForm';
-import { Member } from '@/types/libraryTypes';
+import { Member, MemberFormValues } from '@/types/appTypes';
+import MemberForm from './MemberForm';
 
 interface MemberModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onSave: (member: MemberFormValues) => void;
   member?: Member;
-  title: string;
+  mode: 'create' | 'edit';
 }
 
 const MemberModal: React.FC<MemberModalProps> = ({
-  isOpen,
-  onClose,
+  open,
+  onOpenChange,
   onSave,
   member,
-  title
+  mode
 }) => {
+  const handleSave = (formData: MemberFormValues) => {
+    onSave(formData);
+    onOpenChange(false);
+  };
+
+  const defaultValues: Partial<MemberFormValues> = member ? {
+    name: member.name,
+    email: member.email,
+    phone: member.phone,
+    address: member.address,
+    birthdate: member.birthdate,
+    joinDate: member.joinDate,
+    // Garantir que o status seja do tipo correto
+    status: member.status as 'active' | 'inactive',
+    role: member.role,
+    imageUrl: member.imageUrl
+  } : {};
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle>
+            {mode === 'create' ? 'Adicionar Novo Membro' : 'Editar Membro'}
+          </DialogTitle>
         </DialogHeader>
-        <MemberForm 
-          defaultValues={member}
-          onSubmit={onSave}
-          onCancel={onClose}
-        />
+        <MemberForm onSubmit={handleSave} defaultValues={defaultValues} mode={mode} />
       </DialogContent>
     </Dialog>
   );
