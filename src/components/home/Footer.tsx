@@ -9,10 +9,13 @@ const Footer: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div>
-            <h3 className="text-xl font-bold mb-4">Plataforma AltarHub</h3>
+         
             <div className="flex items-center gap-3 mb-4">
               <Logo size="sm" withText />
             </div>
+            <h3 className="text-xl font-bold mb-4">Plataforma AltarHub</h3>
+           
+
             <p className="text-gray-400">
               A solução completa para gestão da sua igreja.
             </p>

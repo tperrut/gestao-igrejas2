@@ -1,254 +1,326 @@
-
 import React, { useState, useEffect } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, BookOpen, GraduationCap } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PlusCircle, Edit2, Trash2 } from 'lucide-react';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import CoursesList from '@/components/courses/CoursesList';
 import CourseModal from '@/components/courses/CourseModal';
-import { useToast } from "@/components/ui/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/components/ui/use-toast';
+import { Course } from '@/types/appTypes';
 import { supabase } from '@/integrations/supabase/client';
 
-export type CourseStatus = 'active' | 'upcoming' | 'completed' | 'archived';
-export type CourseCategory = 'biblia' | 'lideranca' | 'discipulado' | 'evangelismo' | 'familia';
-
-export interface Course {
-  id?: string;
-  title: string;
-  instructor: string;
-  startDate: string;
-  endDate: string;
-  status: CourseStatus;
-  category: CourseCategory;
-  maxStudents: number;
-  students?: number;
-  description?: string;
-  location?: string;
-  prerequisites?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-const Courses: React.FC = () => {
+const Courses = () => {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<Course | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCourse, setEditingCourse] = useState<Course | undefined>(undefined);
-  const [stats, setStats] = useState({
-    total: 0,
-    active: 0,
-    completed: 0,
-    new: 0
-  });
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [mode, setMode] = useState<'create' | 'edit'>('create');
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchCourseStats();
+    fetchCourses();
   }, []);
 
-  async function fetchCourseStats() {
+  const fetchCourses = async () => {
+    setIsLoading(true);
     try {
-      // Total de cursos
-      const { count: totalCount, error: totalError } = await supabase
+      const { data, error } = await supabase
         .from('courses')
-        .select('*', { count: 'exact', head: true });
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      // Cursos ativos
-      const { count: activeCount, error: activeError } = await supabase
-        .from('courses')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
-
-      // Cursos concluídos
-      const { count: completedCount, error: completedError } = await supabase
-        .from('courses')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'completed');
-
-      // Novos cursos (últimos 30 dias)
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      
-      const { count: newCount, error: newError } = await supabase
-        .from('courses')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', thirtyDaysAgo.toISOString());
-
-      if (totalError || activeError || completedError || newError) {
-        throw new Error('Erro ao buscar estatísticas');
+      if (error) {
+        throw error;
       }
 
-      setStats({
-        total: totalCount || 0,
-        active: activeCount || 0,
-        completed: completedCount || 0,
-        new: newCount || 0
-      });
+      const formattedCourses: Course[] = data.map(course => ({
+        id: course.id,
+        title: course.title,
+        description: course.description,
+        instructor: course.instructor,
+        startDate: course.start_date,
+        endDate: course.end_date,
+        location: course.location,
+        capacity: course.capacity,
+        enrolledCount: course.enrolled_count || 0,
+        status: course.status as 'active' | 'inactive' | 'completed',
+        imageUrl: course.image_url,
+      }));
 
+      setCourses(formattedCourses);
     } catch (error) {
-      console.error("Erro ao buscar estatísticas:", error);
+      console.error('Error fetching courses:', error);
+      toast({
+        title: "Erro ao carregar cursos",
+        description: "Não foi possível carregar a lista de cursos.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
-  const handleOpenCreateModal = () => {
-    setEditingCourse(undefined);
+  const filterCourses = (status: Course['status']) => {
+    return courses.filter(course => course.status === status);
+  };
+
+  const handleCreateCourse = () => {
+    setMode('create');
+    setSelectedCourse(undefined);
     setIsModalOpen(true);
   };
 
-  const handleOpenEditModal = (course: Course) => {
-    setEditingCourse(course);
+  const handleEditCourse = (course: Course) => {
+    setMode('edit');
+    setSelectedCourse(course);
     setIsModalOpen(true);
   };
 
-  const handleSaveCourse = async (course: Omit<Course, 'id' | 'students'>) => {
+  const handleDeleteCourse = (course: Course) => {
+    setSelectedCourse(course);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedCourse) return;
+    
     try {
-      if (editingCourse?.id) {
-        // Update existing course
+      const { error } = await supabase
+        .from('courses')
+        .delete()
+        .eq('id', selectedCourse.id);
+        
+      if (error) throw error;
+      
+      setCourses(courses.filter(c => c.id !== selectedCourse.id));
+      toast({
+        title: "Curso excluído",
+        description: `O curso ${selectedCourse.title} foi excluído com sucesso.`,
+      });
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      toast({
+        title: "Erro ao excluir curso",
+        description: "Não foi possível excluir o curso. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setSelectedCourse(undefined);
+    }
+  };
+
+  const handleSaveCourse = async (courseData: Omit<Course, 'id'>) => {
+    try {
+      if (mode === 'create') {
+        const { data, error } = await supabase
+          .from('courses')
+          .insert([
+            {
+              title: courseData.title,
+              description: courseData.description,
+              instructor: courseData.instructor,
+              start_date: courseData.startDate,
+              end_date: courseData.endDate,
+              location: courseData.location,
+              capacity: courseData.capacity,
+              enrolled_count: courseData.enrolledCount,
+              status: courseData.status,
+              image_url: courseData.imageUrl,
+            }
+          ])
+          .select();
+
+        if (error) throw error;
+        
+        if (data && data[0]) {
+          const newCourse: Course = {
+            id: data[0].id,
+            title: data[0].title,
+            description: data[0].description,
+            instructor: data[0].instructor,
+            startDate: data[0].start_date,
+            endDate: data[0].end_date,
+            location: data[0].location,
+            capacity: data[0].capacity,
+            enrolledCount: data[0].enrolled_count || 0,
+            status: data[0].status as 'active' | 'inactive' | 'completed',
+            imageUrl: data[0].image_url,
+          };
+          
+          setCourses([newCourse, ...courses]);
+          toast({
+            title: "Curso criado",
+            description: `O curso ${courseData.title} foi criado com sucesso.`,
+          });
+        }
+      } else if (mode === 'edit' && selectedCourse) {
         const { error } = await supabase
           .from('courses')
           .update({
-            title: course.title,
-            instructor: course.instructor,
-            start_date: course.startDate,
-            end_date: course.endDate,
-            status: course.status,
-            category: course.category,
-            max_students: course.maxStudents,
-            description: course.description || null,
-            location: course.location || null,
-            prerequisites: course.prerequisites || null
+            title: courseData.title,
+            description: courseData.description,
+            instructor: courseData.instructor,
+            start_date: courseData.startDate,
+            end_date: courseData.endDate,
+            location: courseData.location,
+            capacity: courseData.capacity,
+            enrolled_count: courseData.enrolledCount,
+            status: courseData.status,
+            image_url: courseData.imageUrl,
           })
-          .eq('id', editingCourse.id);
+          .eq('id', selectedCourse.id);
 
         if (error) throw error;
         
+        const updatedCourse: Course = {
+          ...selectedCourse,
+          title: courseData.title,
+          description: courseData.description,
+          instructor: courseData.instructor,
+          startDate: courseData.startDate,
+          endDate: courseData.endDate,
+          location: courseData.location,
+          capacity: courseData.capacity,
+          enrolledCount: courseData.enrolledCount,
+          status: courseData.status,
+          imageUrl: courseData.imageUrl,
+        };
+        
+        setCourses(courses.map(c => c.id === selectedCourse.id ? updatedCourse : c));
         toast({
           title: "Curso atualizado",
-          description: `${course.title} foi atualizado com sucesso.`
-        });
-      } else {
-        // Create new course
-        const { error } = await supabase
-          .from('courses')
-          .insert([{
-            title: course.title,
-            instructor: course.instructor,
-            start_date: course.startDate,
-            end_date: course.endDate,
-            status: course.status,
-            category: course.category,
-            max_students: course.maxStudents,
-            description: course.description || null,
-            location: course.location || null,
-            prerequisites: course.prerequisites || null
-          }]);
-
-        if (error) throw error;
-        
-        toast({
-          title: "Curso adicionado",
-          description: `${course.title} foi adicionado com sucesso.`
+          description: `O curso ${courseData.title} foi atualizado com sucesso.`,
         });
       }
-
-      // Atualizar estatísticas
-      fetchCourseStats();
-      
     } catch (error) {
+      console.error('Error saving course:', error);
       toast({
-        title: "Erro",
-        description: `Ocorreu um erro ao salvar o curso.`,
-        variant: "destructive"
+        title: "Erro ao salvar curso",
+        description: "Não foi possível salvar o curso. Verifique os dados e tente novamente.",
+        variant: "destructive",
       });
-      console.error("Erro ao salvar curso:", error);
+    } finally {
+      setIsModalOpen(false);
     }
-    
-    setIsModalOpen(false);
   };
-
+  
   return (
-    <>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Cursos</h1>
-            <p className="text-muted-foreground">
-              Gerencie os cursos e treinamentos da igreja.
-            </p>
-          </div>
-          <Button className="sm:self-end" onClick={handleOpenCreateModal}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Novo Curso
-          </Button>
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Cursos</h1>
+          <p className="text-muted-foreground">
+            Gerencie todos os cursos oferecidos pela igreja
+          </p>
         </div>
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total de Cursos
-              </CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.active}</div>
-              <p className="text-xs text-muted-foreground">
-                Ativos no momento
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Alunos Inscritos
-              </CardTitle>
-              <GraduationCap className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">87</div>
-              <p className="text-xs text-muted-foreground">
-                Em todos os cursos
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Cursos Concluídos
-              </CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.completed}</div>
-              <p className="text-xs text-muted-foreground">
-                Histórico total
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Novos Cursos
-              </CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.new}</div>
-              <p className="text-xs text-muted-foreground">
-                Nos últimos 30 dias
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <CoursesList onEdit={handleOpenEditModal} />
-
-        <CourseModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSave={handleSaveCourse}
-          course={editingCourse}
-          title={editingCourse ? "Editar Curso" : "Novo Curso"}
-        />
+        <Button onClick={handleCreateCourse} className="bg-church-blue">
+          <PlusCircle className="mr-2 h-4 w-4" /> Novo Curso
+        </Button>
       </div>
-    </>
+
+      <Tabs defaultValue="all" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="all">Todos os Cursos</TabsTrigger>
+          <TabsTrigger value="active">Ativos</TabsTrigger>
+          <TabsTrigger value="inactive">Inativos</TabsTrigger>
+          <TabsTrigger value="completed">Concluídos</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="all" className="mt-0">
+          <CoursesList 
+            courses={courses} 
+            isLoading={isLoading} 
+            onEdit={handleEditCourse} 
+            onDelete={handleDeleteCourse} 
+          />
+        </TabsContent>
+
+        <TabsContent value="active" className="mt-0">
+          <CoursesList 
+            courses={courses.filter(course => course.status === 'active')} 
+            isLoading={isLoading} 
+            onEdit={handleEditCourse} 
+            onDelete={handleDeleteCourse} 
+          />
+        </TabsContent>
+
+        <TabsContent value="inactive" className="mt-0">
+          <CoursesList 
+            courses={courses.filter(course => course.status === 'inactive')} 
+            isLoading={isLoading} 
+            onEdit={handleEditCourse} 
+            onDelete={handleDeleteCourse} 
+          />
+        </TabsContent>
+
+        <TabsContent value="completed" className="mt-0">
+          <CoursesList 
+            courses={courses.filter(course => course.status === 'completed')} 
+            isLoading={isLoading} 
+            onEdit={handleEditCourse} 
+            onDelete={handleDeleteCourse} 
+          />
+        </TabsContent>
+      </Tabs>
+
+      {selectedCourse && mode === 'edit' ? (
+        <CourseModal 
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          onSave={handleSaveCourse}
+          course={selectedCourse}
+          mode="edit"
+        />
+      ) : (
+        <CourseModal 
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          onSave={handleSaveCourse}
+          mode="create"
+        />
+      )}
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isto irá excluir permanentemente o curso{' '}
+              <span className="font-bold">{selectedCourse?.title}</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 };
 
