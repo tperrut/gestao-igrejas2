@@ -7,18 +7,17 @@ import { Calendar, CreditCard, Book, Users, LayoutDashboard, GraduationCap } fro
 const Home: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
+      {/* Hero  Section */}
       <section className="relative bg-church-blue py-16 md:py-24">
         <div className="container mx-auto px-4 relative z-10 text-white">
           <div className="max-w-3xl">
             <div className="flex items-center gap-4 mb-6">
-              <div className="bg-white rounded-full p-2 flex items-center justify-center">
                 <img 
-                  src="/lovable-uploads/5b587a7e-6cfb-401a-9bf4-17e540f0f7bf.png" 
+                  src="https://gecwfcexufkvdkndbjip.supabase.co/storage/v1/object/sign/lp-altar-hub/logo2_com_texto.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzZiZmIxZTU3LTU0MTMtNGUyNi1iZTkwLTc2MDU5MDM4NTdmNyJ9.eyJ1cmwiOiJscC1hbHRhci1odWIvbG9nbzJfY29tX3RleHRvLnBuZyIsImlhdCI6MTc0NzYxNDM1NywiZXhwIjoxNzYzMTY2MzU3fQ.w7CND7BF4aJeb3PKUrlS4fifdfXgUkTLjq6uZemY9f0" 
                   alt="AltarHub Logo" 
-                  className="w-16 h-16"
+                  className="bg-white rounded-full p-2 flex items-center justify-center"
                 />
-              </div>
+             
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold">
                 <span className="bg-gradient-to-r from-white to-gray-300 text-transparent bg-clip-text font-bold">Plataforma</span> <span className="bg-gradient-to-r from-church-red to-amber-400 text-transparent bg-clip-text font-bold">AltarHub</span>, a gestão da sua igreja 100% Online!
               </h1>
