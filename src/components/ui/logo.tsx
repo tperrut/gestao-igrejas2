@@ -22,7 +22,7 @@ export const Logo: React.FC<LogoProps> = ({
     <div className={`flex items-center gap-2 ${className}`}>
       <div className={`${sizeClasses[size]} relative`}>
         <img 
-          src="https://gecwfcexufkvdkndbjip.supabase.co/storage/v1/object/sign/lp-altar-hub/logo2_com_texto%20(1).png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzZiZmIxZTU3LTU0MTMtNGUyNi1iZTkwLTc2MDU5MDM4NTdmNyJ9.eyJ1cmwiOiJscC1hbHRhci1odWIvbG9nbzJfY29tX3RleHRvICgxKS5wbmciLCJpYXQiOjE3NDc2MTcwMjAsImV4cCI6MTc3OTE1MzAyMH0.4_kzLZN7hfa9Eudx8O3VOghGVJpfQcQp9tfA9HFmKYA" 
+          src="https://gecwfcexufkvdkndbjip.supabase.co/storage/v1/object/sign/lp-altar-hub/logo2_com_texto.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzZiZmIxZTU3LTU0MTMtNGUyNi1iZTkwLTc2MDU5MDM4NTdmNyJ9.eyJ1cmwiOiJscC1hbHRhci1odWIvbG9nbzJfY29tX3RleHRvLnBuZyIsImlhdCI6MTc0NzYxNzQ1NSwiZXhwIjoxNzc5MTUzNDU1fQ.gqxWIUtU-JvMSPalX2Md8ZD7iteB9HqRz5myHvaSn0U" 
           alt="AltarHub Logo" 
           className="w-full h-full object-contain"
         />
