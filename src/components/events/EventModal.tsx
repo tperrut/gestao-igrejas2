@@ -26,15 +26,17 @@ const EventModal: React.FC<EventModalProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-[95%] sm:max-w-[600px] max-h-[95vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-[95vw] sm:max-w-[600px] max-h-[95vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">{title}</DialogTitle>
         </DialogHeader>
-        <EventForm 
-          defaultValues={event}
-          onSubmit={onSave}
-          onCancel={onClose}
-        />
+        <div className="mt-4">
+          <EventForm 
+            defaultValues={event}
+            onSubmit={onSave}
+            onCancel={onClose}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

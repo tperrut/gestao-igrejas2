@@ -16,16 +16,114 @@ import {
 import EventsList from '@/components/events/EventsList';
 import EventModal from '@/components/events/EventModal';
 import EventSchedule from '@/components/events/EventSchedule';
+import EventsFilter from '@/components/events/EventsFilter';
 import { useToast } from '@/components/ui/use-toast';
 import { Event } from '@/types/libraryTypes';
 import { supabase } from '@/integrations/supabase/client';
 
 const Events = () => {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [mode, setMode] = useState<'create' | 'edit'>('create');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [viewMode, setViewMode] = useState('all');
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  useEffect(() => {
+    filterEvents();
+  }, [events, typeFilter, viewMode]);
+
+  const fetchEvents = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .order('date', { ascending: true });
+
+      if (error) throw error;
+
+      const formattedEvents: Event[] = data.map(event => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        date: event.date,
+        time: event.time,
+        location: event.location,
+        type: event.type,
+        organizer: event.organizer,
+        capacity: event.capacity,
+        created_at: event.created_at,
+        updated_at: event.updated_at
+      }));
+
+      setEvents(formattedEvents);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      toast({
+        title: "Erro ao carregar eventos",
+        description: "Não foi possível carregar a lista de eventos.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filterEvents = () => {
+    let filtered = [...events];
+
+    // Filtro por tipo
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(event => event.type === typeFilter);
+    }
+
+    // Filtro por período
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+    const startOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
+    const endOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 6, 23, 59, 59);
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
+
+    switch (viewMode) {
+      case 'today':
+        filtered = filtered.filter(event => {
+          const eventDate = new Date(event.date);
+          return eventDate >= startOfDay && eventDate <= endOfDay;
+        });
+        break;
+      case 'day':
+        filtered = filtered.filter(event => {
+          const eventDate = new Date(event.date);
+          return eventDate.toDateString() === today.toDateString();
+        });
+        break;
+      case 'week':
+        filtered = filtered.filter(event => {
+          const eventDate = new Date(event.date);
+          return eventDate >= startOfWeek && eventDate <= endOfWeek;
+        });
+        break;
+      case 'month':
+        filtered = filtered.filter(event => {
+          const eventDate = new Date(event.date);
+          return eventDate >= startOfMonth && eventDate <= endOfMonth;
+        });
+        break;
+    }
+
+    setFilteredEvents(filtered);
+  };
 
   const handleCreateEvent = () => {
     setMode('create');
@@ -55,6 +153,7 @@ const Events = () => {
         
       if (error) throw error;
       
+      setEvents(events.filter(e => e.id !== selectedEvent.id));
       toast({
         title: "Evento excluído",
         description: `O evento ${selectedEvent.title} foi excluído com sucesso.`,
@@ -94,6 +193,21 @@ const Events = () => {
         if (error) throw error;
         
         if (data && data[0]) {
+          const newEvent: Event = {
+            id: data[0].id,
+            title: data[0].title,
+            description: data[0].description,
+            date: data[0].date,
+            time: data[0].time,
+            location: data[0].location,
+            type: data[0].type,
+            organizer: data[0].organizer,
+            capacity: data[0].capacity,
+            created_at: data[0].created_at,
+            updated_at: data[0].updated_at
+          };
+          
+          setEvents([...events, newEvent]);
           toast({
             title: "Evento criado",
             description: `O evento ${eventData.title} foi criado com sucesso.`,
@@ -116,6 +230,19 @@ const Events = () => {
 
         if (error) throw error;
         
+        const updatedEvent: Event = {
+          ...selectedEvent,
+          title: eventData.title,
+          description: eventData.description,
+          date: eventData.date,
+          time: eventData.time,
+          location: eventData.location,
+          type: eventData.type,
+          organizer: eventData.organizer,
+          capacity: eventData.capacity,
+        };
+        
+        setEvents(events.map(e => e.id === selectedEvent.id ? updatedEvent : e));
         toast({
           title: "Evento atualizado",
           description: `O evento ${eventData.title} foi atualizado com sucesso.`,
@@ -149,6 +276,13 @@ const Events = () => {
         </div>
       </div>
 
+      <EventsFilter
+        typeFilter={typeFilter}
+        onTypeFilterChange={setTypeFilter}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
+
       <Tabs defaultValue="list" className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="list">Lista</TabsTrigger>
@@ -156,7 +290,12 @@ const Events = () => {
         </TabsList>
 
         <TabsContent value="list" className="mt-0 space-y-4">
-          <EventsList onEdit={handleEditEvent} onDelete={handleDeleteEvent} />
+          <EventsList 
+            events={filteredEvents} 
+            isLoading={isLoading} 
+            onEdit={handleEditEvent} 
+            onDelete={handleDeleteEvent} 
+          />
         </TabsContent>
         
         <TabsContent value="calendar" className="mt-0">
@@ -164,22 +303,13 @@ const Events = () => {
         </TabsContent>
       </Tabs>
 
-      {selectedEvent && mode === 'edit' ? (
-        <EventModal 
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSave={handleSaveEvent}
-          event={selectedEvent}
-          title="Editar Evento"
-        />
-      ) : (
-        <EventModal 
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSave={handleSaveEvent}
-          title="Novo Evento"
-        />
-      )}
+      <EventModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveEvent}
+        event={selectedEvent}
+        title={mode === 'edit' ? "Editar Evento" : "Novo Evento"}
+      />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>

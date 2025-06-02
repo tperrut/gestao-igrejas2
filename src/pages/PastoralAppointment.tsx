@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
@@ -10,8 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { MessageSquare, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { MessageSquare, Clock, Calendar as CalendarIcon, CheckCircle, XCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 // Horários pré-definidos para consultas
 const availableTimeSlots = [
@@ -19,63 +22,166 @@ const availableTimeSlots = [
   "14:00", "15:00", "16:00", "17:00"
 ];
 
-// Datas disponíveis (simulação)
-const availableDates = [
-  new Date(2025, 4, 20),
-  new Date(2025, 4, 21),
-  new Date(2025, 4, 22),
-  new Date(2025, 4, 25),
-  new Date(2025, 4, 28),
-];
+interface PastoralAppointment {
+  id: string;
+  member_name: string;
+  member_email: string;
+  member_phone: string | null;
+  appointment_date: string;
+  appointment_time: string;
+  reason: string;
+  message: string | null;
+  status: string;
+  pastor_notes: string | null;
+  created_at: string;
+}
 
 const PastoralAppointment: React.FC = () => {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState<string>("");
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [contactNumber, setContactNumber] = useState("");
   const [reason, setReason] = useState("");
+  const [message, setMessage] = useState("");
+  const [appointments, setAppointments] = useState<PastoralAppointment[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Função para verificar se uma data está disponível
-  const isDateAvailable = (date: Date) => {
-    return availableDates.some(
-      availableDate => 
-        availableDate.getDate() === date.getDate() && 
-        availableDate.getMonth() === date.getMonth() &&
-        availableDate.getFullYear() === date.getFullYear()
-    );
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
+
+  const fetchAppointments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('pastoral_appointments')
+        .select('*')
+        .order('appointment_date', { ascending: true });
+
+      if (error) throw error;
+      setAppointments(data || []);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!date || !time || !name || !contactNumber || !reason) {
+    if (!date || !time || !name || !email || !reason) {
       toast({
         title: "Preenchimento incompleto",
-        description: "Por favor, preencha todos os campos.",
+        description: "Por favor, preencha todos os campos obrigatórios.",
         variant: "destructive",
       });
       return;
     }
+
+    setIsLoading(true);
     
-    // Aqui seria feita a integração com o backend para salvar o agendamento
-    toast({
-      title: "Solicitação enviada!",
-      description: `Seu agendamento para ${format(date, "dd 'de' MMMM", { locale: ptBR })} às ${time} foi recebido e está em análise.`,
-    });
-    
-    // Limpar formulário
-    setDate(undefined);
-    setTime("");
-    setName("");
-    setContactNumber("");
-    setReason("");
+    try {
+      const { error } = await supabase
+        .from('pastoral_appointments')
+        .insert([
+          {
+            member_name: name,
+            member_email: email,
+            member_phone: contactNumber || null,
+            appointment_date: date.toISOString().split('T')[0],
+            appointment_time: time,
+            reason: reason,
+            message: message || null,
+            status: 'pending'
+          }
+        ]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Solicitação enviada!",
+        description: `Seu agendamento para ${format(date, "dd 'de' MMMM", { locale: ptBR })} às ${time} foi recebido e está em análise.`,
+      });
+      
+      // Limpar formulário
+      setDate(undefined);
+      setTime("");
+      setName("");
+      setEmail("");
+      setContactNumber("");
+      setReason("");
+      setMessage("");
+      
+      // Atualizar lista de agendamentos
+      fetchAppointments();
+    } catch (error) {
+      console.error('Error creating appointment:', error);
+      toast({
+        title: "Erro ao enviar solicitação",
+        description: "Não foi possível enviar sua solicitação. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateAppointmentStatus = async (appointmentId: string, status: string, notes?: string) => {
+    try {
+      const updateData: any = { status };
+      if (notes !== undefined) {
+        updateData.pastor_notes = notes;
+      }
+
+      const { error } = await supabase
+        .from('pastoral_appointments')
+        .update(updateData)
+        .eq('id', appointmentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Status atualizado",
+        description: "O status do agendamento foi atualizado com sucesso.",
+      });
+      
+      fetchAppointments();
+    } catch (error) {
+      console.error('Error updating appointment:', error);
+      toast({
+        title: "Erro ao atualizar",
+        description: "Não foi possível atualizar o status do agendamento.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const styles = {
+      pending: "bg-yellow-500",
+      confirmed: "bg-green-500",
+      completed: "bg-blue-500",
+      cancelled: "bg-red-500"
+    };
+
+    const labels = {
+      pending: "Pendente",
+      confirmed: "Confirmado",
+      completed: "Concluído",
+      cancelled: "Cancelado"
+    };
+
+    return (
+      <Badge className={styles[status as keyof typeof styles] || "bg-gray-500"}>
+        {labels[status as keyof typeof labels] || status}
+      </Badge>
+    );
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row items-start gap-8">
-        <div className="w-full md:w-1/3">
+      <div className="flex flex-col lg:flex-row items-start gap-8">
+        <div className="w-full lg:w-1/3">
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -117,7 +223,7 @@ const PastoralAppointment: React.FC = () => {
           </Card>
         </div>
         
-        <div className="w-full md:w-2/3">
+        <div className="w-full lg:w-2/3">
           <Tabs defaultValue="member" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="member">Sou Membro</TabsTrigger>
@@ -136,46 +242,57 @@ const PastoralAppointment: React.FC = () => {
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="name">Nome Completo</Label>
+                        <Label htmlFor="name">Nome Completo *</Label>
                         <Input
                           id="name"
                           placeholder="Digite seu nome"
                           value={name}
                           onChange={(e) => setName(e.target.value)}
+                          required
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="contact">Telefone</Label>
+                        <Label htmlFor="email">Email *</Label>
                         <Input
-                          id="contact"
-                          placeholder="(00) 00000-0000"
-                          value={contactNumber}
-                          onChange={(e) => setContactNumber(e.target.value)}
+                          id="email"
+                          type="email"
+                          placeholder="seu@email.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
                         />
                       </div>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label>Selecione uma data</Label>
+                      <Label htmlFor="contact">Telefone</Label>
+                      <Input
+                        id="contact"
+                        placeholder="(00) 00000-0000"
+                        value={contactNumber}
+                        onChange={(e) => setContactNumber(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Selecione uma data *</Label>
                       <Calendar
                         mode="single"
                         selected={date}
                         onSelect={setDate}
                         disabled={(date) => {
                           const day = date.getDay();
-                          // Desabilita finais de semana e datas não disponíveis
-                          return day === 0 || day === 6 || !isDateAvailable(date);
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          return day === 0 || day === 6 || date < today;
                         }}
                         className="rounded-md border mx-auto"
                       />
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="time">Horário</Label>
-                      <Select
-                        value={time}
-                        onValueChange={setTime}
-                      >
+                      <Label htmlFor="time">Horário *</Label>
+                      <Select value={time} onValueChange={setTime} required>
                         <SelectTrigger id="time">
                           <SelectValue placeholder="Selecione um horário" />
                         </SelectTrigger>
@@ -188,20 +305,35 @@ const PastoralAppointment: React.FC = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="reason">Motivo da Consulta</Label>
-                      <Textarea
+                      <Label htmlFor="reason">Motivo da Consulta *</Label>
+                      <Input
                         id="reason"
-                        placeholder="Descreva brevemente o motivo da sua consulta"
-                        className="min-h-[100px]"
+                        placeholder="Ex: Aconselhamento matrimonial, oração, etc."
                         value={reason}
                         onChange={(e) => setReason(e.target.value)}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="message">Mensagem adicional</Label>
+                      <Textarea
+                        id="message"
+                        placeholder="Descreva brevemente o assunto que gostaria de tratar..."
+                        className="min-h-[100px]"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
                       />
                     </div>
                   </form>
                 </CardContent>
                 <CardFooter className="flex justify-end">
-                  <Button onClick={handleSubmit} className="bg-church-blue hover:bg-church-blue-dark">
-                    Solicitar Agendamento
+                  <Button 
+                    onClick={handleSubmit} 
+                    className="bg-church-blue hover:bg-church-blue-dark w-full sm:w-auto"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Enviando..." : "Solicitar Agendamento"}
                   </Button>
                 </CardFooter>
               </Card>
@@ -210,53 +342,86 @@ const PastoralAppointment: React.FC = () => {
             <TabsContent value="admin">
               <Card>
                 <CardHeader>
-                  <CardTitle>Gerenciamento de Datas Disponíveis</CardTitle>
+                  <CardTitle>Gerenciamento de Agendamentos Pastorais</CardTitle>
                   <CardDescription>
-                    Defina as datas e horários disponíveis para consultas pastorais.
+                    Gerencie as solicitações de agendamento pastoral.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-2">Próximos Agendamentos</h3>
-                    <div className="border rounded-md p-4">
-                      <p className="text-muted-foreground text-sm">Nenhum agendamento pendente.</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Adicionar Novas Datas</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="admin-date">Data</Label>
-                        <Input
-                          id="admin-date"
-                          type="date"
-                        />
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Nome</TableHead>
+                          <TableHead className="hidden sm:table-cell">Data</TableHead>
+                          <TableHead className="hidden md:table-cell">Horário</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {appointments.map((appointment) => (
+                          <TableRow key={appointment.id}>
+                            <TableCell className="font-medium">
+                              <div>
+                                <p>{appointment.member_name}</p>
+                                <p className="text-sm text-muted-foreground">{appointment.reason}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden sm:table-cell">
+                              {new Date(appointment.appointment_date).toLocaleDateString('pt-BR')}
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              {appointment.appointment_time}
+                            </TableCell>
+                            <TableCell>
+                              {getStatusBadge(appointment.status)}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col sm:flex-row gap-1">
+                                {appointment.status === 'pending' && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => updateAppointmentStatus(appointment.id, 'confirmed')}
+                                      className="bg-green-500 hover:bg-green-600 text-xs"
+                                    >
+                                      <CheckCircle className="h-3 w-3 mr-1" />
+                                      Confirmar
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => updateAppointmentStatus(appointment.id, 'cancelled')}
+                                      className="text-xs"
+                                    >
+                                      <XCircle className="h-3 w-3 mr-1" />
+                                      Cancelar
+                                    </Button>
+                                  </>
+                                )}
+                                {appointment.status === 'confirmed' && (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => updateAppointmentStatus(appointment.id, 'completed')}
+                                    className="bg-blue-500 hover:bg-blue-600 text-xs"
+                                  >
+                                    Concluir
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    {appointments.length === 0 && (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">Nenhum agendamento encontrado.</p>
                       </div>
-                      <div>
-                        <Label htmlFor="admin-times">Horários Disponíveis</Label>
-                        <Select>
-                          <SelectTrigger id="admin-times">
-                            <SelectValue placeholder="Selecione os horários" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">Todos os Horários</SelectItem>
-                            <SelectItem value="morning">Apenas Manhã (9h-12h)</SelectItem>
-                            <SelectItem value="afternoon">Apenas Tarde (14h-18h)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </CardContent>
-                <CardFooter className="flex justify-end">
-                  <Button variant="outline" className="mr-2">
-                    Cancelar
-                  </Button>
-                  <Button className="bg-church-blue hover:bg-church-blue-dark">
-                    Salvar Datas
-                  </Button>
-                </CardFooter>
               </Card>
             </TabsContent>
           </Tabs>

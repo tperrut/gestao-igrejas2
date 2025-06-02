@@ -261,6 +261,62 @@ export type Database = {
         }
         Relationships: []
       }
+      pastoral_appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string
+          created_at: string
+          id: string
+          member_email: string
+          member_id: string | null
+          member_name: string
+          member_phone: string | null
+          message: string | null
+          pastor_notes: string | null
+          reason: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time: string
+          created_at?: string
+          id?: string
+          member_email: string
+          member_id?: string | null
+          member_name: string
+          member_phone?: string | null
+          message?: string | null
+          pastor_notes?: string | null
+          reason: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string
+          created_at?: string
+          id?: string
+          member_email?: string
+          member_id?: string | null
+          member_name?: string
+          member_phone?: string | null
+          message?: string | null
+          pastor_notes?: string | null
+          reason?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pastoral_appointments_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

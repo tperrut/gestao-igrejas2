@@ -55,61 +55,31 @@ const EventForm: React.FC<EventFormProps> = ({
   });
 
   return (
-    <div className="max-h-[70vh] overflow-y-auto px-1">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Título</FormLabel>
+              <FormControl>
+                <Input placeholder="Culto de Domingo" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="title"
+            name="date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Título</FormLabel>
+                <FormLabel>Data</FormLabel>
                 <FormControl>
-                  <Input placeholder="Culto de Domingo" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Data</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="time"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Horário</FormLabel>
-                  <FormControl>
-                    <Input placeholder="10:00 - 12:00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <FormField
-            control={form.control}
-            name="location"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Local</FormLabel>
-                <FormControl>
-                  <Input placeholder="Auditório Principal" {...field} />
+                  <Input type="date" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -118,78 +88,110 @@ const EventForm: React.FC<EventFormProps> = ({
 
           <FormField
             control={form.control}
-            name="type"
+            name="time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tipo</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um tipo" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="culto">Culto</SelectItem>
-                    <SelectItem value="reuniao">Reunião</SelectItem>
-                    <SelectItem value="conferencia">Conferência</SelectItem>
-                    <SelectItem value="treinamento">Treinamento</SelectItem>
-                    <SelectItem value="social">Social</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="organizer"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Organizador</FormLabel>
+                <FormLabel>Horário</FormLabel>
                 <FormControl>
-                  <Input placeholder="Pastor João" {...field} />
+                  <Input placeholder="10:00 - 12:00" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+        </div>
 
-          <FormField
-            control={form.control}
-            name="capacity"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Capacidade</FormLabel>
+        <FormField
+          control={form.control}
+          name="location"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Local</FormLabel>
+              <FormControl>
+                <Input placeholder="Auditório Principal" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tipo</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <Input type="number" placeholder="100" {...field} />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um tipo" />
+                  </SelectTrigger>
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                <SelectContent>
+                  <SelectItem value="culto">Culto</SelectItem>
+                  <SelectItem value="reuniao">Reunião</SelectItem>
+                  <SelectItem value="conferencia">Conferência</SelectItem>
+                  <SelectItem value="treinamento">Treinamento</SelectItem>
+                  <SelectItem value="social">Social</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Descrição</FormLabel>
-                <FormControl>
-                  <Textarea placeholder="Detalhe o evento..." rows={3} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="organizer"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Organizador</FormLabel>
+              <FormControl>
+                <Input placeholder="Pastor João" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
-            <Button type="submit">Salvar</Button>
-          </div>
-        </form>
-      </Form>
-    </div>
+        <FormField
+          control={form.control}
+          name="capacity"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Capacidade</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="100" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Descrição</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Detalhe o evento..." rows={3} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-4">
+          <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">
+            Cancelar
+          </Button>
+          <Button type="submit" className="w-full sm:w-auto">
+            Salvar
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 };
 

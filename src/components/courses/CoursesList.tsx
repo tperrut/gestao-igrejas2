@@ -25,13 +25,15 @@ const getStatusBadge = (status: string) => {
   const styles = {
     active: "bg-green-500 hover:bg-green-600",
     inactive: "bg-gray-500 hover:bg-gray-600",
-    completed: "bg-blue-500 hover:bg-blue-600"
+    completed: "bg-blue-500 hover:bg-blue-600",
+    coming_soon: "bg-orange-500 hover:bg-orange-600"
   };
 
   const labels = {
     active: "Ativo",
     inactive: "Inativo", 
-    completed: "Concluído"
+    completed: "Concluído",
+    coming_soon: "Em Breve"
   };
 
   return (
@@ -115,12 +117,12 @@ const CoursesList: React.FC<CoursesListProps> = ({ courses, isLoading, onEdit, o
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[250px]">Título</TableHead>
-              <TableHead>Instrutor</TableHead>
-              <TableHead>Período</TableHead>
+              <TableHead className="w-[200px] sm:w-[250px]">Título</TableHead>
+              <TableHead className="hidden sm:table-cell">Instrutor</TableHead>
+              <TableHead className="hidden md:table-cell">Período</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Categoria</TableHead>
-              <TableHead>Alunos</TableHead>
+              <TableHead className="hidden sm:table-cell">Categoria</TableHead>
+              <TableHead className="hidden md:table-cell">Alunos</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -128,17 +130,17 @@ const CoursesList: React.FC<CoursesListProps> = ({ courses, isLoading, onEdit, o
             {courses.map((course) => (
               <TableRow key={course.id}>
                 <TableCell className="font-medium">{course.title}</TableCell>
-                <TableCell>{course.instructor}</TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">{course.instructor}</TableCell>
+                <TableCell className="hidden md:table-cell">
                   {new Date(course.start_date).toLocaleDateString('pt-BR')} - {new Date(course.end_date).toLocaleDateString('pt-BR')}
                 </TableCell>
                 <TableCell>
                   {getStatusBadge(course.status)}
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   {getCategoryBadge(course.category)}
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   {course.students || 0}/{course.max_students || 0}
                 </TableCell>
                 <TableCell className="text-right">
