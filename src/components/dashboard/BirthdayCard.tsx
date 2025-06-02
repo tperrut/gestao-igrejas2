@@ -5,11 +5,13 @@ import { Cake } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface BirthdayMember {
   id: string;
   name: string;
   birth_date: string;
+  avatar_url?: string;
 }
 
 const BirthdayCard: React.FC = () => {
@@ -19,18 +21,28 @@ const BirthdayCard: React.FC = () => {
   useEffect(() => {
     async function fetchBirthdays() {
       try {
-        const currentMonth = new Date().getMonth() + 1; // Janeiro é 0
+        const currentMonth = new Date().getMonth() + 1;
         
         const { data, error } = await supabase
           .from('members')
-          .select('id, name, birth_date')
+          .select('id, name, birth_date, avatar_url')
           .not('birth_date', 'is', null)
-          .filter('birth_date', 'ilike', `%-${currentMonth.toString().padStart(2, '0')}-%`)
           .order('birth_date');
 
         if (error) throw error;
         
-        setBirthdays(data || []);
+        // Filtrar aniversariantes do mês atual no lado do cliente
+        const currentMonthBirthdays = (data || []).filter(member => {
+          if (!member.birth_date) return false;
+          try {
+            const birthDate = new Date(member.birth_date);
+            return birthDate.getMonth() + 1 === currentMonth;
+          } catch (error) {
+            return false;
+          }
+        });
+        
+        setBirthdays(currentMonthBirthdays);
       } catch (error) {
         console.error("Erro ao buscar aniversariantes:", error);
       } finally {
@@ -43,14 +55,20 @@ const BirthdayCard: React.FC = () => {
 
   const formatBirthDate = (dateString: string) => {
     try {
-      // Analisar a data
       const date = parse(dateString, 'yyyy-MM-dd', new Date());
-      // Formatar apenas o dia e mês
       return format(date, 'dd/MM', { locale: ptBR });
     } catch (error) {
       console.error("Erro ao formatar data:", error);
       return dateString;
     }
+  };
+
+  const getInitials = (name: string): string => {
+    return name.split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
   };
 
   return (
@@ -66,8 +84,19 @@ const BirthdayCard: React.FC = () => {
           <div className="text-center py-4">Carregando...</div>
         ) : birthdays.length > 0 ? (
           birthdays.map((member) => (
-            <div key={member.id} className="flex justify-between items-center border-b pb-2 last:border-0">
-              <span className="font-medium">{member.name}</span>
+            <div key={member.id} className="flex items-center justify-between border-b pb-2 last:border-0">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-8 w-8">
+                  {member.avatar_url ? (
+                    <AvatarImage src={member.avatar_url} alt={member.name} />
+                  ) : (
+                    <AvatarFallback className="text-xs">
+                      {getInitials(member.name)}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <span className="font-medium">{member.name}</span>
+              </div>
               <span className="text-sm bg-church-red/10 text-church-red px-2 py-1 rounded-full">
                 {formatBirthDate(member.birth_date)}
               </span>

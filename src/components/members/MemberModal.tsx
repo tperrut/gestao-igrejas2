@@ -6,51 +6,60 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Member, MemberFormValues } from '@/types/appTypes';
-import MemberForm from './MemberForm';
+import { Member } from '@/types/libraryTypes';
+import MemberForm, { MemberFormValues } from './MemberForm';
 
 interface MemberModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  isOpen: boolean;
+  onClose: (open: boolean) => void;
   onSave: (member: MemberFormValues) => void;
   member?: Member;
-  mode: 'create' | 'edit';
+  title: string;
 }
 
 const MemberModal: React.FC<MemberModalProps> = ({
-  open,
-  onOpenChange,
+  isOpen,
+  onClose,
   onSave,
   member,
-  mode
+  title
 }) => {
   const handleSave = (formData: MemberFormValues) => {
     onSave(formData);
-    onOpenChange(false);
+    onClose(false);
   };
 
   const defaultValues: Partial<MemberFormValues> = member ? {
     name: member.name,
     email: member.email,
-    phone: member.phone,
-    address: member.address,
-    birthdate: member.birthdate,
-    joinDate: member.joinDate,
-    // Garantir que o status seja do tipo correto
+    phone: member.phone || "",
+    birth_date: member.birth_date || "",
+    join_date: member.join_date,
     status: member.status as 'active' | 'inactive',
-    role: member.role,
-    imageUrl: member.imageUrl
-  } : {};
+    role: member.role || "",
+    avatar_url: ""
+  } : {
+    name: "",
+    email: "",
+    phone: "",
+    birth_date: "",
+    join_date: "",
+    status: "active",
+    role: "",
+    avatar_url: ""
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {mode === 'create' ? 'Adicionar Novo Membro' : 'Editar Membro'}
-          </DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <MemberForm onSubmit={handleSave} defaultValues={defaultValues} mode={mode} />
+        <MemberForm 
+          onSubmit={handleSave} 
+          defaultValues={defaultValues}
+          onCancel={() => onClose(false)}
+        />
       </DialogContent>
     </Dialog>
   );

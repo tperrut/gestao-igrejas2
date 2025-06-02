@@ -23,6 +23,7 @@ import { Member } from "@/types/libraryTypes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import MemberViewModal from './MemberViewModal';
 
 interface MembersListProps {
   onEdit?: (member: Member) => void;
@@ -31,6 +32,8 @@ interface MembersListProps {
 const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewingMember, setViewingMember] = useState<Member | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -75,7 +78,6 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
         throw error;
       }
       
-      // Atualiza a lista de membros após a exclusão
       setMembers(members.filter(member => member.id !== memberId));
       
       toast({
@@ -92,11 +94,9 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
     }
   };
 
-  const handleView = (memberId: string) => {
-    toast({
-      title: "Visualizar detalhes",
-      description: "Esta funcionalidade será implementada em breve."
-    });
+  const handleView = (member: Member) => {
+    setViewingMember(member);
+    setIsViewModalOpen(true);
   };
 
   const getInitials = (name: string): string => {
@@ -118,93 +118,101 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
   };
 
   return (
-    <div className="rounded-md border overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[250px]">Nome</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Telefone</TableHead>
-            <TableHead>Função</TableHead>
-            <TableHead>Data de Nascimento</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="w-[100px]">Data de Entrada</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {loading ? (
+    <>
+      <div className="rounded-md border overflow-x-auto">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={8} className="h-24 text-center">
-                Carregando membros...
-              </TableCell>
+              <TableHead className="w-[250px]">Nome</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Telefone</TableHead>
+              <TableHead>Função</TableHead>
+              <TableHead>Data de Nascimento</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="w-[100px]">Data de Entrada</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
-          ) : members.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={8} className="h-24 text-center">
-                Nenhum membro encontrado.
-              </TableCell>
-            </TableRow>
-          ) : (
-            members.map((member) => (
-              <TableRow key={member.id}>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      {member.avatar_url ? (
-                        <AvatarImage src={member.avatar_url} alt={member.name} />
-                      ) : (
-                        <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
-                      )}
-                    </Avatar>
-                    {member.name}
-                  </div>
-                </TableCell>
-                <TableCell>{member.email}</TableCell>
-                <TableCell>{member.phone || '-'}</TableCell>
-                <TableCell>{member.role || '-'}</TableCell>
-                <TableCell>{formatDate(member.birth_date)}</TableCell>
-                <TableCell>
-                  <Badge 
-                    variant={member.status === 'active' ? "default" : "outline"}
-                    className={member.status === 'active' ? "bg-green-500" : ""}
-                  >
-                    {member.status === 'active' ? 'Ativo' : 'Inativo'}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {formatDate(member.join_date)}
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Abrir menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleView(member.id)}>
-                        <Eye className="mr-2 h-4 w-4" /> Visualizar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onEdit && onEdit(member)}>
-                        <Edit className="mr-2 h-4 w-4" /> Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="text-red-600" 
-                        onClick={() => handleDelete(member.id)}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={8} className="h-24 text-center">
+                  Carregando membros...
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </div>
+            ) : members.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="h-24 text-center">
+                  Nenhum membro encontrado.
+                </TableCell>
+              </TableRow>
+            ) : (
+              members.map((member) => (
+                <TableRow key={member.id}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        {member.avatar_url ? (
+                          <AvatarImage src={member.avatar_url} alt={member.name} />
+                        ) : (
+                          <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
+                        )}
+                      </Avatar>
+                      {member.name}
+                    </div>
+                  </TableCell>
+                  <TableCell>{member.email}</TableCell>
+                  <TableCell>{member.phone || '-'}</TableCell>
+                  <TableCell>{member.role || '-'}</TableCell>
+                  <TableCell>{formatDate(member.birth_date)}</TableCell>
+                  <TableCell>
+                    <Badge 
+                      variant={member.status === 'active' ? "default" : "outline"}
+                      className={member.status === 'active' ? "bg-green-500" : ""}
+                    >
+                      {member.status === 'active' ? 'Ativo' : 'Inativo'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {formatDate(member.join_date)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Abrir menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleView(member)}>
+                          <Eye className="mr-2 h-4 w-4" /> Visualizar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onEdit && onEdit(member)}>
+                          <Edit className="mr-2 h-4 w-4" /> Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="text-red-600" 
+                          onClick={() => handleDelete(member.id)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <MemberViewModal
+        isOpen={isViewModalOpen}
+        onClose={setIsViewModalOpen}
+        member={viewingMember}
+      />
+    </>
   );
 };
 
