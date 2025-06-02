@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -21,8 +20,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/use-toast";
-import { EventType } from '@/pages/Events';
 import EventModal from './EventModal';
+
+export type EventType = 'culto' | 'reuniao' | 'conferencia' | 'treinamento' | 'social';
 
 interface ScheduledEvent {
   id: number;
@@ -88,7 +88,7 @@ const getStatusColor = (status: string): string => {
 const EventSchedule: React.FC = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { toast } = useToast();
-  const [events] = useState<ScheduledEvent[]>(mockEvents);
+  const [events] = useState<ScheduledEvent[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Filtra eventos pela data selecionada
@@ -128,7 +128,7 @@ const EventSchedule: React.FC = () => {
             Visualize e agende eventos no calendário da igreja.
           </p>
         </div>
-        <Button onClick={handleScheduleEvent}>
+        <Button onClick={() => setIsModalOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Agendar Novo Evento
         </Button>
@@ -190,7 +190,7 @@ const EventSchedule: React.FC = () => {
                   {date ? format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "Selecione uma data"}
                 </CardDescription>
               </div>
-              <Button size="sm" variant="outline" onClick={handleScheduleEvent}>
+              <Button size="sm" variant="outline" onClick={() => setIsModalOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Adicionar
               </Button>
@@ -203,7 +203,7 @@ const EventSchedule: React.FC = () => {
                   <p className="mt-1 text-sm text-muted-foreground">
                     Não há eventos agendados para esta data.
                   </p>
-                  <Button onClick={handleScheduleEvent} variant="outline" className="mt-4">
+                  <Button onClick={() => setIsModalOpen(true)} variant="outline" className="mt-4">
                     Agendar Evento
                   </Button>
                 </div>
@@ -247,7 +247,13 @@ const EventSchedule: React.FC = () => {
       <EventModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveEvent}
+        onSave={() => {
+          toast({
+            title: "Evento agendado",
+            description: "O evento foi agendado com sucesso."
+          });
+          setIsModalOpen(false);
+        }}
         title="Agendar Novo Evento"
       />
     </div>

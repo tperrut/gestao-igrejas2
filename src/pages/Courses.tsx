@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -24,7 +25,7 @@ import {
 import CoursesList from '@/components/courses/CoursesList';
 import CourseModal from '@/components/courses/CourseModal';
 import { useToast } from '@/components/ui/use-toast';
-import { Course } from '@/types/appTypes';
+import { Course } from '@/types/libraryTypes';
 import { supabase } from '@/integrations/supabase/client';
 
 const Courses = () => {
@@ -57,13 +58,16 @@ const Courses = () => {
         title: course.title,
         description: course.description,
         instructor: course.instructor,
-        startDate: course.start_date,
-        endDate: course.end_date,
+        start_date: course.start_date,
+        end_date: course.end_date,
         location: course.location,
-        capacity: course.capacity,
-        enrolledCount: course.enrolled_count || 0,
-        status: course.status as 'active' | 'inactive' | 'completed',
-        imageUrl: course.image_url,
+        max_students: course.max_students,
+        students: course.students || 0,
+        status: course.status,
+        category: course.category,
+        prerequisites: course.prerequisites,
+        created_at: course.created_at,
+        updated_at: course.updated_at
       }));
 
       setCourses(formattedCourses);
@@ -77,10 +81,6 @@ const Courses = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const filterCourses = (status: Course['status']) => {
-    return courses.filter(course => course.status === status);
   };
 
   const handleCreateCourse = () => {
@@ -129,7 +129,7 @@ const Courses = () => {
     }
   };
 
-  const handleSaveCourse = async (courseData: Omit<Course, 'id'>) => {
+  const handleSaveCourse = async (courseData: Omit<Course, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       if (mode === 'create') {
         const { data, error } = await supabase
@@ -139,13 +139,14 @@ const Courses = () => {
               title: courseData.title,
               description: courseData.description,
               instructor: courseData.instructor,
-              start_date: courseData.startDate,
-              end_date: courseData.endDate,
+              start_date: courseData.start_date,
+              end_date: courseData.end_date,
               location: courseData.location,
-              capacity: courseData.capacity,
-              enrolled_count: courseData.enrolledCount,
+              max_students: courseData.max_students,
+              students: courseData.students,
               status: courseData.status,
-              image_url: courseData.imageUrl,
+              category: courseData.category,
+              prerequisites: courseData.prerequisites,
             }
           ])
           .select();
@@ -158,13 +159,16 @@ const Courses = () => {
             title: data[0].title,
             description: data[0].description,
             instructor: data[0].instructor,
-            startDate: data[0].start_date,
-            endDate: data[0].end_date,
+            start_date: data[0].start_date,
+            end_date: data[0].end_date,
             location: data[0].location,
-            capacity: data[0].capacity,
-            enrolledCount: data[0].enrolled_count || 0,
-            status: data[0].status as 'active' | 'inactive' | 'completed',
-            imageUrl: data[0].image_url,
+            max_students: data[0].max_students,
+            students: data[0].students || 0,
+            status: data[0].status,
+            category: data[0].category,
+            prerequisites: data[0].prerequisites,
+            created_at: data[0].created_at,
+            updated_at: data[0].updated_at,
           };
           
           setCourses([newCourse, ...courses]);
@@ -180,13 +184,14 @@ const Courses = () => {
             title: courseData.title,
             description: courseData.description,
             instructor: courseData.instructor,
-            start_date: courseData.startDate,
-            end_date: courseData.endDate,
+            start_date: courseData.start_date,
+            end_date: courseData.end_date,
             location: courseData.location,
-            capacity: courseData.capacity,
-            enrolled_count: courseData.enrolledCount,
+            max_students: courseData.max_students,
+            students: courseData.students,
             status: courseData.status,
-            image_url: courseData.imageUrl,
+            category: courseData.category,
+            prerequisites: courseData.prerequisites,
           })
           .eq('id', selectedCourse.id);
 
@@ -197,13 +202,14 @@ const Courses = () => {
           title: courseData.title,
           description: courseData.description,
           instructor: courseData.instructor,
-          startDate: courseData.startDate,
-          endDate: courseData.endDate,
+          start_date: courseData.start_date,
+          end_date: courseData.end_date,
           location: courseData.location,
-          capacity: courseData.capacity,
-          enrolledCount: courseData.enrolledCount,
+          max_students: courseData.max_students,
+          students: courseData.students,
           status: courseData.status,
-          imageUrl: courseData.imageUrl,
+          category: courseData.category,
+          prerequisites: courseData.prerequisites,
         };
         
         setCourses(courses.map(c => c.id === selectedCourse.id ? updatedCourse : c));
@@ -285,18 +291,18 @@ const Courses = () => {
 
       {selectedCourse && mode === 'edit' ? (
         <CourseModal 
-          open={isModalOpen}
-          onOpenChange={setIsModalOpen}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
           onSave={handleSaveCourse}
           course={selectedCourse}
-          mode="edit"
+          title="Editar Curso"
         />
       ) : (
         <CourseModal 
-          open={isModalOpen}
-          onOpenChange={setIsModalOpen}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
           onSave={handleSaveCourse}
-          mode="create"
+          title="Novo Curso"
         />
       )}
 

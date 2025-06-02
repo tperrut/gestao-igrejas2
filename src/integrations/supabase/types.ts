@@ -59,11 +59,14 @@ export type Database = {
       }
       courses: {
         Row: {
+          capacity: number | null
           category: string
           created_at: string
           description: string | null
           end_date: string
+          enrolled_count: number | null
           id: string
+          image_url: string | null
           instructor: string
           location: string | null
           max_students: number | null
@@ -75,11 +78,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          capacity?: number | null
           category: string
           created_at?: string
           description?: string | null
           end_date: string
+          enrolled_count?: number | null
           id?: string
+          image_url?: string | null
           instructor: string
           location?: string | null
           max_students?: number | null
@@ -91,11 +97,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          capacity?: number | null
           category?: string
           created_at?: string
           description?: string | null
           end_date?: string
+          enrolled_count?: number | null
           id?: string
+          image_url?: string | null
           instructor?: string
           location?: string | null
           max_students?: number | null
@@ -115,8 +124,10 @@ export type Database = {
           date: string
           description: string | null
           id: string
+          image_url: string | null
           location: string
           organizer: string
+          status: string | null
           time: string
           title: string
           type: string
@@ -128,8 +139,10 @@ export type Database = {
           date: string
           description?: string | null
           id?: string
+          image_url?: string | null
           location: string
           organizer: string
+          status?: string | null
           time: string
           title: string
           type: string
@@ -141,8 +154,10 @@ export type Database = {
           date?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           location?: string
           organizer?: string
+          status?: string | null
           time?: string
           title?: string
           type?: string
@@ -206,6 +221,7 @@ export type Database = {
       }
       members: {
         Row: {
+          avatar_url: string | null
           birth_date: string | null
           created_at: string
           email: string
@@ -218,6 +234,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           birth_date?: string | null
           created_at?: string
           email: string
@@ -230,6 +247,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           birth_date?: string | null
           created_at?: string
           email?: string

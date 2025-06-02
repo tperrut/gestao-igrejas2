@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,7 +17,7 @@ import EventsList from '@/components/events/EventsList';
 import EventModal from '@/components/events/EventModal';
 import EventSchedule from '@/components/events/EventSchedule';
 import { useToast } from '@/components/ui/use-toast';
-import { Event } from '@/types/appTypes';
+import { Event } from '@/types/libraryTypes';
 import { supabase } from '@/integrations/supabase/client';
 
 const Events = () => {
@@ -52,10 +53,11 @@ const Events = () => {
         date: event.date,
         time: event.time,
         location: event.location,
-        type: event.type,
         organizer: event.organizer,
-        status: event.status as 'scheduled' | 'cancelled' | 'completed',
-        imageUrl: event.image_url,
+        type: event.type,
+        capacity: event.capacity,
+        created_at: event.created_at,
+        updated_at: event.updated_at,
       }));
 
       setEvents(formattedEvents);
@@ -117,7 +119,7 @@ const Events = () => {
     }
   };
 
-  const handleSaveEvent = async (eventData: Omit<Event, 'id'>) => {
+  const handleSaveEvent = async (eventData: Omit<Event, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       if (mode === 'create') {
         const { data, error } = await supabase
@@ -131,8 +133,7 @@ const Events = () => {
               location: eventData.location,
               type: eventData.type,
               organizer: eventData.organizer,
-              status: eventData.status,
-              image_url: eventData.imageUrl,
+              capacity: eventData.capacity,
             }
           ])
           .select();
@@ -149,8 +150,9 @@ const Events = () => {
             location: data[0].location,
             type: data[0].type,
             organizer: data[0].organizer,
-            status: data[0].status as 'scheduled' | 'cancelled' | 'completed',
-            imageUrl: data[0].image_url,
+            capacity: data[0].capacity,
+            created_at: data[0].created_at,
+            updated_at: data[0].updated_at,
           };
           
           setEvents([...events, newEvent]);
@@ -170,8 +172,7 @@ const Events = () => {
             location: eventData.location,
             type: eventData.type,
             organizer: eventData.organizer,
-            status: eventData.status,
-            image_url: eventData.imageUrl,
+            capacity: eventData.capacity,
           })
           .eq('id', selectedEvent.id);
 
@@ -186,8 +187,7 @@ const Events = () => {
           location: eventData.location,
           type: eventData.type,
           organizer: eventData.organizer,
-          status: eventData.status,
-          imageUrl: eventData.imageUrl,
+          capacity: eventData.capacity,
         };
         
         setEvents(events.map(e => e.id === selectedEvent.id ? updatedEvent : e));
@@ -232,71 +232,28 @@ const Events = () => {
         </TabsList>
 
         <TabsContent value="list" className="mt-0 space-y-4">
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList>
-              <TabsTrigger value="all">Todos</TabsTrigger>
-              <TabsTrigger value="scheduled">Agendados</TabsTrigger>
-              <TabsTrigger value="cancelled">Cancelados</TabsTrigger>
-              <TabsTrigger value="completed">Concluídos</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="all" className="mt-4">
-              <EventsList 
-                events={events} 
-                isLoading={isLoading} 
-                onEdit={handleEditEvent} 
-                onDelete={handleDeleteEvent} 
-              />
-            </TabsContent>
-            
-            <TabsContent value="scheduled" className="mt-4">
-              <EventsList 
-                events={events.filter(event => event.status === 'scheduled')} 
-                isLoading={isLoading} 
-                onEdit={handleEditEvent} 
-                onDelete={handleDeleteEvent} 
-              />
-            </TabsContent>
-            
-            <TabsContent value="cancelled" className="mt-4">
-              <EventsList 
-                events={events.filter(event => event.status === 'cancelled')} 
-                isLoading={isLoading} 
-                onEdit={handleEditEvent} 
-                onDelete={handleDeleteEvent} 
-              />
-            </TabsContent>
-            
-            <TabsContent value="completed" className="mt-4">
-              <EventsList 
-                events={events.filter(event => event.status === 'completed')} 
-                isLoading={isLoading} 
-                onEdit={handleEditEvent} 
-                onDelete={handleDeleteEvent} 
-              />
-            </TabsContent>
-          </Tabs>
+          <EventsList onEdit={handleEditEvent} />
         </TabsContent>
         
         <TabsContent value="calendar" className="mt-0">
-          <EventSchedule events={events} onEventClick={handleEditEvent} />
+          <EventSchedule />
         </TabsContent>
       </Tabs>
 
       {selectedEvent && mode === 'edit' ? (
         <EventModal 
-          open={isModalOpen}
-          onOpenChange={setIsModalOpen}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
           onSave={handleSaveEvent}
           event={selectedEvent}
-          mode="edit"
+          title="Editar Evento"
         />
       ) : (
         <EventModal 
-          open={isModalOpen}
-          onOpenChange={setIsModalOpen}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
           onSave={handleSaveEvent}
-          mode="create"
+          title="Novo Evento"
         />
       )}
 
