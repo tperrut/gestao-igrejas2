@@ -15,16 +15,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CourseCategory, CourseStatus } from '@/components/courses/CoursesList';
 
 const courseFormSchema = z.object({
   title: z.string().min(3, { message: "Título deve ter pelo menos 3 caracteres" }),
   instructor: z.string().min(2, { message: "Instrutor deve ter pelo menos 2 caracteres" }),
-  startDate: z.string().min(1, { message: "Data de início é obrigatória" }),
-  endDate: z.string().min(1, { message: "Data de término é obrigatória" }),
+  start_date: z.string().min(1, { message: "Data de início é obrigatória" }),
+  end_date: z.string().min(1, { message: "Data de término é obrigatória" }),
   status: z.string().min(1, { message: "Status é obrigatório" }),
   category: z.string().min(1, { message: "Categoria é obrigatória" }),
-  maxStudents: z.coerce.number().min(1, { message: "Número máximo de alunos deve ser maior que zero" }),
+  max_students: z.coerce.number().min(1, { message: "Número máximo de alunos deve ser maior que zero" }),
   description: z.string().optional(),
   location: z.string().optional(),
   prerequisites: z.string().optional(),
@@ -42,11 +41,11 @@ const CourseForm: React.FC<CourseFormProps> = ({
   defaultValues = {
     title: "",
     instructor: "",
-    startDate: "",
-    endDate: "",
-    status: "upcoming",
+    start_date: "",
+    end_date: "",
+    status: "active",
     category: "biblia",
-    maxStudents: 20,
+    max_students: 20,
     description: "",
     location: "",
     prerequisites: "",
@@ -60,45 +59,17 @@ const CourseForm: React.FC<CourseFormProps> = ({
   });
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Título</FormLabel>
-              <FormControl>
-                <Input placeholder="Fundamentos da Fé" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="instructor"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Instrutor</FormLabel>
-              <FormControl>
-                <Input placeholder="Pastor João" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="max-h-[70vh] overflow-y-auto px-1">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
             control={form.control}
-            name="startDate"
+            name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Data de Início</FormLabel>
+                <FormLabel>Título</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <Input placeholder="Fundamentos da Fé" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -107,39 +78,107 @@ const CourseForm: React.FC<CourseFormProps> = ({
 
           <FormField
             control={form.control}
-            name="endDate"
+            name="instructor"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Data de Término</FormLabel>
+                <FormLabel>Instrutor</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <Input placeholder="Pastor João" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="start_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data de Início</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="end_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data de Término</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="active">Ativo</SelectItem>
+                      <SelectItem value="inactive">Inativo</SelectItem>
+                      <SelectItem value="completed">Concluído</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Categoria</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma categoria" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="biblia">Bíblia</SelectItem>
+                      <SelectItem value="lideranca">Liderança</SelectItem>
+                      <SelectItem value="discipulado">Discipulado</SelectItem>
+                      <SelectItem value="evangelismo">Evangelismo</SelectItem>
+                      <SelectItem value="familia">Família</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
           <FormField
             control={form.control}
-            name="status"
+            name="max_students"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="upcoming">Em breve</SelectItem>
-                    <SelectItem value="completed">Concluído</SelectItem>
-                    <SelectItem value="archived">Arquivado</SelectItem>
-                  </SelectContent>
-                </Select>
+                <FormLabel>Número Máximo de Alunos</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -147,92 +186,53 @@ const CourseForm: React.FC<CourseFormProps> = ({
 
           <FormField
             control={form.control}
-            name="category"
+            name="location"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Categoria</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma categoria" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="biblia">Bíblia</SelectItem>
-                    <SelectItem value="lideranca">Liderança</SelectItem>
-                    <SelectItem value="discipulado">Discipulado</SelectItem>
-                    <SelectItem value="evangelismo">Evangelismo</SelectItem>
-                    <SelectItem value="familia">Família</SelectItem>
-                  </SelectContent>
-                </Select>
+                <FormLabel>Local</FormLabel>
+                <FormControl>
+                  <Input placeholder="Sala 103" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-        </div>
 
-        <FormField
-          control={form.control}
-          name="maxStudents"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Número Máximo de Alunos</FormLabel>
-              <FormControl>
-                <Input type="number" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Descrição</FormLabel>
+                <FormControl>
+                  <Textarea placeholder="Descreva o curso..." rows={3} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="location"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Local</FormLabel>
-              <FormControl>
-                <Input placeholder="Sala 103" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="prerequisites"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Pré-requisitos</FormLabel>
+                <FormControl>
+                  <Textarea placeholder="Liste os pré-requisitos..." rows={2} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descrição</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Descreva o curso..." rows={3} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="prerequisites"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Pré-requisitos</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Liste os pré-requisitos..." rows={2} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex justify-end space-x-2 pt-4">
-          <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
-          <Button type="submit">Salvar</Button>
-        </div>
-      </form>
-    </Form>
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
+            <Button type="submit">Salvar</Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 };
 

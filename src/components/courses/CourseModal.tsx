@@ -7,27 +7,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import CourseForm from './CourseForm';
-import { CourseCategory, CourseStatus } from './CoursesList';
-
-interface Course {
-  id?: number;
-  title: string;
-  instructor: string;
-  startDate: string;
-  endDate: string;
-  status: CourseStatus;
-  category: CourseCategory;
-  maxStudents: number;
-  students?: number;
-  description?: string;
-  location?: string;
-  prerequisites?: string;
-}
+import { Course } from '@/types/libraryTypes';
 
 interface CourseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (course: Omit<Course, 'id' | 'students'>) => void;
+  onSave: (course: Omit<Course, 'id' | 'created_at' | 'updated_at'>) => void;
   course?: Course;
   title: string;
 }
@@ -41,7 +26,7 @@ const CourseModal: React.FC<CourseModalProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-[95%] sm:max-w-[600px] h-[90vh] sm:h-auto overflow-y-auto">
+      <DialogContent className="w-full max-w-[95%] sm:max-w-[600px] max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>

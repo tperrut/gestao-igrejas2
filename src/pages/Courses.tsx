@@ -1,17 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle, Edit2, Trash2 } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -232,14 +223,14 @@ const Courses = () => {
   
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Cursos</h1>
           <p className="text-muted-foreground">
             Gerencie todos os cursos oferecidos pela igreja
           </p>
         </div>
-        <Button onClick={handleCreateCourse} className="bg-church-blue">
+        <Button onClick={handleCreateCourse} className="bg-church-blue flex-1 sm:flex-none">
           <PlusCircle className="mr-2 h-4 w-4" /> Novo Curso
         </Button>
       </div>

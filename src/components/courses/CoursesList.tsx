@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -18,106 +18,30 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Edit, Trash2, Eye, Users } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
+import { Course } from '@/types/libraryTypes';
+import CourseViewModal from './CourseViewModal';
 
-export type CourseStatus = 'active' | 'upcoming' | 'completed' | 'archived';
-export type CourseCategory = 'biblia' | 'lideranca' | 'discipulado' | 'evangelismo' | 'familia';
-
-interface Course {
-  id: number;
-  title: string;
-  instructor: string;
-  startDate: string;
-  endDate: string;
-  status: CourseStatus;
-  category: CourseCategory;
-  maxStudents: number;
-  students: number;
-  description?: string;
-  location?: string;
-  prerequisites?: string;
-}
-
-// Mock data for course list
-const mockCourses: Course[] = [
-  {
-    id: 1,
-    title: "Fundamentos da Fé",
-    instructor: "Pastor João",
-    startDate: "2023-05-10",
-    endDate: "2023-07-12",
-    status: "active",
-    category: "biblia",
-    maxStudents: 30,
-    students: 25,
-    description: "Curso para novos convertidos aprenderem os fundamentos da fé cristã.",
-    location: "Sala 2",
-    prerequisites: "Nenhum"
-  },
-  {
-    id: 2,
-    title: "Liderança Cristã",
-    instructor: "Pastor Carlos",
-    startDate: "2023-06-05",
-    endDate: "2023-08-28",
-    status: "upcoming",
-    category: "lideranca",
-    maxStudents: 20,
-    students: 12,
-    description: "Curso para desenvolvimento de líderes na igreja.",
-    location: "Sala 3",
-    prerequisites: "Ser membro ativo por pelo menos 1 ano"
-  },
-  {
-    id: 3,
-    title: "Discipulado Eficaz",
-    instructor: "Ana Oliveira",
-    startDate: "2023-04-15",
-    endDate: "2023-06-17",
-    status: "active",
-    category: "discipulado",
-    maxStudents: 15,
-    students: 15,
-    description: "Como fazer discipulado de forma eficaz.",
-    location: "Sala 1",
-    prerequisites: "Fundamentos da Fé"
-  },
-  {
-    id: 4,
-    title: "Evangelismo Prático",
-    instructor: "Lucas Silva",
-    startDate: "2023-03-10",
-    endDate: "2023-04-28",
-    status: "completed",
-    category: "evangelismo",
-    maxStudents: 25,
-    students: 22,
-    description: "Métodos práticos de evangelismo para o dia a dia.",
-    location: "Auditório",
-    prerequisites: "Nenhum"
-  }
-];
-
-const getStatusBadge = (status: CourseStatus) => {
+const getStatusBadge = (status: string) => {
   const styles = {
     active: "bg-green-500 hover:bg-green-600",
-    upcoming: "bg-blue-500 hover:bg-blue-600",
-    completed: "bg-gray-500 hover:bg-gray-600",
-    archived: "bg-amber-500 hover:bg-amber-600"
+    inactive: "bg-gray-500 hover:bg-gray-600",
+    completed: "bg-blue-500 hover:bg-blue-600"
   };
 
   const labels = {
     active: "Ativo",
-    upcoming: "Em breve",
-    completed: "Concluído",
-    archived: "Arquivado"
+    inactive: "Inativo", 
+    completed: "Concluído"
   };
 
   return (
-    <Badge className={styles[status]}>{labels[status]}</Badge>
+    <Badge className={styles[status as keyof typeof styles] || "bg-gray-500"}>
+      {labels[status as keyof typeof labels] || status}
+    </Badge>
   );
 };
 
-const getCategoryBadge = (category: CourseCategory) => {
+const getCategoryBadge = (category: string) => {
   const styles = {
     biblia: "bg-purple-500 hover:bg-purple-600",
     lideranca: "bg-blue-500 hover:bg-blue-600",
@@ -135,101 +59,127 @@ const getCategoryBadge = (category: CourseCategory) => {
   };
 
   return (
-    <Badge className={styles[category]}>{labels[category]}</Badge>
+    <Badge className={styles[category as keyof typeof styles] || "bg-gray-500"}>
+      {labels[category as keyof typeof labels] || category}
+    </Badge>
   );
 };
 
 interface CoursesListProps {
+  courses: Course[];
+  isLoading: boolean;
   onEdit?: (course: Course) => void;
+  onDelete?: (course: Course) => void;
 }
 
-const CoursesList: React.FC<CoursesListProps> = ({ onEdit }) => {
+const CoursesList: React.FC<CoursesListProps> = ({ courses, isLoading, onEdit, onDelete }) => {
   const { toast } = useToast();
+  const [viewingCourse, setViewingCourse] = useState<Course | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
-  const handleDelete = (courseId: number) => {
-    toast({
-      title: "Curso removido",
-      description: "O curso foi removido com sucesso."
-    });
+  const handleView = (course: Course) => {
+    setViewingCourse(course);
+    setIsViewModalOpen(true);
   };
 
-  const handleView = (courseId: number) => {
-    toast({
-      title: "Visualizar detalhes",
-      description: "Esta funcionalidade será implementada em breve."
-    });
-  };
-
-  const handleStudents = (courseId: number) => {
+  const handleStudents = (courseId: string) => {
     toast({
       title: "Gerenciar alunos",
       description: "Esta funcionalidade será implementada em breve."
     });
   };
 
+  if (isLoading) {
+    return (
+      <div className="rounded-md border">
+        <div className="p-8 text-center">
+          <p>Carregando cursos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (courses.length === 0) {
+    return (
+      <div className="rounded-md border">
+        <div className="p-8 text-center">
+          <p>Nenhum curso encontrado.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[250px]">Título</TableHead>
-            <TableHead>Instrutor</TableHead>
-            <TableHead>Período</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Categoria</TableHead>
-            <TableHead>Alunos</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {mockCourses.map((course) => (
-            <TableRow key={course.id}>
-              <TableCell className="font-medium">{course.title}</TableCell>
-              <TableCell>{course.instructor}</TableCell>
-              <TableCell>
-                {new Date(course.startDate).toLocaleDateString('pt-BR')} - {new Date(course.endDate).toLocaleDateString('pt-BR')}
-              </TableCell>
-              <TableCell>
-                {getStatusBadge(course.status)}
-              </TableCell>
-              <TableCell>
-                {getCategoryBadge(course.category)}
-              </TableCell>
-              <TableCell>
-                {course.students}/{course.maxStudents}
-              </TableCell>
-              <TableCell className="text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Abrir menu</span>
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleView(course.id)}>
-                      <Eye className="mr-2 h-4 w-4" /> Visualizar
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onEdit && onEdit(course)}>
-                      <Edit className="mr-2 h-4 w-4" /> Editar
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleStudents(course.id)}>
-                      <Users className="mr-2 h-4 w-4" /> Gerenciar Alunos
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      className="text-red-600" 
-                      onClick={() => handleDelete(course.id)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
+    <>
+      <div className="rounded-md border overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[250px]">Título</TableHead>
+              <TableHead>Instrutor</TableHead>
+              <TableHead>Período</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Categoria</TableHead>
+              <TableHead>Alunos</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+          </TableHeader>
+          <TableBody>
+            {courses.map((course) => (
+              <TableRow key={course.id}>
+                <TableCell className="font-medium">{course.title}</TableCell>
+                <TableCell>{course.instructor}</TableCell>
+                <TableCell>
+                  {new Date(course.start_date).toLocaleDateString('pt-BR')} - {new Date(course.end_date).toLocaleDateString('pt-BR')}
+                </TableCell>
+                <TableCell>
+                  {getStatusBadge(course.status)}
+                </TableCell>
+                <TableCell>
+                  {getCategoryBadge(course.category)}
+                </TableCell>
+                <TableCell>
+                  {course.students || 0}/{course.max_students || 0}
+                </TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Abrir menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleView(course)}>
+                        <Eye className="mr-2 h-4 w-4" /> Visualizar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onEdit && onEdit(course)}>
+                        <Edit className="mr-2 h-4 w-4" /> Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStudents(course.id)}>
+                        <Users className="mr-2 h-4 w-4" /> Gerenciar Alunos
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="text-red-600" 
+                        onClick={() => onDelete && onDelete(course)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <CourseViewModal
+        isOpen={isViewModalOpen}
+        onClose={setIsViewModalOpen}
+        course={viewingCourse}
+      />
+    </>
   );
 };
 

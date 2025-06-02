@@ -7,24 +7,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import EventForm from './EventForm';
-import { EventType } from './EventsList';
-
-interface Event {
-  id?: number;
-  title: string;
-  date: string;
-  time: string;
-  location: string;
-  type: EventType;
-  organizer: string;
-  capacity: number;
-  description?: string;
-}
+import { Event } from '@/types/libraryTypes';
 
 interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (event: Omit<Event, 'id'>) => void;
+  onSave: (event: Omit<Event, 'id' | 'created_at' | 'updated_at'>) => void;
   event?: Event;
   title: string;
 }
@@ -38,7 +26,7 @@ const EventModal: React.FC<EventModalProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-[95%] sm:max-w-[600px] h-[90vh] sm:h-auto overflow-y-auto">
+      <DialogContent className="w-full max-w-[95%] sm:max-w-[600px] max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>

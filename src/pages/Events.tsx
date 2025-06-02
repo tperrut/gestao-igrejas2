@@ -21,57 +21,11 @@ import { Event } from '@/types/libraryTypes';
 import { supabase } from '@/integrations/supabase/client';
 
 const Events = () => {
-  const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [mode, setMode] = useState<'create' | 'edit'>('create');
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  const fetchEvents = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .order('date', { ascending: true });
-
-      if (error) {
-        throw error;
-      }
-
-      const formattedEvents: Event[] = data.map(event => ({
-        id: event.id,
-        title: event.title,
-        description: event.description,
-        date: event.date,
-        time: event.time,
-        location: event.location,
-        organizer: event.organizer,
-        type: event.type,
-        capacity: event.capacity,
-        created_at: event.created_at,
-        updated_at: event.updated_at,
-      }));
-
-      setEvents(formattedEvents);
-    } catch (error) {
-      console.error('Error fetching events:', error);
-      toast({
-        title: "Erro ao carregar eventos",
-        description: "Não foi possível carregar a lista de eventos.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleCreateEvent = () => {
     setMode('create');
@@ -101,7 +55,6 @@ const Events = () => {
         
       if (error) throw error;
       
-      setEvents(events.filter(e => e.id !== selectedEvent.id));
       toast({
         title: "Evento excluído",
         description: `O evento ${selectedEvent.title} foi excluído com sucesso.`,
@@ -141,21 +94,6 @@ const Events = () => {
         if (error) throw error;
         
         if (data && data[0]) {
-          const newEvent: Event = {
-            id: data[0].id,
-            title: data[0].title,
-            description: data[0].description,
-            date: data[0].date,
-            time: data[0].time,
-            location: data[0].location,
-            type: data[0].type,
-            organizer: data[0].organizer,
-            capacity: data[0].capacity,
-            created_at: data[0].created_at,
-            updated_at: data[0].updated_at,
-          };
-          
-          setEvents([...events, newEvent]);
           toast({
             title: "Evento criado",
             description: `O evento ${eventData.title} foi criado com sucesso.`,
@@ -178,19 +116,6 @@ const Events = () => {
 
         if (error) throw error;
         
-        const updatedEvent: Event = {
-          ...selectedEvent,
-          title: eventData.title,
-          description: eventData.description,
-          date: eventData.date,
-          time: eventData.time,
-          location: eventData.location,
-          type: eventData.type,
-          organizer: eventData.organizer,
-          capacity: eventData.capacity,
-        };
-        
-        setEvents(events.map(e => e.id === selectedEvent.id ? updatedEvent : e));
         toast({
           title: "Evento atualizado",
           description: `O evento ${eventData.title} foi atualizado com sucesso.`,
@@ -208,7 +133,6 @@ const Events = () => {
     }
   };
 
-  
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -225,14 +149,14 @@ const Events = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="list" className="w-full" onValueChange={(value) => setViewMode(value as 'list' | 'calendar')}>
+      <Tabs defaultValue="list" className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="list">Lista</TabsTrigger>
           <TabsTrigger value="calendar">Calendário</TabsTrigger>
         </TabsList>
 
         <TabsContent value="list" className="mt-0 space-y-4">
-          <EventsList onEdit={handleEditEvent} />
+          <EventsList onEdit={handleEditEvent} onDelete={handleDeleteEvent} />
         </TabsContent>
         
         <TabsContent value="calendar" className="mt-0">

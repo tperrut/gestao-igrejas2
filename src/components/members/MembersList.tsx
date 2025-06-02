@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import MemberViewModal from './MemberViewModal';
+import MembersFilter from './MembersFilter';
 
 interface MembersListProps {
   onEdit?: (member: Member) => void;
@@ -31,14 +32,21 @@ interface MembersListProps {
 
 const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
   const [members, setMembers] = useState<Member[]>([]);
+  const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewingMember, setViewingMember] = useState<Member | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [searchName, setSearchName] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
   const { toast } = useToast();
 
   useEffect(() => {
     fetchMembers();
   }, []);
+
+  useEffect(() => {
+    filterMembers();
+  }, [members, searchName, roleFilter]);
 
   async function fetchMembers() {
     try {
@@ -66,6 +74,26 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
       setLoading(false);
     }
   }
+
+  const filterMembers = () => {
+    let filtered = members;
+
+    // Filtro por nome
+    if (searchName.trim()) {
+      filtered = filtered.filter(member =>
+        member.name.toLowerCase().includes(searchName.toLowerCase())
+      );
+    }
+
+    // Filtro por função
+    if (roleFilter !== 'all') {
+      filtered = filtered.filter(member =>
+        member.role?.toLowerCase() === roleFilter.toLowerCase()
+      );
+    }
+
+    setFilteredMembers(filtered);
+  };
 
   const handleDelete = async (memberId: string) => {
     try {
@@ -119,6 +147,13 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
 
   return (
     <>
+      <MembersFilter
+        searchName={searchName}
+        onSearchNameChange={setSearchName}
+        roleFilter={roleFilter}
+        onRoleFilterChange={setRoleFilter}
+      />
+
       <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
@@ -140,14 +175,17 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
                   Carregando membros...
                 </TableCell>
               </TableRow>
-            ) : members.length === 0 ? (
+            ) : filteredMembers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="h-24 text-center">
-                  Nenhum membro encontrado.
+                  {searchName || roleFilter !== 'all' 
+                    ? "Nenhum membro encontrado com os filtros aplicados." 
+                    : "Nenhum membro encontrado."
+                  }
                 </TableCell>
               </TableRow>
             ) : (
-              members.map((member) => (
+              filteredMembers.map((member) => (
                 <TableRow key={member.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-3">
