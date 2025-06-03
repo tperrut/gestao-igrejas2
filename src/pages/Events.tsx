@@ -23,26 +23,19 @@ import { supabase } from '@/integrations/supabase/client';
 
 const Events = () => {
   const [events, setEvents] = useState<Event[]>([]);
-  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [mode, setMode] = useState<'create' | 'edit'>('create');
   const [typeFilter, setTypeFilter] = useState('all');
   const [viewMode, setViewMode] = useState('all');
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchEvents();
   }, []);
 
-  useEffect(() => {
-    filterEvents();
-  }, [events, typeFilter, viewMode]);
-
   const fetchEvents = async () => {
-    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('events')
@@ -73,56 +66,7 @@ const Events = () => {
         description: "Não foi possível carregar a lista de eventos.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
-  };
-
-  const filterEvents = () => {
-    let filtered = [...events];
-
-    // Filtro por tipo
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter(event => event.type === typeFilter);
-    }
-
-    // Filtro por período
-    const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
-    const startOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
-    const endOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 6, 23, 59, 59);
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
-
-    switch (viewMode) {
-      case 'today':
-        filtered = filtered.filter(event => {
-          const eventDate = new Date(event.date);
-          return eventDate >= startOfDay && eventDate <= endOfDay;
-        });
-        break;
-      case 'day':
-        filtered = filtered.filter(event => {
-          const eventDate = new Date(event.date);
-          return eventDate.toDateString() === today.toDateString();
-        });
-        break;
-      case 'week':
-        filtered = filtered.filter(event => {
-          const eventDate = new Date(event.date);
-          return eventDate >= startOfWeek && eventDate <= endOfWeek;
-        });
-        break;
-      case 'month':
-        filtered = filtered.filter(event => {
-          const eventDate = new Date(event.date);
-          return eventDate >= startOfMonth && eventDate <= endOfMonth;
-        });
-        break;
-    }
-
-    setFilteredEvents(filtered);
   };
 
   const handleCreateEvent = () => {
@@ -291,8 +235,6 @@ const Events = () => {
 
         <TabsContent value="list" className="mt-0 space-y-4">
           <EventsList 
-            events={filteredEvents} 
-            isLoading={isLoading} 
             onEdit={handleEditEvent} 
             onDelete={handleDeleteEvent} 
           />
