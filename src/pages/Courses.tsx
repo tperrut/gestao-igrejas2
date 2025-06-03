@@ -220,6 +220,11 @@ const Courses = () => {
       setIsModalOpen(false);
     }
   };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCourse(undefined);
+  };
   
   return (
     <div className="space-y-6 animate-fade-in">
@@ -280,22 +285,13 @@ const Courses = () => {
         </TabsContent>
       </Tabs>
 
-      {selectedCourse && mode === 'edit' ? (
-        <CourseModal 
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSave={handleSaveCourse}
-          course={selectedCourse}
-          title="Editar Curso"
-        />
-      ) : (
-        <CourseModal 
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSave={handleSaveCourse}
-          title="Novo Curso"
-        />
-      )}
+      <CourseModal 
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSaveCourse}
+        course={selectedCourse}
+        title={mode === 'edit' ? "Editar Curso" : "Novo Curso"}
+      />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>

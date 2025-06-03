@@ -204,6 +204,11 @@ const Events = () => {
     }
   };
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedEvent(undefined);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -247,7 +252,7 @@ const Events = () => {
 
       <EventModal 
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCloseModal}
         onSave={handleSaveEvent}
         event={selectedEvent}
         title={mode === 'edit' ? "Editar Evento" : "Novo Evento"}
