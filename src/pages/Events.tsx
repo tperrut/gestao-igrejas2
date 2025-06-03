@@ -17,7 +17,7 @@ import EventsList from '@/components/events/EventsList';
 import EventModal from '@/components/events/EventModal';
 import EventSchedule from '@/components/events/EventSchedule';
 import EventsFilter from '@/components/events/EventsFilter';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Event } from '@/types/libraryTypes';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -201,6 +201,7 @@ const Events = () => {
       });
     } finally {
       setIsModalOpen(false);
+      setSelectedEvent(undefined);
     }
   };
 

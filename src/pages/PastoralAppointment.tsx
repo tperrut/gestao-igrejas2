@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -12,10 +11,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { MessageSquare, Clock, Calendar as CalendarIcon, CheckCircle, XCircle, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import PastoralScheduleManagement from '@/components/pastoral/PastoralScheduleManagement';
+import MemberLookup from '@/components/pastoral/MemberLookup';
 
 interface PastoralAppointment {
   id: string;
@@ -39,9 +39,17 @@ interface AvailableSchedule {
   notes?: string;
 }
 
+interface Member {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+}
+
 const PastoralAppointment: React.FC = () => {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState<string>("");
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [contactNumber, setContactNumber] = useState("");
@@ -107,6 +115,13 @@ const PastoralAppointment: React.FC = () => {
     }
   };
 
+  const handleMemberSelected = (member: Member) => {
+    setSelectedMember(member);
+    setName(member.name);
+    setEmail(member.email);
+    setContactNumber(member.phone || '');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -169,6 +184,7 @@ const PastoralAppointment: React.FC = () => {
       // Limpar formulário
       setDate(undefined);
       setTime("");
+      setSelectedMember(null);
       setName("");
       setEmail("");
       setContactNumber("");
@@ -320,39 +336,45 @@ const PastoralAppointment: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Nome Completo *</Label>
-                        <Input
-                          id="name"
-                          placeholder="Digite seu nome"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email *</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="seu@email.com"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
+                    <MemberLookup 
+                      onMemberSelected={handleMemberSelected}
+                      selectedMember={selectedMember}
+                    />
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="contact">Telefone</Label>
-                      <Input
-                        id="contact"
-                        placeholder="(00) 00000-0000"
-                        value={contactNumber}
-                        onChange={(e) => setContactNumber(e.target.value)}
-                      />
-                    </div>
+                    {!selectedMember && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Nome Completo *</Label>
+                          <Input
+                            id="name"
+                            placeholder="Digite seu nome"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email *</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            placeholder="seu@email.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor="contact">Telefone</Label>
+                          <Input
+                            id="contact"
+                            placeholder="(00) 00000-0000"
+                            value={contactNumber}
+                            onChange={(e) => setContactNumber(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
                     
                     <div className="space-y-2">
                       <Label>Selecione uma data *</Label>

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import CoursesList from '@/components/courses/CoursesList';
 import CourseModal from '@/components/courses/CourseModal';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Course } from '@/types/libraryTypes';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -122,6 +122,8 @@ const Courses = () => {
 
   const handleSaveCourse = async (courseData: Omit<Course, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      console.log('Saving course data:', courseData);
+      
       if (mode === 'create') {
         const { data, error } = await supabase
           .from('courses')
@@ -142,7 +144,10 @@ const Courses = () => {
           ])
           .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
         
         if (data && data[0]) {
           const newCourse: Course = {
@@ -186,7 +191,10 @@ const Courses = () => {
           })
           .eq('id', selectedCourse.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
         
         const updatedCourse: Course = {
           ...selectedCourse,
@@ -211,13 +219,15 @@ const Courses = () => {
       }
     } catch (error) {
       console.error('Error saving course:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast({
         title: "Erro ao salvar curso",
-        description: "Não foi possível salvar o curso. Verifique os dados e tente novamente.",
+        description: `Não foi possível salvar o curso. Erro: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
       setIsModalOpen(false);
+      setSelectedCourse(undefined);
     }
   };
 
