@@ -317,6 +317,36 @@ export type Database = {
           },
         ]
       }
+      pastoral_schedules: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          is_available: boolean
+          notes: string | null
+          time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          is_available?: boolean
+          notes?: string | null
+          time: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          is_available?: boolean
+          notes?: string | null
+          time?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

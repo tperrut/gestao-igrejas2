@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Calendar, Clock, PlusCircle, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -18,6 +18,7 @@ interface AvailableSchedule {
   is_available: boolean;
   notes?: string;
   created_at?: string;
+  updated_at?: string;
 }
 
 const PastoralScheduleManagement: React.FC = () => {
@@ -68,7 +69,12 @@ const PastoralScheduleManagement: React.FC = () => {
     try {
       const { error } = await supabase
         .from('pastoral_schedules')
-        .insert([newSchedule]);
+        .insert([{
+          date: newSchedule.date,
+          time: newSchedule.time,
+          is_available: newSchedule.is_available,
+          notes: newSchedule.notes || null
+        }]);
 
       if (error) throw error;
 
