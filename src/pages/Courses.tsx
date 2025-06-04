@@ -41,8 +41,11 @@ const Courses = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Erro ao buscar cursos:', error);
         throw error;
       }
+
+      console.log('Cursos carregados:', data);
 
       const formattedCourses: Course[] = data.map(course => ({
         id: course.id,
@@ -75,12 +78,14 @@ const Courses = () => {
   };
 
   const handleCreateCourse = () => {
+    console.log('Abrindo modal para criar curso');
     setMode('create');
     setSelectedCourse(undefined);
     setIsModalOpen(true);
   };
 
   const handleEditCourse = (course: Course) => {
+    console.log('Editando curso:', course);
     setMode('edit');
     setSelectedCourse(course);
     setIsModalOpen(true);
@@ -95,12 +100,16 @@ const Courses = () => {
     if (!selectedCourse) return;
     
     try {
+      console.log('Excluindo curso:', selectedCourse.id);
       const { error } = await supabase
         .from('courses')
         .delete()
         .eq('id', selectedCourse.id);
         
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao excluir curso:', error);
+        throw error;
+      }
       
       setCourses(courses.filter(c => c.id !== selectedCourse.id));
       toast({
@@ -122,32 +131,36 @@ const Courses = () => {
 
   const handleSaveCourse = async (courseData: Omit<Course, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      console.log('Saving course data:', courseData);
+      console.log('Salvando dados do curso:', courseData);
       
       if (mode === 'create') {
+        const insertData = {
+          title: courseData.title,
+          description: courseData.description || null,
+          instructor: courseData.instructor,
+          start_date: courseData.start_date,
+          end_date: courseData.end_date,
+          location: courseData.location || null,
+          max_students: Number(courseData.max_students) || 0,
+          students: Number(courseData.students) || 0,
+          status: courseData.status,
+          category: courseData.category,
+          prerequisites: courseData.prerequisites || null,
+        };
+
+        console.log('Dados para inserção:', insertData);
+
         const { data, error } = await supabase
           .from('courses')
-          .insert([
-            {
-              title: courseData.title,
-              description: courseData.description,
-              instructor: courseData.instructor,
-              start_date: courseData.start_date,
-              end_date: courseData.end_date,
-              location: courseData.location,
-              max_students: courseData.max_students,
-              students: courseData.students,
-              status: courseData.status,
-              category: courseData.category,
-              prerequisites: courseData.prerequisites,
-            }
-          ])
+          .insert([insertData])
           .select();
 
         if (error) {
-          console.error('Supabase error:', error);
+          console.error('Erro do Supabase ao criar curso:', error);
           throw error;
         }
+        
+        console.log('Curso criado com sucesso:', data);
         
         if (data && data[0]) {
           const newCourse: Course = {
@@ -174,41 +187,35 @@ const Courses = () => {
           });
         }
       } else if (mode === 'edit' && selectedCourse) {
+        const updateData = {
+          title: courseData.title,
+          description: courseData.description || null,
+          instructor: courseData.instructor,
+          start_date: courseData.start_date,
+          end_date: courseData.end_date,
+          location: courseData.location || null,
+          max_students: Number(courseData.max_students) || 0,
+          students: Number(courseData.students) || 0,
+          status: courseData.status,
+          category: courseData.category,
+          prerequisites: courseData.prerequisites || null,
+        };
+
+        console.log('Dados para atualização:', updateData);
+
         const { error } = await supabase
           .from('courses')
-          .update({
-            title: courseData.title,
-            description: courseData.description,
-            instructor: courseData.instructor,
-            start_date: courseData.start_date,
-            end_date: courseData.end_date,
-            location: courseData.location,
-            max_students: courseData.max_students,
-            students: courseData.students,
-            status: courseData.status,
-            category: courseData.category,
-            prerequisites: courseData.prerequisites,
-          })
+          .update(updateData)
           .eq('id', selectedCourse.id);
 
         if (error) {
-          console.error('Supabase error:', error);
+          console.error('Erro do Supabase ao atualizar curso:', error);
           throw error;
         }
         
         const updatedCourse: Course = {
           ...selectedCourse,
-          title: courseData.title,
-          description: courseData.description,
-          instructor: courseData.instructor,
-          start_date: courseData.start_date,
-          end_date: courseData.end_date,
-          location: courseData.location,
-          max_students: courseData.max_students,
-          students: courseData.students,
-          status: courseData.status,
-          category: courseData.category,
-          prerequisites: courseData.prerequisites,
+          ...courseData,
         };
         
         setCourses(courses.map(c => c.id === selectedCourse.id ? updatedCourse : c));
@@ -218,7 +225,7 @@ const Courses = () => {
         });
       }
     } catch (error) {
-      console.error('Error saving course:', error);
+      console.error('Erro ao salvar curso:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast({
         title: "Erro ao salvar curso",
@@ -232,6 +239,7 @@ const Courses = () => {
   };
 
   const handleCloseModal = () => {
+    console.log('Fechando modal');
     setIsModalOpen(false);
     setSelectedCourse(undefined);
   };

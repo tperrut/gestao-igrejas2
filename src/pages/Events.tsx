@@ -42,7 +42,12 @@ const Events = () => {
         .select('*')
         .order('date', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar eventos:', error);
+        throw error;
+      }
+
+      console.log('Eventos carregados:', data);
 
       const formattedEvents: Event[] = data.map(event => ({
         id: event.id,
@@ -70,12 +75,14 @@ const Events = () => {
   };
 
   const handleCreateEvent = () => {
+    console.log('Abrindo modal para criar evento');
     setMode('create');
     setSelectedEvent(undefined);
     setIsModalOpen(true);
   };
 
   const handleEditEvent = (event: Event) => {
+    console.log('Editando evento:', event);
     setMode('edit');
     setSelectedEvent(event);
     setIsModalOpen(true);
@@ -90,12 +97,16 @@ const Events = () => {
     if (!selectedEvent) return;
     
     try {
+      console.log('Excluindo evento:', selectedEvent.id);
       const { error } = await supabase
         .from('events')
         .delete()
         .eq('id', selectedEvent.id);
         
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao excluir evento:', error);
+        throw error;
+      }
       
       setEvents(events.filter(e => e.id !== selectedEvent.id));
       toast({
@@ -117,20 +128,33 @@ const Events = () => {
 
   const handleSaveEvent = async (eventData: Omit<Event, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      console.log('Saving event data:', eventData);
+      console.log('Salvando dados do evento:', eventData);
       
       if (mode === 'create') {
+        const insertData = {
+          title: eventData.title,
+          description: eventData.description || null,
+          date: eventData.date,
+          time: eventData.time,
+          location: eventData.location,
+          type: eventData.type,
+          organizer: eventData.organizer,
+          capacity: Number(eventData.capacity) || 0,
+        };
+
+        console.log('Dados para inserção:', insertData);
+
         const { data, error } = await supabase
           .from('events')
-          .insert([eventData])
+          .insert([insertData])
           .select();
 
         if (error) {
-          console.error('Supabase error:', error);
+          console.error('Erro do Supabase ao criar evento:', error);
           throw error;
         }
         
-        console.log('Created event:', data);
+        console.log('Evento criado com sucesso:', data);
         
         if (data && data[0]) {
           const newEvent: Event = {
@@ -154,13 +178,26 @@ const Events = () => {
           });
         }
       } else if (mode === 'edit' && selectedEvent) {
+        const updateData = {
+          title: eventData.title,
+          description: eventData.description || null,
+          date: eventData.date,
+          time: eventData.time,
+          location: eventData.location,
+          type: eventData.type,
+          organizer: eventData.organizer,
+          capacity: Number(eventData.capacity) || 0,
+        };
+
+        console.log('Dados para atualização:', updateData);
+
         const { error } = await supabase
           .from('events')
-          .update(eventData)
+          .update(updateData)
           .eq('id', selectedEvent.id);
 
         if (error) {
-          console.error('Supabase error:', error);
+          console.error('Erro do Supabase ao atualizar evento:', error);
           throw error;
         }
         
@@ -176,10 +213,11 @@ const Events = () => {
         });
       }
     } catch (error) {
-      console.error('Error saving event:', error);
+      console.error('Erro ao salvar evento:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast({
         title: "Erro ao salvar evento",
-        description: "Não foi possível salvar o evento. Verifique os dados e tente novamente.",
+        description: `Não foi possível salvar o evento. Erro: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
@@ -189,6 +227,7 @@ const Events = () => {
   };
 
   const handleCloseModal = () => {
+    console.log('Fechando modal');
     setIsModalOpen(false);
     setSelectedEvent(undefined);
   };
