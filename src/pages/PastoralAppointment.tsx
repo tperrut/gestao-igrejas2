@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -146,6 +145,8 @@ const PastoralAppointment: React.FC = () => {
 
     // Check if the selected time is still available
     const selectedDate = format(date, 'yyyy-MM-dd');
+    console.log('Submitting appointment for date:', selectedDate, 'time:', time);
+    
     const isTimeAvailable = availableSchedules.some(schedule => 
       schedule.date === selectedDate && 
       schedule.time === time && 
@@ -169,22 +170,30 @@ const PastoralAppointment: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await supabase
-        .from('pastoral_appointments')
-        .insert([
-          {
-            member_name: name,
-            member_email: email,
-            member_phone: contactNumber || null,
-            appointment_date: selectedDate,
-            appointment_time: time,
-            reason: reason,
-            message: message || null,
-            status: 'pending'
-          }
-        ]);
+      const appointmentData = {
+        member_name: name,
+        member_email: email,
+        member_phone: contactNumber || null,
+        appointment_date: selectedDate,
+        appointment_time: time,
+        reason: reason,
+        message: message || null,
+        status: 'pending'
+      };
 
-      if (error) throw error;
+      console.log('Creating appointment with data:', appointmentData);
+
+      const { data, error } = await supabase
+        .from('pastoral_appointments')
+        .insert([appointmentData])
+        .select();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Appointment created successfully:', data);
 
       toast({
         title: "Solicitação enviada!",

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,132 +15,241 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from 'date-fns/locale';
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import EventModal from './EventModal';
-
-export type EventType = 'culto' | 'reuniao' | 'conferencia' | 'treinamento' | 'social';
-
-interface ScheduledEvent {
-  id: number;
-  title: string;
-  date: Date;
-  time: string;
-  location: string;
-  type: EventType;
-  status: 'confirmado' | 'pendente' | 'cancelado';
-}
-
-// Dados de exemplo para eventos
-const mockEvents: ScheduledEvent[] = [
-  {
-    id: 1,
-    title: "Culto de Domingo",
-    date: new Date(2023, 4, 7),
-    time: "10:00 - 12:00",
-    location: "Auditório Principal",
-    type: "culto",
-    status: "confirmado"
-  },
-  {
-    id: 2,
-    title: "Reunião de Líderes",
-    date: new Date(2023, 4, 10),
-    time: "19:30 - 21:00",
-    location: "Sala de Reuniões",
-    type: "reuniao",
-    status: "confirmado"
-  },
-  {
-    id: 3,
-    title: "Conferência Jovem",
-    date: new Date(2023, 4, 20),
-    time: "15:00 - 18:00",
-    location: "Auditório Principal",
-    type: "conferencia",
-    status: "pendente"
-  }
-];
-
-const getEventTypeColor = (type: EventType): string => {
-  const colors = {
-    culto: "bg-blue-100 text-blue-800",
-    reuniao: "bg-green-100 text-green-800",
-    conferencia: "bg-purple-100 text-purple-800",
-    treinamento: "bg-amber-100 text-amber-800",
-    social: "bg-pink-100 text-pink-800"
-  };
-  return colors[type] || "bg-gray-100 text-gray-800";
-};
-
-const getStatusColor = (status: string): string => {
-  const colors = {
-    confirmado: "bg-green-100 text-green-800",
-    pendente: "bg-amber-100 text-amber-800",
-    cancelado: "bg-red-100 text-red-800"
-  };
-  return colors[status] || "bg-gray-100 text-gray-800";
-};
+import { supabase } from '@/integrations/supabase/client';
+import { Event } from '@/types/libraryTypes';
 
 const EventSchedule: React.FC = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { toast } = useToast();
-  const [events] = useState<ScheduledEvent[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Event | undefined>(undefined);
+  const [mode, setMode] = useState<'create' | 'edit'>('create');
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .order('date', { ascending: true });
+
+      if (error) {
+        console.error('Erro ao buscar eventos:', error);
+        throw error;
+      }
+
+      console.log('Eventos carregados no calendário:', data);
+
+      const formattedEvents: Event[] = data.map(event => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        date: event.date,
+        time: event.time,
+        location: event.location,
+        type: event.type,
+        organizer: event.organizer,
+        capacity: event.capacity,
+        created_at: event.created_at,
+        updated_at: event.updated_at
+      }));
+
+      setEvents(formattedEvents);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      toast({
+        title: "Erro ao carregar eventos",
+        description: "Não foi possível carregar a lista de eventos.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Filtra eventos pela data selecionada
-  const selectedDayEvents = date ? events.filter(event => 
-    event.date.getDate() === date.getDate() &&
-    event.date.getMonth() === date.getMonth() &&
-    event.date.getFullYear() === date.getFullYear()
-  ) : [];
+  const selectedDayEvents = date ? events.filter(event => {
+    const eventDate = new Date(event.date);
+    return eventDate.getDate() === date.getDate() &&
+           eventDate.getMonth() === date.getMonth() &&
+           eventDate.getFullYear() === date.getFullYear();
+  }) : [];
 
-  const handleScheduleEvent = () => {
+  const handleCreateEvent = () => {
+    console.log('Abrindo modal para criar evento');
+    setMode('create');
+    setSelectedEvent(undefined);
     setIsModalOpen(true);
   };
 
-  const handleSaveEvent = (eventData: any) => {
-    toast({
-      title: "Evento agendado",
-      description: "O evento foi agendado com sucesso."
-    });
+  const handleEditEvent = (event: Event) => {
+    console.log('Editando evento:', event);
+    setMode('edit');
+    setSelectedEvent(event);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveEvent = async (eventData: Omit<Event, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      console.log('Salvando evento no calendário:', eventData);
+      
+      if (mode === 'create') {
+        const insertData = {
+          title: eventData.title,
+          description: eventData.description || null,
+          date: eventData.date,
+          time: eventData.time,
+          location: eventData.location,
+          type: eventData.type,
+          organizer: eventData.organizer,
+          capacity: Number(eventData.capacity) || 0,
+        };
+
+        console.log('Dados para inserção:', insertData);
+
+        const { data, error } = await supabase
+          .from('events')
+          .insert([insertData])
+          .select();
+
+        if (error) {
+          console.error('Erro do Supabase ao criar evento:', error);
+          throw error;
+        }
+        
+        console.log('Evento criado com sucesso:', data);
+        
+        if (data && data[0]) {
+          const newEvent: Event = {
+            id: data[0].id,
+            title: data[0].title,
+            description: data[0].description,
+            date: data[0].date,
+            time: data[0].time,
+            location: data[0].location,
+            type: data[0].type,
+            organizer: data[0].organizer,
+            capacity: data[0].capacity,
+            created_at: data[0].created_at,
+            updated_at: data[0].updated_at
+          };
+          
+          setEvents([...events, newEvent]);
+          toast({
+            title: "Evento criado",
+            description: `O evento ${eventData.title} foi criado com sucesso.`,
+          });
+        }
+      } else if (mode === 'edit' && selectedEvent) {
+        const updateData = {
+          title: eventData.title,
+          description: eventData.description || null,
+          date: eventData.date,
+          time: eventData.time,
+          location: eventData.location,
+          type: eventData.type,
+          organizer: eventData.organizer,
+          capacity: Number(eventData.capacity) || 0,
+        };
+
+        console.log('Dados para atualização:', updateData);
+
+        const { error } = await supabase
+          .from('events')
+          .update(updateData)
+          .eq('id', selectedEvent.id);
+
+        if (error) {
+          console.error('Erro do Supabase ao atualizar evento:', error);
+          throw error;
+        }
+        
+        const updatedEvent: Event = {
+          ...selectedEvent,
+          ...eventData,
+        };
+        
+        setEvents(events.map(e => e.id === selectedEvent.id ? updatedEvent : e));
+        toast({
+          title: "Evento atualizado",
+          description: `O evento ${eventData.title} foi atualizado com sucesso.`,
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao salvar evento:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      toast({
+        title: "Erro ao salvar evento",
+        description: `Não foi possível salvar o evento. Erro: ${errorMessage}`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsModalOpen(false);
+      setSelectedEvent(undefined);
+    }
+  };
+
+  const handleCloseModal = () => {
+    console.log('Fechando modal');
     setIsModalOpen(false);
+    setSelectedEvent(undefined);
   };
 
   // Função para marcar dias com eventos no calendário
   const isDayWithEvent = (day: Date) => {
-    return events.some(event => 
-      event.date.getDate() === day.getDate() &&
-      event.date.getMonth() === day.getMonth() &&
-      event.date.getFullYear() === day.getFullYear()
-    );
+    return events.some(event => {
+      const eventDate = new Date(event.date);
+      return eventDate.getDate() === day.getDate() &&
+             eventDate.getMonth() === day.getMonth() &&
+             eventDate.getFullYear() === day.getFullYear();
+    });
+  };
+
+  const getEventTypeColor = (type: string): string => {
+    const colors = {
+      culto: "bg-blue-100 text-blue-800",
+      reuniao: "bg-green-100 text-green-800",
+      conferencia: "bg-purple-100 text-purple-800",
+      treinamento: "bg-amber-100 text-amber-800",
+      social: "bg-pink-100 text-pink-800"
+    };
+    return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800";
+  };
+
+  const getStatusColor = (status: string): string => {
+    const colors = {
+      confirmado: "bg-green-100 text-green-800",
+      pendente: "bg-amber-100 text-amber-800",
+      cancelado: "bg-red-100 text-red-800"
+    };
+    return colors[status] || "bg-gray-100 text-gray-800";
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Agendamento</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Agendamento</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
             Visualize e agende eventos no calendário da igreja.
           </p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)}>
+        <Button onClick={handleCreateEvent} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Agendar Novo Evento
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         <div className="lg:col-span-1">
           <Card className="h-full">
-            <CardHeader>
-              <CardTitle>Calendário</CardTitle>
-              <CardDescription>
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="text-lg sm:text-xl">Calendário</CardTitle>
+              <CardDescription className="text-sm">
                 Selecione uma data para visualizar os eventos
               </CardDescription>
             </CardHeader>
@@ -150,7 +260,7 @@ const EventSchedule: React.FC = () => {
                   selected={date}
                   onSelect={setDate}
                   locale={ptBR}
-                  className="rounded-md border pointer-events-auto"
+                  className="rounded-md border w-full"
                   modifiers={{
                     hasEvent: isDayWithEvent
                   }}
@@ -164,9 +274,9 @@ const EventSchedule: React.FC = () => {
 
           <div className="mt-4">
             <Card>
-              <CardHeader>
-                <CardTitle>Data Selecionada</CardTitle>
-                <CardDescription>
+              <CardHeader className="pb-2 sm:pb-4">
+                <CardTitle className="text-lg sm:text-xl">Data Selecionada</CardTitle>
+                <CardDescription className="text-sm">
                   {date ? format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "Nenhuma data selecionada"}
                 </CardDescription>
               </CardHeader>
@@ -183,14 +293,14 @@ const EventSchedule: React.FC = () => {
 
         <div className="lg:col-span-2">
           <Card className="h-full">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 sm:pb-4">
               <div>
-                <CardTitle>Eventos do Dia</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg sm:text-xl">Eventos do Dia</CardTitle>
+                <CardDescription className="text-sm">
                   {date ? format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "Selecione uma data"}
                 </CardDescription>
               </div>
-              <Button size="sm" variant="outline" onClick={() => setIsModalOpen(true)}>
+              <Button size="sm" variant="outline" onClick={handleCreateEvent} className="w-full sm:w-auto">
                 <Plus className="mr-2 h-4 w-4" />
                 Adicionar
               </Button>
@@ -203,7 +313,7 @@ const EventSchedule: React.FC = () => {
                   <p className="mt-1 text-sm text-muted-foreground">
                     Não há eventos agendados para esta data.
                   </p>
-                  <Button onClick={() => setIsModalOpen(true)} variant="outline" className="mt-4">
+                  <Button onClick={handleCreateEvent} variant="outline" className="mt-4 w-full sm:w-auto">
                     Agendar Evento
                   </Button>
                 </div>
@@ -213,25 +323,25 @@ const EventSchedule: React.FC = () => {
                     <Card key={event.id} className="overflow-hidden">
                       <div className={`h-2 ${getEventTypeColor(event.type).split(' ')[0]}`} />
                       <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <CardTitle>{event.title}</CardTitle>
-                          <Badge className={cn("ml-2", getStatusColor(event.status))}>
-                            {event.status}
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                          <CardTitle className="text-base sm:text-lg">{event.title}</CardTitle>
+                          <Badge className={cn("ml-0 sm:ml-2 w-fit", getStatusColor('confirmado'))}>
+                            Confirmado
                           </Badge>
                         </div>
-                        <CardDescription>{event.time} • {event.location}</CardDescription>
+                        <CardDescription className="text-sm">{event.time} • {event.location}</CardDescription>
                       </CardHeader>
                       <CardFooter className="pt-2 pb-4">
-                        <div className="flex items-center justify-between w-full">
-                          <Badge variant="outline" className={cn(getEventTypeColor(event.type))}>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-4">
+                          <Badge variant="outline" className={cn(getEventTypeColor(event.type), "w-fit")}>
                             {event.type === 'culto' ? 'Culto' : 
                               event.type === 'reuniao' ? 'Reunião' :
                               event.type === 'conferencia' ? 'Conferência' :
                               event.type === 'treinamento' ? 'Treinamento' : 'Social'}
                           </Badge>
-                          <div className="flex space-x-2">
-                            <Button variant="outline" size="sm">Detalhes</Button>
-                            <Button size="sm">Editar</Button>
+                          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                            <Button variant="outline" size="sm" className="w-full sm:w-auto">Detalhes</Button>
+                            <Button size="sm" onClick={() => handleEditEvent(event)} className="w-full sm:w-auto">Editar</Button>
                           </div>
                         </div>
                       </CardFooter>
@@ -246,15 +356,10 @@ const EventSchedule: React.FC = () => {
 
       <EventModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={() => {
-          toast({
-            title: "Evento agendado",
-            description: "O evento foi agendado com sucesso."
-          });
-          setIsModalOpen(false);
-        }}
-        title="Agendar Novo Evento"
+        onClose={handleCloseModal}
+        onSave={handleSaveEvent}
+        event={selectedEvent}
+        title={mode === 'edit' ? "Editar Evento" : "Agendar Novo Evento"}
       />
     </div>
   );
