@@ -134,10 +134,58 @@ const PastoralAppointment: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!date || !time || !name || !email || !reason) {
+    // Validação completa dos campos obrigatórios
+    if (!date) {
       toast({
-        title: "Preenchimento incompleto",
-        description: "Por favor, preencha todos os campos obrigatórios.",
+        title: "Data não selecionada",
+        description: "Por favor, selecione uma data para o agendamento.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!time) {
+      toast({
+        title: "Horário não selecionado",
+        description: "Por favor, selecione um horário disponível.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!name.trim()) {
+      toast({
+        title: "Nome obrigatório",
+        description: "Por favor, informe seu nome completo.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!email.trim()) {
+      toast({
+        title: "Email obrigatório",
+        description: "Por favor, informe seu email.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validação básica de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      toast({
+        title: "Email inválido",
+        description: "Por favor, informe um email válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!reason.trim()) {
+      toast({
+        title: "Motivo obrigatório",
+        description: "Por favor, informe o motivo da consulta.",
         variant: "destructive",
       });
       return;
@@ -171,13 +219,13 @@ const PastoralAppointment: React.FC = () => {
     
     try {
       const appointmentData = {
-        member_name: name,
-        member_email: email,
-        member_phone: contactNumber || null,
+        member_name: name.trim(),
+        member_email: email.trim(),
+        member_phone: contactNumber.trim() || null,
         appointment_date: selectedDate,
         appointment_time: time,
-        reason: reason,
-        message: message || null,
+        reason: reason.trim(),
+        message: message.trim() || null,
         status: 'pending'
       };
 
@@ -214,9 +262,10 @@ const PastoralAppointment: React.FC = () => {
       fetchAppointments();
     } catch (error) {
       console.error('Error creating appointment:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast({
         title: "Erro ao enviar solicitação",
-        description: "Não foi possível enviar sua solicitação. Tente novamente.",
+        description: `Não foi possível enviar sua solicitação. Erro: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
@@ -295,8 +344,8 @@ const PastoralAppointment: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col lg:flex-row items-start gap-8">
+    <div className="container mx-auto px-4 py-4 sm:py-8">
+      <div className="flex flex-col lg:flex-row items-start gap-4 sm:gap-8">
         <div className="w-full lg:w-1/3">
           <Card className="mb-6">
             <CardHeader>
@@ -356,14 +405,14 @@ const PastoralAppointment: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                  <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                     <MemberLookup 
                       onMemberSelected={handleMemberSelected}
                       selectedMember={selectedMember}
                     />
                     
                     {!selectedMember && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 gap-4 sm:gap-6">
                         <div className="space-y-2">
                           <Label htmlFor="name">Nome Completo *</Label>
                           <Input
@@ -385,7 +434,7 @@ const PastoralAppointment: React.FC = () => {
                             required
                           />
                         </div>
-                        <div className="space-y-2 md:col-span-2">
+                        <div className="space-y-2">
                           <Label htmlFor="contact">Telefone</Label>
                           <Input
                             id="contact"
@@ -399,13 +448,15 @@ const PastoralAppointment: React.FC = () => {
                     
                     <div className="space-y-2">
                       <Label>Selecione uma data *</Label>
-                      <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        disabled={isDateAvailable}
-                        className="rounded-md border mx-auto"
-                      />
+                      <div className="flex justify-center">
+                        <Calendar
+                          mode="single"
+                          selected={date}
+                          onSelect={setDate}
+                          disabled={isDateAvailable}
+                          className="rounded-md border"
+                        />
+                      </div>
                     </div>
                     
                     <div className="space-y-2">

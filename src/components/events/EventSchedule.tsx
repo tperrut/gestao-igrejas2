@@ -80,7 +80,7 @@ const EventSchedule: React.FC = () => {
   }) : [];
 
   const handleCreateEvent = () => {
-    console.log('Abrindo modal para criar evento');
+    console.log('Abrindo modal para criar evento no calendário');
     setMode('create');
     setSelectedEvent(undefined);
     setIsModalOpen(true);
@@ -97,19 +97,40 @@ const EventSchedule: React.FC = () => {
     try {
       console.log('Salvando evento no calendário:', eventData);
       
+      // Validação dos dados obrigatórios
+      if (!eventData.title || !eventData.date || !eventData.time || !eventData.location || !eventData.type || !eventData.organizer) {
+        toast({
+          title: "Dados incompletos",
+          description: "Por favor, preencha todos os campos obrigatórios.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validação da capacidade
+      const capacity = Number(eventData.capacity);
+      if (isNaN(capacity) || capacity <= 0) {
+        toast({
+          title: "Capacidade inválida",
+          description: "A capacidade deve ser um número maior que zero.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       if (mode === 'create') {
         const insertData = {
-          title: eventData.title,
-          description: eventData.description || null,
+          title: eventData.title.trim(),
+          description: eventData.description?.trim() || null,
           date: eventData.date,
-          time: eventData.time,
-          location: eventData.location,
+          time: eventData.time.trim(),
+          location: eventData.location.trim(),
           type: eventData.type,
-          organizer: eventData.organizer,
-          capacity: Number(eventData.capacity) || 0,
+          organizer: eventData.organizer.trim(),
+          capacity: capacity,
         };
 
-        console.log('Dados para inserção:', insertData);
+        console.log('Dados para inserção no calendário:', insertData);
 
         const { data, error } = await supabase
           .from('events')
@@ -121,7 +142,7 @@ const EventSchedule: React.FC = () => {
           throw error;
         }
         
-        console.log('Evento criado com sucesso:', data);
+        console.log('Evento criado com sucesso no calendário:', data);
         
         if (data && data[0]) {
           const newEvent: Event = {
@@ -146,17 +167,17 @@ const EventSchedule: React.FC = () => {
         }
       } else if (mode === 'edit' && selectedEvent) {
         const updateData = {
-          title: eventData.title,
-          description: eventData.description || null,
+          title: eventData.title.trim(),
+          description: eventData.description?.trim() || null,
           date: eventData.date,
-          time: eventData.time,
-          location: eventData.location,
+          time: eventData.time.trim(),
+          location: eventData.location.trim(),
           type: eventData.type,
-          organizer: eventData.organizer,
-          capacity: Number(eventData.capacity) || 0,
+          organizer: eventData.organizer.trim(),
+          capacity: capacity,
         };
 
-        console.log('Dados para atualização:', updateData);
+        console.log('Dados para atualização no calendário:', updateData);
 
         const { error } = await supabase
           .from('events')
@@ -171,6 +192,7 @@ const EventSchedule: React.FC = () => {
         const updatedEvent: Event = {
           ...selectedEvent,
           ...eventData,
+          capacity: capacity,
         };
         
         setEvents(events.map(e => e.id === selectedEvent.id ? updatedEvent : e));
@@ -180,7 +202,7 @@ const EventSchedule: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('Erro ao salvar evento:', error);
+      console.error('Erro ao salvar evento no calendário:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast({
         title: "Erro ao salvar evento",
@@ -194,7 +216,7 @@ const EventSchedule: React.FC = () => {
   };
 
   const handleCloseModal = () => {
-    console.log('Fechando modal');
+    console.log('Fechando modal do calendário');
     setIsModalOpen(false);
     setSelectedEvent(undefined);
   };
@@ -230,7 +252,7 @@ const EventSchedule: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 p-4 sm:p-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Agendamento</h1>
