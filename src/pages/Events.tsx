@@ -117,24 +117,20 @@ const Events = () => {
 
   const handleSaveEvent = async (eventData: Omit<Event, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      console.log('Saving event data:', eventData);
+      
       if (mode === 'create') {
         const { data, error } = await supabase
           .from('events')
-          .insert([
-            {
-              title: eventData.title,
-              description: eventData.description,
-              date: eventData.date,
-              time: eventData.time,
-              location: eventData.location,
-              type: eventData.type,
-              organizer: eventData.organizer,
-              capacity: eventData.capacity,
-            }
-          ])
+          .insert([eventData])
           .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
+        
+        console.log('Created event:', data);
         
         if (data && data[0]) {
           const newEvent: Event = {
@@ -160,30 +156,17 @@ const Events = () => {
       } else if (mode === 'edit' && selectedEvent) {
         const { error } = await supabase
           .from('events')
-          .update({
-            title: eventData.title,
-            description: eventData.description,
-            date: eventData.date,
-            time: eventData.time,
-            location: eventData.location,
-            type: eventData.type,
-            organizer: eventData.organizer,
-            capacity: eventData.capacity,
-          })
+          .update(eventData)
           .eq('id', selectedEvent.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
         
         const updatedEvent: Event = {
           ...selectedEvent,
-          title: eventData.title,
-          description: eventData.description,
-          date: eventData.date,
-          time: eventData.time,
-          location: eventData.location,
-          type: eventData.type,
-          organizer: eventData.organizer,
-          capacity: eventData.capacity,
+          ...eventData,
         };
         
         setEvents(events.map(e => e.id === selectedEvent.id ? updatedEvent : e));

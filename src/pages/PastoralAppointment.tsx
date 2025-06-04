@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -68,18 +69,25 @@ const PastoralAppointment: React.FC = () => {
 
   useEffect(() => {
     if (date) {
-      const selectedDate = date.toISOString().split('T')[0];
+      const selectedDate = format(date, 'yyyy-MM-dd');
+      console.log('Selected date:', selectedDate);
+      console.log('Available schedules:', availableSchedules);
+      
       const timesForDate = availableSchedules
-        .filter(schedule => 
-          schedule.date === selectedDate && 
-          schedule.is_available &&
-          !appointments.some(apt => 
-            apt.appointment_date === selectedDate && 
-            apt.appointment_time === schedule.time &&
-            apt.status !== 'cancelled'
-          )
-        )
+        .filter(schedule => {
+          const scheduleDate = schedule.date;
+          console.log('Comparing:', scheduleDate, 'with', selectedDate);
+          return scheduleDate === selectedDate && 
+            schedule.is_available &&
+            !appointments.some(apt => 
+              apt.appointment_date === selectedDate && 
+              apt.appointment_time === schedule.time &&
+              apt.status !== 'cancelled'
+            );
+        })
         .map(schedule => schedule.time);
+      
+      console.log('Times for date:', timesForDate);
       setAvailableTimes(timesForDate);
       setTime(""); // Reset time when date changes
     }
@@ -101,14 +109,16 @@ const PastoralAppointment: React.FC = () => {
 
   const fetchAvailableSchedules = async () => {
     try {
+      const today = format(new Date(), 'yyyy-MM-dd');
       const { data, error } = await supabase
         .from('pastoral_schedules')
         .select('*')
-        .gte('date', new Date().toISOString().split('T')[0])
+        .gte('date', today)
         .order('date', { ascending: true })
         .order('time', { ascending: true });
 
       if (error) throw error;
+      console.log('Fetched schedules:', data);
       setAvailableSchedules(data || []);
     } catch (error) {
       console.error('Error fetching available schedules:', error);
@@ -135,7 +145,7 @@ const PastoralAppointment: React.FC = () => {
     }
 
     // Check if the selected time is still available
-    const selectedDate = date.toISOString().split('T')[0];
+    const selectedDate = format(date, 'yyyy-MM-dd');
     const isTimeAvailable = availableSchedules.some(schedule => 
       schedule.date === selectedDate && 
       schedule.time === time && 
@@ -166,7 +176,7 @@ const PastoralAppointment: React.FC = () => {
             member_name: name,
             member_email: email,
             member_phone: contactNumber || null,
-            appointment_date: date.toISOString().split('T')[0],
+            appointment_date: selectedDate,
             appointment_time: time,
             reason: reason,
             message: message || null,
@@ -258,19 +268,21 @@ const PastoralAppointment: React.FC = () => {
   };
 
   const isDateAvailable = (date: Date) => {
-    const dateString = date.toISOString().split('T')[0];
+    const dateString = format(date, 'yyyy-MM-dd');
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
     // Disable past dates and weekends
     if (date < today || date.getDay() === 0 || date.getDay() === 6) {
-      return false;
+      return true; // disabled
     }
     
     // Check if there are available schedules for this date
-    return availableSchedules.some(schedule => 
+    const hasAvailableSchedules = availableSchedules.some(schedule => 
       schedule.date === dateString && schedule.is_available
     );
+    
+    return !hasAvailableSchedules; // disabled if no schedules available
   };
 
   return (
