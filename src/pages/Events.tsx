@@ -20,6 +20,7 @@ import EventsFilter from '@/components/events/EventsFilter';
 import { useToast } from '@/hooks/use-toast';
 import { Event } from '@/types/libraryTypes';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Events = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -30,6 +31,7 @@ const Events = () => {
   const [typeFilter, setTypeFilter] = useState('all');
   const [viewMode, setViewMode] = useState('all');
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     fetchEvents();
@@ -37,6 +39,7 @@ const Events = () => {
 
   const fetchEvents = async () => {
     try {
+      console.log('Buscando eventos...');
       const { data, error } = await supabase
         .from('events')
         .select('*')
@@ -75,6 +78,14 @@ const Events = () => {
   };
 
   const handleCreateEvent = () => {
+    if (!isAdmin()) {
+      toast({
+        title: "Acesso negado",
+        description: "Apenas administradores podem criar eventos.",
+        variant: "destructive",
+      });
+      return;
+    }
     console.log('Abrindo modal para criar evento');
     setMode('create');
     setSelectedEvent(undefined);
@@ -82,6 +93,14 @@ const Events = () => {
   };
 
   const handleEditEvent = (event: Event) => {
+    if (!isAdmin()) {
+      toast({
+        title: "Acesso negado",
+        description: "Apenas administradores podem editar eventos.",
+        variant: "destructive",
+      });
+      return;
+    }
     console.log('Editando evento:', event);
     setMode('edit');
     setSelectedEvent(event);
@@ -89,6 +108,14 @@ const Events = () => {
   };
 
   const handleDeleteEvent = (event: Event) => {
+    if (!isAdmin()) {
+      toast({
+        title: "Acesso negado",
+        description: "Apenas administradores podem excluir eventos.",
+        variant: "destructive",
+      });
+      return;
+    }
     setSelectedEvent(event);
     setIsDeleteDialogOpen(true);
   };
@@ -242,9 +269,11 @@ const Events = () => {
           </p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
-          <Button onClick={handleCreateEvent} className="bg-church-blue flex-1 sm:flex-none">
-            <PlusCircle className="mr-2 h-4 w-4" /> Novo Evento
-          </Button>
+          {isAdmin() && (
+            <Button onClick={handleCreateEvent} className="bg-church-blue flex-1 sm:flex-none">
+              <PlusCircle className="mr-2 h-4 w-4" /> Novo Evento
+            </Button>
+          )}
         </div>
       </div>
 

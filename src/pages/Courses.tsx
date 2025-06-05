@@ -18,6 +18,7 @@ import CourseModal from '@/components/courses/CourseModal';
 import { useToast } from '@/hooks/use-toast';
 import { Course } from '@/types/libraryTypes';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Courses = () => {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -27,6 +28,7 @@ const Courses = () => {
   const [mode, setMode] = useState<'create' | 'edit'>('create');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     fetchCourses();
@@ -35,6 +37,7 @@ const Courses = () => {
   const fetchCourses = async () => {
     setIsLoading(true);
     try {
+      console.log('Buscando cursos...');
       const { data, error } = await supabase
         .from('courses')
         .select('*')
@@ -60,6 +63,7 @@ const Courses = () => {
         status: course.status,
         category: course.category,
         prerequisites: course.prerequisites,
+        image_url: course.image_url,
         created_at: course.created_at,
         updated_at: course.updated_at
       }));
@@ -78,6 +82,14 @@ const Courses = () => {
   };
 
   const handleCreateCourse = () => {
+    if (!isAdmin()) {
+      toast({
+        title: "Acesso negado",
+        description: "Apenas administradores podem criar cursos.",
+        variant: "destructive",
+      });
+      return;
+    }
     console.log('Abrindo modal para criar curso');
     setMode('create');
     setSelectedCourse(undefined);
@@ -85,6 +97,14 @@ const Courses = () => {
   };
 
   const handleEditCourse = (course: Course) => {
+    if (!isAdmin()) {
+      toast({
+        title: "Acesso negado",
+        description: "Apenas administradores podem editar cursos.",
+        variant: "destructive",
+      });
+      return;
+    }
     console.log('Editando curso:', course);
     setMode('edit');
     setSelectedCourse(course);
@@ -92,6 +112,14 @@ const Courses = () => {
   };
 
   const handleDeleteCourse = (course: Course) => {
+    if (!isAdmin()) {
+      toast({
+        title: "Acesso negado",
+        description: "Apenas administradores podem excluir cursos.",
+        variant: "destructive",
+      });
+      return;
+    }
     setSelectedCourse(course);
     setIsDeleteDialogOpen(true);
   };
@@ -146,6 +174,7 @@ const Courses = () => {
           status: courseData.status,
           category: courseData.category,
           prerequisites: courseData.prerequisites || null,
+          image_url: courseData.image_url || null,
         };
 
         console.log('Dados para inserção:', insertData);
@@ -176,6 +205,7 @@ const Courses = () => {
             status: data[0].status,
             category: data[0].category,
             prerequisites: data[0].prerequisites,
+            image_url: data[0].image_url,
             created_at: data[0].created_at,
             updated_at: data[0].updated_at,
           };
@@ -199,6 +229,7 @@ const Courses = () => {
           status: courseData.status,
           category: courseData.category,
           prerequisites: courseData.prerequisites || null,
+          image_url: courseData.image_url || null,
         };
 
         console.log('Dados para atualização:', updateData);
@@ -253,9 +284,11 @@ const Courses = () => {
             Gerencie todos os cursos oferecidos pela igreja
           </p>
         </div>
-        <Button onClick={handleCreateCourse} className="bg-church-blue flex-1 sm:flex-none">
-          <PlusCircle className="mr-2 h-4 w-4" /> Novo Curso
-        </Button>
+        {isAdmin() && (
+          <Button onClick={handleCreateCourse} className="bg-church-blue flex-1 sm:flex-none">
+            <PlusCircle className="mr-2 h-4 w-4" /> Novo Curso
+          </Button>
+        )}
       </div>
 
       <Tabs defaultValue="all" className="w-full">

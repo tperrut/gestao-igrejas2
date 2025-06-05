@@ -1,4 +1,3 @@
-
 export interface Book {
   id: string;
   title: string;
@@ -53,16 +52,17 @@ export type LoanStatus = 'active' | 'returned' | 'overdue' | 'reserved';
 export interface Course {
   id: string;
   title: string;
-  instructor: string;
   description?: string;
+  instructor: string;
   start_date: string;
   end_date: string;
-  category: string;
-  status: string;
   location?: string;
   max_students?: number;
   students?: number;
+  status: string;
+  category: string;
   prerequisites?: string;
+  image_url?: string;
   created_at: string;
   updated_at: string;
 }
