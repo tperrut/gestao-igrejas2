@@ -20,6 +20,7 @@ import Finance from "./pages/Finance";
 import Contact from "./pages/Contact";
 import PastoralAppointment from "./pages/PastoralAppointment";
 import PastoralManagement from "./pages/PastoralManagement";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -70,6 +71,7 @@ const App = () => (
                   <PastoralManagement />
                 </AuthGuard>
               } />
+              <Route path="/settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

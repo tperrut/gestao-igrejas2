@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,10 +47,20 @@ const PastoralScheduleManagement: React.FC = () => {
         .order('date', { ascending: true })
         .order('time', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching schedules:', error);
+        throw error;
+      }
+      
+      console.log('Schedules fetched:', data);
       setSchedules(data || []);
     } catch (error) {
       console.error('Error fetching schedules:', error);
+      toast({
+        title: "Erro ao carregar horários",
+        description: "Não foi possível carregar os horários da agenda.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -65,18 +74,40 @@ const PastoralScheduleManagement: React.FC = () => {
       return;
     }
 
+    // Verificar se já existe um horário para esta data e hora
+    const existingSchedule = schedules.find(
+      schedule => schedule.date === newSchedule.date && schedule.time === newSchedule.time
+    );
+
+    if (existingSchedule) {
+      toast({
+        title: "Horário já existe",
+        description: "Já existe um horário cadastrado para esta data e hora.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const { error } = await supabase
+      console.log('Adding schedule:', newSchedule);
+      
+      const { data, error } = await supabase
         .from('pastoral_schedules')
         .insert([{
           date: newSchedule.date,
           time: newSchedule.time,
           is_available: newSchedule.is_available,
           notes: newSchedule.notes || null
-        }]);
+        }])
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Schedule added successfully:', data);
 
       toast({
         title: "Horário adicionado",
@@ -215,7 +246,7 @@ const PastoralScheduleManagement: React.FC = () => {
                 className="w-full bg-church-blue"
               >
                 <PlusCircle className="h-4 w-4 mr-2" />
-                Adicionar
+                {isLoading ? "Adicionando..." : "Adicionar"}
               </Button>
             </div>
           </div>

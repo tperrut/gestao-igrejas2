@@ -1,9 +1,11 @@
 
 import React from 'react';
+import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Book, Calendar, CreditCard, Users } from 'lucide-react';
 import BirthdayCard from '@/components/dashboard/BirthdayCard';
 import RecentActivityList from '@/components/dashboard/RecentActivityList';
+import { useAuth } from '@/contexts/AuthContext';
 
 const StatCard: React.FC<{
   title: string;
@@ -49,12 +51,19 @@ const UpcomingEvent: React.FC<{
 );
 
 const Dashboard: React.FC = () => {
+  const { isAdmin } = useAuth();
+
+  // Redirecionar se não for admin
+  if (!isAdmin()) {
+    return <Navigate to="/calendar" replace />;
+  }
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
-          Bem-vindo ao Painel de Controle da Igreja
+          Bem-vindo ao Painel de Controle da Igreja (Apenas Administradores)
         </p>
       </div>
 
