@@ -4,7 +4,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, MapPin, Clock, User, Eye } from 'lucide-react';
+import { CalendarIcon, MapPin, Clock, User, Eye, Image } from 'lucide-react';
 import { Event } from '@/types/libraryTypes';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -158,11 +158,25 @@ const CalendarPage: React.FC = () => {
             <div className="space-y-4">
               {eventsForSelectedDate.map((event) => (
                 <div key={event.id} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg">{event.title}</h3>
                       {getEventTypeBadge(event.type)}
                     </div>
+                    {event.image_url && (
+                      <div className="flex-shrink-0">
+                        <img 
+                          src={event.image_url} 
+                          alt={event.title}
+                          className="w-16 h-16 object-cover rounded-md border"
+                        />
+                      </div>
+                    )}
+                    {!event.image_url && (
+                      <div className="flex-shrink-0 w-16 h-16 bg-muted rounded-md border flex items-center justify-center">
+                        <Image className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    )}
                   </div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">

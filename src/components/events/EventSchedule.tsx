@@ -56,6 +56,7 @@ const EventSchedule: React.FC = () => {
         type: event.type,
         organizer: event.organizer,
         capacity: event.capacity,
+        image_url: event.image_url,
         created_at: event.created_at,
         updated_at: event.updated_at
       }));
@@ -71,12 +72,12 @@ const EventSchedule: React.FC = () => {
     }
   };
 
-  // Filtra eventos pela data selecionada
+  // Filtra eventos pela data selecionada - corrigindo comparação de datas
   const selectedDayEvents = date ? events.filter(event => {
-    const eventDate = new Date(event.date);
-    return eventDate.getDate() === date.getDate() &&
-           eventDate.getMonth() === date.getMonth() &&
-           eventDate.getFullYear() === date.getFullYear();
+    // Converter a data do evento diretamente (já está no formato YYYY-MM-DD)
+    const eventDateString = event.date;
+    const selectedDateString = format(date, 'yyyy-MM-dd');
+    return eventDateString === selectedDateString;
   }) : [];
 
   const handleCreateEvent = () => {
@@ -128,6 +129,7 @@ const EventSchedule: React.FC = () => {
           type: eventData.type,
           organizer: eventData.organizer.trim(),
           capacity: capacity,
+          image_url: eventData.image_url || null,
         };
 
         console.log('Dados para inserção no calendário:', insertData);
@@ -155,6 +157,7 @@ const EventSchedule: React.FC = () => {
             type: data[0].type,
             organizer: data[0].organizer,
             capacity: data[0].capacity,
+            image_url: data[0].image_url,
             created_at: data[0].created_at,
             updated_at: data[0].updated_at
           };
@@ -175,6 +178,7 @@ const EventSchedule: React.FC = () => {
           type: eventData.type,
           organizer: eventData.organizer.trim(),
           capacity: capacity,
+          image_url: eventData.image_url || null,
         };
 
         console.log('Dados para atualização no calendário:', updateData);
@@ -221,14 +225,10 @@ const EventSchedule: React.FC = () => {
     setSelectedEvent(undefined);
   };
 
-  // Função para marcar dias com eventos no calendário
+  // Função para marcar dias com eventos no calendário - corrigindo comparação de datas
   const isDayWithEvent = (day: Date) => {
-    return events.some(event => {
-      const eventDate = new Date(event.date);
-      return eventDate.getDate() === day.getDate() &&
-             eventDate.getMonth() === day.getMonth() &&
-             eventDate.getFullYear() === day.getFullYear();
-    });
+    const dayString = format(day, 'yyyy-MM-dd');
+    return events.some(event => event.date === dayString);
   };
 
   const getEventTypeColor = (type: string): string => {

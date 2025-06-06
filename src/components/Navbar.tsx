@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -77,9 +78,11 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
             <span className="sr-only">Notificações</span>
           </Button>
           
-          <Button variant="ghost" size="icon">
-            <User className="h-5 w-5" />
-            <span className="sr-only">Perfil</span>
+          <Button variant="ghost" size="icon" asChild>
+            <Link to="/settings">
+              <User className="h-5 w-5" />
+              <span className="sr-only">Perfil</span>
+            </Link>
           </Button>
           
           <Button
