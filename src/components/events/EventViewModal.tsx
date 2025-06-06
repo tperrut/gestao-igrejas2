@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Users, User, Clock, FileText } from 'lucide-react';
+import { Calendar, MapPin, Users, User, Clock, FileText, ImageIcon } from 'lucide-react';
 import { Event } from '@/types/libraryTypes';
 
 interface EventViewModalProps {
@@ -59,6 +59,24 @@ const EventViewModal: React.FC<EventViewModalProps> = ({
           <div className="flex flex-wrap gap-2">
             {getEventTypeBadge(event.type)}
           </div>
+
+          {event.image_url && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <ImageIcon className="h-4 w-4" />
+                  Imagem do Evento
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <img 
+                  src={event.image_url} 
+                  alt={event.title}
+                  className="w-full h-64 object-cover rounded-md border"
+                />
+              </CardContent>
+            </Card>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>

@@ -1,3 +1,4 @@
+
 export interface Book {
   id: string;
   title: string;
@@ -77,6 +78,7 @@ export interface Event {
   organizer: string;
   type: string;
   capacity?: number;
+  image_url?: string;
   created_at: string;
   updated_at: string;
 }

@@ -21,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Event } from '@/types/libraryTypes';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { Navigate } from 'react-router-dom';
 
 const Events = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -32,6 +33,11 @@ const Events = () => {
   const [viewMode, setViewMode] = useState('all');
   const { toast } = useToast();
   const { isAdmin } = useAuth();
+
+  // Redirecionar se não for admin
+  if (!isAdmin()) {
+    return <Navigate to="/calendar" replace />;
+  }
 
   useEffect(() => {
     fetchEvents();
@@ -62,6 +68,7 @@ const Events = () => {
         type: event.type,
         organizer: event.organizer,
         capacity: event.capacity,
+        image_url: event.image_url,
         created_at: event.created_at,
         updated_at: event.updated_at
       }));
@@ -78,14 +85,6 @@ const Events = () => {
   };
 
   const handleCreateEvent = () => {
-    if (!isAdmin()) {
-      toast({
-        title: "Acesso negado",
-        description: "Apenas administradores podem criar eventos.",
-        variant: "destructive",
-      });
-      return;
-    }
     console.log('Abrindo modal para criar evento');
     setMode('create');
     setSelectedEvent(undefined);
@@ -93,14 +92,6 @@ const Events = () => {
   };
 
   const handleEditEvent = (event: Event) => {
-    if (!isAdmin()) {
-      toast({
-        title: "Acesso negado",
-        description: "Apenas administradores podem editar eventos.",
-        variant: "destructive",
-      });
-      return;
-    }
     console.log('Editando evento:', event);
     setMode('edit');
     setSelectedEvent(event);
@@ -108,14 +99,6 @@ const Events = () => {
   };
 
   const handleDeleteEvent = (event: Event) => {
-    if (!isAdmin()) {
-      toast({
-        title: "Acesso negado",
-        description: "Apenas administradores podem excluir eventos.",
-        variant: "destructive",
-      });
-      return;
-    }
     setSelectedEvent(event);
     setIsDeleteDialogOpen(true);
   };
@@ -167,6 +150,7 @@ const Events = () => {
           type: eventData.type,
           organizer: eventData.organizer,
           capacity: Number(eventData.capacity) || 0,
+          image_url: eventData.image_url || null,
         };
 
         console.log('Dados para inserção:', insertData);
@@ -194,6 +178,7 @@ const Events = () => {
             type: data[0].type,
             organizer: data[0].organizer,
             capacity: data[0].capacity,
+            image_url: data[0].image_url,
             created_at: data[0].created_at,
             updated_at: data[0].updated_at
           };
@@ -214,6 +199,7 @@ const Events = () => {
           type: eventData.type,
           organizer: eventData.organizer,
           capacity: Number(eventData.capacity) || 0,
+          image_url: eventData.image_url || null,
         };
 
         console.log('Dados para atualização:', updateData);
@@ -263,17 +249,15 @@ const Events = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Eventos</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Gestão de Eventos</h1>
           <p className="text-muted-foreground">
-            Gerencie todos os eventos da igreja
+            Gerencie todos os eventos da igreja (Apenas Administradores)
           </p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
-          {isAdmin() && (
-            <Button onClick={handleCreateEvent} className="bg-church-blue flex-1 sm:flex-none">
-              <PlusCircle className="mr-2 h-4 w-4" /> Novo Evento
-            </Button>
-          )}
+          <Button onClick={handleCreateEvent} className="bg-church-blue flex-1 sm:flex-none">
+            <PlusCircle className="mr-2 h-4 w-4" /> Novo Evento
+          </Button>
         </div>
       </div>
 

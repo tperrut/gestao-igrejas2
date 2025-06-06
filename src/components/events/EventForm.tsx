@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import EventImageUpload from './EventImageUpload';
 
 const eventFormSchema = z.object({
   title: z.string().min(3, { message: "Título deve ter pelo menos 3 caracteres" }),
@@ -25,6 +26,7 @@ const eventFormSchema = z.object({
   organizer: z.string().min(1, { message: "Organizador é obrigatório" }),
   capacity: z.coerce.number().min(1, { message: "Capacidade deve ser maior que zero" }),
   description: z.string().optional(),
+  image_url: z.string().optional(),
 });
 
 type EventFormValues = z.infer<typeof eventFormSchema>;
@@ -45,18 +47,41 @@ const EventForm: React.FC<EventFormProps> = ({
     organizer: "",
     capacity: 0,
     description: "",
+    image_url: "",
   },
   onSubmit,
   onCancel
 }) => {
+  const [imageUrl, setImageUrl] = useState(defaultValues.image_url || "");
+
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
-    defaultValues,
+    defaultValues: {
+      ...defaultValues,
+      image_url: imageUrl,
+    },
   });
+
+  const handleImageUploaded = (url: string) => {
+    setImageUrl(url);
+    form.setValue('image_url', url);
+  };
+
+  const handleRemoveImage = () => {
+    setImageUrl("");
+    form.setValue('image_url', "");
+  };
+
+  const handleFormSubmit = (data: EventFormValues) => {
+    onSubmit({
+      ...data,
+      image_url: imageUrl,
+    });
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="title"
@@ -166,6 +191,12 @@ const EventForm: React.FC<EventFormProps> = ({
               <FormMessage />
             </FormItem>
           )}
+        />
+
+        <EventImageUpload
+          onImageUploaded={handleImageUploaded}
+          currentImage={imageUrl}
+          onRemoveImage={handleRemoveImage}
         />
 
         <FormField

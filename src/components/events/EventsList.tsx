@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Event } from '@/types/libraryTypes';
 import { supabase } from '@/integrations/supabase/client';
 import EventViewModal from './EventViewModal';
+import { useAuth } from '@/contexts/AuthContext';
 
 type EventType = 'culto' | 'reuniao' | 'conferencia' | 'treinamento' | 'social';
 
@@ -49,6 +50,14 @@ const getEventTypeBadge = (type: string) => {
   );
 };
 
+const formatDate = (dateString: string) => {
+  // O banco de dados retorna datas no formato YYYY-MM-DD
+  // Vamos criar a data corretamente para evitar problemas de timezone
+  const dateParts = dateString.split('-');
+  const date = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+  return date.toLocaleDateString('pt-BR');
+};
+
 interface EventsListProps {
   onEdit?: (event: Event) => void;
   onDelete?: (event: Event) => void;
@@ -56,6 +65,7 @@ interface EventsListProps {
 
 const EventsList: React.FC<EventsListProps> = ({ onEdit, onDelete }) => {
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewFilter, setViewFilter] = useState<'today' | 'day' | 'week' | 'month'>('month');
@@ -103,7 +113,7 @@ const EventsList: React.FC<EventsListProps> = ({ onEdit, onDelete }) => {
     switch (viewFilter) {
       case 'today':
         filtered = filtered.filter(event => {
-          const eventDate = new Date(event.date);
+          const eventDate = new Date(event.date + 'T00:00:00');
           return eventDate.toDateString() === today.toDateString();
         });
         break;
@@ -112,7 +122,7 @@ const EventsList: React.FC<EventsListProps> = ({ onEdit, onDelete }) => {
         const nextWeek = new Date(today);
         nextWeek.setDate(nextWeek.getDate() + 7);
         filtered = filtered.filter(event => {
-          const eventDate = new Date(event.date);
+          const eventDate = new Date(event.date + 'T00:00:00');
           return eventDate >= today && eventDate <= nextWeek;
         });
         break;
@@ -122,7 +132,7 @@ const EventsList: React.FC<EventsListProps> = ({ onEdit, onDelete }) => {
         const endOfWeek = new Date(startOfWeek);
         endOfWeek.setDate(startOfWeek.getDate() + 6);
         filtered = filtered.filter(event => {
-          const eventDate = new Date(event.date);
+          const eventDate = new Date(event.date + 'T00:00:00');
           return eventDate >= startOfWeek && eventDate <= endOfWeek;
         });
         break;
@@ -130,7 +140,7 @@ const EventsList: React.FC<EventsListProps> = ({ onEdit, onDelete }) => {
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         filtered = filtered.filter(event => {
-          const eventDate = new Date(event.date);
+          const eventDate = new Date(event.date + 'T00:00:00');
           return eventDate >= startOfMonth && eventDate <= endOfMonth;
         });
         break;
@@ -216,7 +226,7 @@ const EventsList: React.FC<EventsListProps> = ({ onEdit, onDelete }) => {
                 {filteredEvents.map((event) => (
                   <TableRow key={event.id}>
                     <TableCell className="font-medium">{event.title}</TableCell>
-                    <TableCell>{new Date(event.date).toLocaleDateString('pt-BR')}</TableCell>
+                    <TableCell>{formatDate(event.date)}</TableCell>
                     <TableCell>{event.time}</TableCell>
                     <TableCell>{event.location}</TableCell>
                     <TableCell>
@@ -235,15 +245,19 @@ const EventsList: React.FC<EventsListProps> = ({ onEdit, onDelete }) => {
                           <DropdownMenuItem onClick={() => handleView(event)}>
                             <Eye className="mr-2 h-4 w-4" /> Visualizar
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onEdit && onEdit(event)}>
-                            <Edit className="mr-2 h-4 w-4" /> Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="text-red-600" 
-                            onClick={() => onDelete && onDelete(event)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                          </DropdownMenuItem>
+                          {isAdmin() && (
+                            <>
+                              <DropdownMenuItem onClick={() => onEdit && onEdit(event)}>
+                                <Edit className="mr-2 h-4 w-4" /> Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="text-red-600" 
+                                onClick={() => onDelete && onDelete(event)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

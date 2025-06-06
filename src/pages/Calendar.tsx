@@ -1,12 +1,12 @@
 
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { Button } from "@/components/ui/button";
-import { PlusCircle, Calendar as CalendarIcon, Grid, LayoutList } from 'lucide-react';
+import { Calendar as CalendarIcon, Grid, LayoutList } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EventCalendar from '@/components/calendar/EventCalendar';
 import EventsCompactList from '@/components/calendar/EventsCompactList';
+import { Button } from "@/components/ui/button";
 
 const CalendarPage: React.FC = () => {
   const [view, setView] = useState<'day' | 'week' | 'month'>('month');
@@ -22,13 +22,9 @@ const CalendarPage: React.FC = () => {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Agenda da Igreja</h1>
             <p className="text-muted-foreground">
-              Visualize e gerencie todos os eventos da igreja.
+              Visualize todos os eventos da igreja.
             </p>
           </div>
-          <Button className="sm:self-end">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Agendar Evento
-          </Button>
         </div>
 
         <div className="flex flex-col md:flex-row gap-6">
@@ -100,7 +96,6 @@ const CalendarPage: React.FC = () => {
                       <CalendarIcon className="h-5 w-5" />
                       Próximos Eventos
                     </h3>
-                    <Button variant="ghost" size="sm">Ver todos</Button>
                   </div>
                   
                   <div className="space-y-3">
