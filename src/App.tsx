@@ -19,6 +19,7 @@ import Loans from "./pages/Loans";
 import Finance from "./pages/Finance";
 import Contact from "./pages/Contact";
 import PastoralAppointment from "./pages/PastoralAppointment";
+import PastoralManagement from "./pages/PastoralManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +65,11 @@ const App = () => (
               } />
               <Route path="/contact" element={<Contact />} />
               <Route path="/pastoral-appointment" element={<PastoralAppointment />} />
+              <Route path="/pastoral-management" element={
+                <AuthGuard requireAdmin={true}>
+                  <PastoralManagement />
+                </AuthGuard>
+              } />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

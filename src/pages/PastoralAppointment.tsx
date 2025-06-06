@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -9,27 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Clock, Calendar as CalendarIcon, CheckCircle, XCircle, Settings } from 'lucide-react';
+import { MessageSquare, Clock, Calendar as CalendarIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import PastoralScheduleManagement from '@/components/pastoral/PastoralScheduleManagement';
 import MemberLookup from '@/components/pastoral/MemberLookup';
-
-interface PastoralAppointment {
-  id: string;
-  member_name: string;
-  member_email: string;
-  member_phone: string | null;
-  appointment_date: string;
-  appointment_time: string;
-  reason: string;
-  message: string | null;
-  status: string;
-  pastor_notes: string | null;
-  created_at: string;
-}
 
 interface AvailableSchedule {
   id: string;
@@ -55,14 +39,12 @@ const PastoralAppointment: React.FC = () => {
   const [contactNumber, setContactNumber] = useState("");
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState("");
-  const [appointments, setAppointments] = useState<PastoralAppointment[]>([]);
   const [availableSchedules, setAvailableSchedules] = useState<AvailableSchedule[]>([]);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchAppointments();
     fetchAvailableSchedules();
   }, []);
 
@@ -76,13 +58,7 @@ const PastoralAppointment: React.FC = () => {
         .filter(schedule => {
           const scheduleDate = schedule.date;
           console.log('Comparing:', scheduleDate, 'with', selectedDate);
-          return scheduleDate === selectedDate && 
-            schedule.is_available &&
-            !appointments.some(apt => 
-              apt.appointment_date === selectedDate && 
-              apt.appointment_time === schedule.time &&
-              apt.status !== 'cancelled'
-            );
+          return scheduleDate === selectedDate && schedule.is_available;
         })
         .map(schedule => schedule.time);
       
@@ -90,21 +66,7 @@ const PastoralAppointment: React.FC = () => {
       setAvailableTimes(timesForDate);
       setTime(""); // Reset time when date changes
     }
-  }, [date, availableSchedules, appointments]);
-
-  const fetchAppointments = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('pastoral_appointments')
-        .select('*')
-        .order('appointment_date', { ascending: true });
-
-      if (error) throw error;
-      setAppointments(data || []);
-    } catch (error) {
-      console.error('Error fetching appointments:', error);
-    }
-  };
+  }, [date, availableSchedules]);
 
   const fetchAvailableSchedules = async () => {
     try {
@@ -113,6 +75,7 @@ const PastoralAppointment: React.FC = () => {
         .from('pastoral_schedules')
         .select('*')
         .gte('date', today)
+        .eq('is_available', true)
         .order('date', { ascending: true })
         .order('time', { ascending: true });
 
@@ -191,19 +154,14 @@ const PastoralAppointment: React.FC = () => {
       return;
     }
 
-    // Check if the selected time is still available
     const selectedDate = format(date, 'yyyy-MM-dd');
     console.log('Submitting appointment for date:', selectedDate, 'time:', time);
     
+    // Check if the selected time is still available
     const isTimeAvailable = availableSchedules.some(schedule => 
       schedule.date === selectedDate && 
       schedule.time === time && 
-      schedule.is_available &&
-      !appointments.some(apt => 
-        apt.appointment_date === selectedDate && 
-        apt.appointment_time === time &&
-        apt.status !== 'cancelled'
-      )
+      schedule.is_available
     );
 
     if (!isTimeAvailable) {
@@ -258,8 +216,6 @@ const PastoralAppointment: React.FC = () => {
       setReason("");
       setMessage("");
       
-      // Atualizar lista de agendamentos
-      fetchAppointments();
     } catch (error) {
       console.error('Error creating appointment:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -271,58 +227,6 @@ const PastoralAppointment: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const updateAppointmentStatus = async (appointmentId: string, status: string, notes?: string) => {
-    try {
-      const updateData: any = { status };
-      if (notes !== undefined) {
-        updateData.pastor_notes = notes;
-      }
-
-      const { error } = await supabase
-        .from('pastoral_appointments')
-        .update(updateData)
-        .eq('id', appointmentId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Status atualizado",
-        description: "O status do agendamento foi atualizado com sucesso.",
-      });
-      
-      fetchAppointments();
-    } catch (error) {
-      console.error('Error updating appointment:', error);
-      toast({
-        title: "Erro ao atualizar",
-        description: "Não foi possível atualizar o status do agendamento.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const styles = {
-      pending: "bg-yellow-500",
-      confirmed: "bg-green-500",
-      completed: "bg-blue-500",
-      cancelled: "bg-red-500"
-    };
-
-    const labels = {
-      pending: "Pendente",
-      confirmed: "Confirmado",
-      completed: "Concluído",
-      cancelled: "Cancelado"
-    };
-
-    return (
-      <Badge className={styles[status as keyof typeof styles] || "bg-gray-500"}>
-        {labels[status as keyof typeof labels] || status}
-      </Badge>
-    );
   };
 
   const isDateAvailable = (date: Date) => {
@@ -390,10 +294,9 @@ const PastoralAppointment: React.FC = () => {
         
         <div className="w-full lg:w-2/3">
           <Tabs defaultValue="member" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="member">Sou Membro</TabsTrigger>
               <TabsTrigger value="meeting">Agendar Reunião</TabsTrigger>
-              <TabsTrigger value="admin">Área Pastoral (Admin)</TabsTrigger>
             </TabsList>
             
             <TabsContent value="member">
@@ -613,108 +516,6 @@ const PastoralAppointment: React.FC = () => {
                   </Button>
                 </CardFooter>
               </Card>
-            </TabsContent>
-            
-            <TabsContent value="admin">
-              <Tabs defaultValue="appointments" className="w-full">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="appointments">Agendamentos</TabsTrigger>
-                  <TabsTrigger value="schedule">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Gerenciar Agenda
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="appointments">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Gerenciamento de Agendamentos Pastorais</CardTitle>
-                      <CardDescription>
-                        Gerencie as solicitações de agendamento pastoral.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Nome</TableHead>
-                              <TableHead className="hidden sm:table-cell">Data</TableHead>
-                              <TableHead className="hidden md:table-cell">Horário</TableHead>
-                              <TableHead>Status</TableHead>
-                              <TableHead>Ações</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {appointments.map((appointment) => (
-                              <TableRow key={appointment.id}>
-                                <TableCell className="font-medium">
-                                  <div>
-                                    <p>{appointment.member_name}</p>
-                                    <p className="text-sm text-muted-foreground">{appointment.reason}</p>
-                                  </div>
-                                </TableCell>
-                                <TableCell className="hidden sm:table-cell">
-                                  {new Date(appointment.appointment_date).toLocaleDateString('pt-BR')}
-                                </TableCell>
-                                <TableCell className="hidden md:table-cell">
-                                  {appointment.appointment_time}
-                                </TableCell>
-                                <TableCell>
-                                  {getStatusBadge(appointment.status)}
-                                </TableCell>
-                                <TableCell>
-                                  <div className="flex flex-col sm:flex-row gap-1">
-                                    {appointment.status === 'pending' && (
-                                      <>
-                                        <Button
-                                          size="sm"
-                                          onClick={() => updateAppointmentStatus(appointment.id, 'confirmed')}
-                                          className="bg-green-500 hover:bg-green-600 text-xs"
-                                        >
-                                          <CheckCircle className="h-3 w-3 mr-1" />
-                                          Confirmar
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          variant="destructive"
-                                          onClick={() => updateAppointmentStatus(appointment.id, 'cancelled')}
-                                          className="text-xs"
-                                        >
-                                          <XCircle className="h-3 w-3 mr-1" />
-                                          Cancelar
-                                        </Button>
-                                      </>
-                                    )}
-                                    {appointment.status === 'confirmed' && (
-                                      <Button
-                                        size="sm"
-                                        onClick={() => updateAppointmentStatus(appointment.id, 'completed')}
-                                        className="bg-blue-500 hover:bg-blue-600 text-xs"
-                                      >
-                                        Concluir
-                                      </Button>
-                                    )}
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                        {appointments.length === 0 && (
-                          <div className="text-center py-8">
-                            <p className="text-muted-foreground">Nenhum agendamento encontrado.</p>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="schedule">
-                  <PastoralScheduleManagement />
-                </TabsContent>
-              </Tabs>
             </TabsContent>
           </Tabs>
         </div>

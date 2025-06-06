@@ -12,9 +12,11 @@ import {
   Users,
   Mail,
   MessageSquare,
-  GraduationCap
+  GraduationCap,
+  UserCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -25,72 +27,89 @@ interface NavItem {
   icon: React.ElementType;
   path: string;
   highlight?: boolean;
+  adminOnly?: boolean;
 }
-
-const mainNavItems: NavItem[] = [
-  {
-    title: 'Dashboard',
-    icon: Home,
-    path: '/dashboard',
-  },
-  {
-    title: 'Biblioteca',
-    icon: Book,
-    path: '/library',
-  },
-  {
-    title: 'Agenda',
-    icon: Calendar,
-    path: '/calendar',
-  },
-  {
-    title: 'Membros',
-    icon: Users,
-    path: '/members',
-  },
-  {
-    title: 'Eventos',
-    icon: Calendar,
-    path: '/events',
-  },
-  {
-    title: 'Financeiro',
-    icon: CircleDollarSign,
-    path: '/finance',
-  },
-  {
-    title: 'Cursos',
-    icon: GraduationCap,
-    path: '/courses',
-  },
-  {
-    title: 'Relatórios',
-    icon: ChartBar,
-    path: '/reports',
-  },
-  {
-    title: 'Fale com o Pastor',
-    icon: MessageSquare,
-    path: '/pastoral-appointment',
-    highlight: true,
-  },
-  {
-    title: 'Contato',
-    icon: Mail,
-    path: '/contact',
-  },
-];
-
-const bottomNavItems: NavItem[] = [
-  {
-    title: 'Configurações',
-    icon: Settings,
-    path: '/settings',
-  },
-];
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
   const location = useLocation();
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
+  
+  const mainNavItems: NavItem[] = [
+    {
+      title: 'Dashboard',
+      icon: Home,
+      path: '/dashboard',
+    },
+    {
+      title: 'Biblioteca',
+      icon: Book,
+      path: '/library',
+    },
+    {
+      title: 'Agenda',
+      icon: Calendar,
+      path: '/calendar',
+    },
+    {
+      title: 'Membros',
+      icon: Users,
+      path: '/members',
+      adminOnly: true,
+    },
+    {
+      title: 'Eventos',
+      icon: Calendar,
+      path: '/events',
+      adminOnly: true,
+    },
+    {
+      title: 'Financeiro',
+      icon: CircleDollarSign,
+      path: '/finance',
+      adminOnly: true,
+    },
+    {
+      title: 'Cursos',
+      icon: GraduationCap,
+      path: '/courses',
+    },
+    {
+      title: 'Relatórios',
+      icon: ChartBar,
+      path: '/reports',
+      adminOnly: true,
+    },
+    {
+      title: 'Fale com o Pastor',
+      icon: MessageSquare,
+      path: '/pastoral-appointment',
+      highlight: true,
+    },
+    {
+      title: 'Gerenc. Pastoral',
+      icon: UserCheck,
+      path: '/pastoral-management',
+      adminOnly: true,
+    },
+    {
+      title: 'Contato',
+      icon: Mail,
+      path: '/contact',
+    },
+  ];
+
+  const bottomNavItems: NavItem[] = [
+    {
+      title: 'Configurações',
+      icon: Settings,
+      path: '/settings',
+    },
+  ];
+
+  // Filter items based on admin status
+  const filteredMainNavItems = mainNavItems.filter(item => !item.adminOnly || isAdmin);
+  const filteredBottomNavItems = bottomNavItems.filter(item => !item.adminOnly || isAdmin);
   
   const NavLink = ({ item }: { item: NavItem }) => {
     const isActive = location.pathname === item.path;
@@ -172,7 +191,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
               {isOpen || !window.matchMedia('(min-width: 768px)').matches ? "Menu Principal" : ""}
             </h2>
             <nav className="grid gap-1">
-              {mainNavItems.map((item) => (
+              {filteredMainNavItems.map((item) => (
                 <React.Fragment key={item.path}>
                   {isOpen || !window.matchMedia('(min-width: 768px)').matches ? (
                     <NavLink item={item} />
@@ -204,7 +223,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
               {isOpen || !window.matchMedia('(min-width: 768px)').matches ? "Configurações" : ""}
             </h2>
             <nav className="grid gap-1">
-              {bottomNavItems.map((item) => (
+              {filteredBottomNavItems.map((item) => (
                 <React.Fragment key={item.path}>
                   {isOpen || !window.matchMedia('(min-width: 768px)').matches ? (
                     <NavLink item={item} />
