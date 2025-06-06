@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, List, Grid } from 'lucide-react';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +13,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import CoursesList from '@/components/courses/CoursesList';
+import CoursesCardView from '@/components/courses/CoursesCardView';
 import CourseModal from '@/components/courses/CourseModal';
+import CourseViewModal from '@/components/courses/CourseViewModal';
 import { useToast } from '@/hooks/use-toast';
 import { Course } from '@/types/libraryTypes';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,10 +24,13 @@ import { useAuth } from '@/contexts/AuthContext';
 const Courses = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | undefined>(undefined);
+  const [viewingCourse, setViewingCourse] = useState<Course | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [mode, setMode] = useState<'create' | 'edit'>('create');
   const [isLoading, setIsLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'cards'>('cards');
   const { toast } = useToast();
   const { isAdmin } = useAuth();
 
@@ -274,7 +278,12 @@ const Courses = () => {
     setIsModalOpen(false);
     setSelectedCourse(undefined);
   };
-  
+
+  const handleViewCourse = (course: Course) => {
+    setViewingCourse(course);
+    setIsViewModalOpen(true);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -284,11 +293,31 @@ const Courses = () => {
             Gerencie todos os cursos oferecidos pela igreja
           </p>
         </div>
-        {isAdmin() && (
-          <Button onClick={handleCreateCourse} className="bg-church-blue flex-1 sm:flex-none">
-            <PlusCircle className="mr-2 h-4 w-4" /> Novo Curso
-          </Button>
-        )}
+        <div className="flex gap-2">
+          <div className="flex border rounded-md">
+            <Button
+              variant={viewMode === 'cards' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('cards')}
+              className="rounded-r-none"
+            >
+              <Grid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className="rounded-l-none"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+          {isAdmin() && (
+            <Button onClick={handleCreateCourse} className="bg-church-blue">
+              <PlusCircle className="mr-2 h-4 w-4" /> Novo Curso
+            </Button>
+          )}
+        </div>
       </div>
 
       <Tabs defaultValue="all" className="w-full">
@@ -300,39 +329,75 @@ const Courses = () => {
         </TabsList>
 
         <TabsContent value="all" className="mt-0">
-          <CoursesList 
-            courses={courses} 
-            isLoading={isLoading} 
-            onEdit={handleEditCourse} 
-            onDelete={handleDeleteCourse} 
-          />
+          {viewMode === 'cards' ? (
+            <CoursesCardView 
+              courses={courses} 
+              onView={handleViewCourse}
+              onEdit={handleEditCourse} 
+              onDelete={handleDeleteCourse} 
+            />
+          ) : (
+            <CoursesList 
+              courses={courses} 
+              isLoading={isLoading} 
+              onEdit={handleEditCourse} 
+              onDelete={handleDeleteCourse} 
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="active" className="mt-0">
-          <CoursesList 
-            courses={courses.filter(course => course.status === 'active')} 
-            isLoading={isLoading} 
-            onEdit={handleEditCourse} 
-            onDelete={handleDeleteCourse} 
-          />
+          {viewMode === 'cards' ? (
+            <CoursesCardView 
+              courses={courses.filter(course => course.status === 'active')} 
+              onView={handleViewCourse}
+              onEdit={handleEditCourse} 
+              onDelete={handleDeleteCourse} 
+            />
+          ) : (
+            <CoursesList 
+              courses={courses.filter(course => course.status === 'active')} 
+              isLoading={isLoading} 
+              onEdit={handleEditCourse} 
+              onDelete={handleDeleteCourse} 
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="inactive" className="mt-0">
-          <CoursesList 
-            courses={courses.filter(course => course.status === 'inactive')} 
-            isLoading={isLoading} 
-            onEdit={handleEditCourse} 
-            onDelete={handleDeleteCourse} 
-          />
+          {viewMode === 'cards' ? (
+            <CoursesCardView 
+              courses={courses.filter(course => course.status === 'inactive')} 
+              onView={handleViewCourse}
+              onEdit={handleEditCourse} 
+              onDelete={handleDeleteCourse} 
+            />
+          ) : (
+            <CoursesList 
+              courses={courses.filter(course => course.status === 'inactive')} 
+              isLoading={isLoading} 
+              onEdit={handleEditCourse} 
+              onDelete={handleDeleteCourse} 
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="completed" className="mt-0">
-          <CoursesList 
-            courses={courses.filter(course => course.status === 'completed')} 
-            isLoading={isLoading} 
-            onEdit={handleEditCourse} 
-            onDelete={handleDeleteCourse} 
-          />
+          {viewMode === 'cards' ? (
+            <CoursesCardView 
+              courses={courses.filter(course => course.status === 'completed')} 
+              onView={handleViewCourse}
+              onEdit={handleEditCourse} 
+              onDelete={handleDeleteCourse} 
+            />
+          ) : (
+            <CoursesList 
+              courses={courses.filter(course => course.status === 'completed')} 
+              isLoading={isLoading} 
+              onEdit={handleEditCourse} 
+              onDelete={handleDeleteCourse} 
+            />
+          )}
         </TabsContent>
       </Tabs>
 
@@ -342,6 +407,12 @@ const Courses = () => {
         onSave={handleSaveCourse}
         course={selectedCourse}
         title={mode === 'edit' ? "Editar Curso" : "Novo Curso"}
+      />
+
+      <CourseViewModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        course={viewingCourse}
       />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

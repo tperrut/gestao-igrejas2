@@ -1,252 +1,120 @@
-
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { 
-  Book, 
-  Calendar, 
-  ChartBar, 
-  CircleDollarSign, 
-  Home, 
-  Settings, 
-  Users,
-  Mail,
-  MessageSquare,
-  GraduationCap,
-  UserCheck
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { 
+  Home, 
+  BookOpen, 
+  GraduationCap, 
+  Calendar, 
+  Users, 
+  DollarSign,
+  MessageCircle
+} from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
+  onClose: () => void;
 }
 
-interface NavItem {
-  title: string;
-  icon: React.ElementType;
-  path: string;
-  highlight?: boolean;
-  adminOnly?: boolean;
-}
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+  const { user, isAdmin } = useAuth();
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
-  const location = useLocation();
-  const { profile } = useAuth();
-  const isAdmin = profile?.role === 'admin';
-  
-  const mainNavItems: NavItem[] = [
-    {
-      title: 'Dashboard',
+  const menuItems = [
+    { 
+      to: "/dashboard", 
+      label: "Dashboard", 
       icon: Home,
-      path: '/dashboard',
+      adminOnly: true
     },
-    {
-      title: 'Biblioteca',
-      icon: Book,
-      path: '/library',
+    { 
+      to: "/library", 
+      label: "Biblioteca", 
+      icon: BookOpen,
+      adminOnly: false
     },
-    {
-      title: 'Agenda',
-      icon: Calendar,
-      path: '/calendar',
-    },
-    {
-      title: 'Membros',
-      icon: Users,
-      path: '/members',
-      adminOnly: true,
-    },
-    {
-      title: 'Eventos',
-      icon: Calendar,
-      path: '/events',
-      adminOnly: true,
-    },
-    {
-      title: 'Financeiro',
-      icon: CircleDollarSign,
-      path: '/finance',
-      adminOnly: true,
-    },
-    {
-      title: 'Cursos',
+    { 
+      to: "/courses", 
+      label: "Cursos", 
       icon: GraduationCap,
-      path: '/courses',
+      adminOnly: false
     },
-    {
-      title: 'Relatórios',
-      icon: ChartBar,
-      path: '/reports',
-      adminOnly: true,
+    { 
+      to: "/calendar", 
+      label: "Agenda", 
+      icon: Calendar,
+      adminOnly: false
     },
-    {
-      title: 'Fale com o Pastor',
-      icon: MessageSquare,
-      path: '/pastoral-appointment',
-      highlight: true,
+    { 
+      to: "/members", 
+      label: "Membros", 
+      icon: Users,
+      adminOnly: true
     },
-    {
-      title: 'Gerenc. Pastoral',
-      icon: UserCheck,
-      path: '/pastoral-management',
-      adminOnly: true,
+    { 
+      to: "/finance", 
+      label: "Financeiro", 
+      icon: DollarSign,
+      adminOnly: false // Liberado para todos os membros
     },
-    {
-      title: 'Contato',
-      icon: Mail,
-      path: '/contact',
+    { 
+      to: "/events", 
+      label: "Eventos", 
+      icon: Calendar,
+      adminOnly: true
+    },
+    { 
+      to: "/pastoral-appointment", 
+      label: "Fale com o Pastor", 
+      icon: MessageCircle,
+      adminOnly: false
+    },
+    { 
+      to: "/pastoral-management", 
+      label: "Gerenc. Pastoral", 
+      icon: Users,
+      adminOnly: true
     },
   ];
 
-  const bottomNavItems: NavItem[] = [
-    {
-      title: 'Configurações',
-      icon: Settings,
-      path: '/settings',
-    },
-  ];
-
-  // Filter items based on admin status
-  const filteredMainNavItems = mainNavItems.filter(item => !item.adminOnly || isAdmin);
-  const filteredBottomNavItems = bottomNavItems.filter(item => !item.adminOnly || isAdmin);
-  
-  const NavLink = ({ item }: { item: NavItem }) => {
-    const isActive = location.pathname === item.path;
-    
-    if (item.highlight) {
-      return (
-        <Link
-          to={item.path}
-          className="px-3 py-1 mb-2"
-        >
-          <Button 
-            variant={isActive ? "default" : "outline"}
-            className={cn(
-              "w-full flex items-center justify-start gap-3",
-              isActive ? "bg-primary text-primary-foreground" : "hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
-            )}
-          >
-            <item.icon className="h-5 w-5" />
-            <span className={cn(
-              !isOpen && "md:hidden"
-            )}>
-              {item.title}
-            </span>
-          </Button>
-        </Link>
-      );
+  const filteredMenuItems = menuItems.filter(item => {
+    if (item.adminOnly && !isAdmin()) {
+      return false;
     }
-    
-    return (
-      <Link
-        to={item.path}
-        className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
-          isActive
-            ? "bg-sidebar-accent text-sidebar-accent-foreground"
-            : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
-        )}
-      >
-        <item.icon className="h-5 w-5" />
-        <span className={cn(
-          !isOpen && "md:hidden"
-        )}>
-          {item.title}
-        </span>
-      </Link>
-    );
+    return true;
+  });
+
+  const handleItemClick = () => {
+    if (window.innerWidth <= 768) {
+      onClose();
+    }
   };
 
   return (
-    <aside
-      className={cn(
-        "bg-sidebar pb-12 transition-all duration-300 ease-in-out fixed left-0 top-0 z-20 h-full w-[250px] flex-col border-r border-sidebar-border md:left-0",
-        isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:w-[80px]"
-      )}
-    >
-      <div className="flex h-16 items-center border-b border-sidebar-border px-6">
-        <Link to="/" className="flex items-center gap-2">
-          <span className={cn(
-            "font-montserrat font-bold text-xl text-sidebar-foreground transition-all", 
-            !isOpen && "md:hidden"
-          )}>
-            ChurchConnect
-          </span>
-          <span className={cn(
-            "font-montserrat font-bold text-xl text-sidebar-foreground hidden",
-            !isOpen && "md:inline-block"
-          )}>
-            CC
-          </span>
-        </Link>
+    <>
+      <div
+        className={`fixed inset-0 z-10 bg-black/80 md:hidden ${
+          isOpen ? 'block' : 'hidden'
+        }`}
+        onClick={onClose}
+      />
+      <div className={`fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-background border-r shadow-lg transform transition-transform duration-300 ease-in-out z-20 ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      } md:translate-x-0`}>
+        <nav className="p-4 space-y-2 h-full overflow-y-auto">
+          {filteredMenuItems.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              onClick={handleItemClick}
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors text-sm font-medium"
+            >
+              <item.icon className="h-5 w-5" />
+              {item.label}
+            </Link>
+          ))}
+        </nav>
       </div>
-      <div className="flex flex-col h-[calc(100%-64px)] justify-between">
-        <div className="px-3 py-4">
-          <div className="mb-4">
-            <h2 className={cn(
-              "px-4 text-xs font-semibold text-sidebar-foreground/60 mb-2",
-              !isOpen && "md:text-center md:px-0"
-            )}>
-              {isOpen || !window.matchMedia('(min-width: 768px)').matches ? "Menu Principal" : ""}
-            </h2>
-            <nav className="grid gap-1">
-              {filteredMainNavItems.map((item) => (
-                <React.Fragment key={item.path}>
-                  {isOpen || !window.matchMedia('(min-width: 768px)').matches ? (
-                    <NavLink item={item} />
-                  ) : (
-                    <Link
-                      to={item.path}
-                      className={cn(
-                        "flex flex-col items-center justify-center rounded-lg p-2 text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
-                        location.pathname === item.path && "bg-sidebar-accent text-sidebar-accent-foreground",
-                        item.highlight && "border border-primary text-primary"
-                      )}
-                      title={item.title}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      <span className="text-xs mt-1">{item.title.substring(0, 3)}</span>
-                    </Link>
-                  )}
-                </React.Fragment>
-              ))}
-            </nav>
-          </div>
-        </div>
-        <div className="px-3 py-4 mt-auto">
-          <div className="mb-4">
-            <h2 className={cn(
-              "px-4 text-xs font-semibold text-sidebar-foreground/60 mb-2",
-              !isOpen && "md:text-center md:px-0"
-            )}>
-              {isOpen || !window.matchMedia('(min-width: 768px)').matches ? "Configurações" : ""}
-            </h2>
-            <nav className="grid gap-1">
-              {filteredBottomNavItems.map((item) => (
-                <React.Fragment key={item.path}>
-                  {isOpen || !window.matchMedia('(min-width: 768px)').matches ? (
-                    <NavLink item={item} />
-                  ) : (
-                    <Link
-                      to={item.path}
-                      className={cn(
-                        "flex flex-col items-center justify-center rounded-lg p-2 text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
-                        location.pathname === item.path && "bg-sidebar-accent text-sidebar-accent-foreground"
-                      )}
-                      title={item.title}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      <span className="text-xs mt-1">{item.title.substring(0, 3)}</span>
-                    </Link>
-                  )}
-                </React.Fragment>
-              ))}
-            </nav>
-          </div>
-        </div>
-      </div>
-    </aside>
+    </>
   );
 };
 

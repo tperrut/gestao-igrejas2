@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, List, Grid } from 'lucide-react';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -13,7 +13,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import MembersList from '@/components/members/MembersList';
+import MembersCardView from '@/components/members/MembersCardView';
 import MemberModal from '@/components/members/MemberModal';
+import MemberViewModal from '@/components/members/MemberViewModal';
 import { useToast } from '@/components/ui/use-toast';
 import { Member } from '@/types/libraryTypes';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,11 +32,42 @@ export interface MemberFormValues {
 }
 
 const Members = () => {
+  const [members, setMembers] = useState<Member[]>([]);
   const [selectedMember, setSelectedMember] = useState<Member | undefined>(undefined);
+  const [viewingMember, setViewingMember] = useState<Member | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [mode, setMode] = useState<'create' | 'edit'>('create');
+  const [viewMode, setViewMode] = useState<'list' | 'cards'>('cards');
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchMembers();
+  }, []);
+
+  const fetchMembers = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('members')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      if (data) setMembers(data as Member[]);
+    } catch (error) {
+      console.error('Error fetching members:', error);
+      toast({
+        title: "Erro ao carregar membros",
+        description: "Não foi possível carregar a lista de membros.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleCreateMember = () => {
     setMode('create');
@@ -46,6 +79,11 @@ const Members = () => {
     setMode('edit');
     setSelectedMember(member);
     setIsModalOpen(true);
+  };
+
+  const handleViewMember = (member: Member) => {
+    setViewingMember(member);
+    setIsViewModalOpen(true);
   };
 
   const handleDeleteMember = (member: Member) => {
@@ -64,6 +102,7 @@ const Members = () => {
         
       if (error) throw error;
       
+      setMembers(members.filter(m => m.id !== selectedMember.id));
       toast({
         title: "Membro excluído",
         description: `O membro ${selectedMember.name} foi excluído com sucesso.`,
@@ -102,6 +141,10 @@ const Members = () => {
 
         if (error) throw error;
         
+        if (data && data[0]) {
+          setMembers([data[0] as Member, ...members]);
+        }
+        
         toast({
           title: "Membro criado",
           description: `O membro ${memberData.name} foi criado com sucesso.`,
@@ -122,6 +165,9 @@ const Members = () => {
           .eq('id', selectedMember.id);
 
         if (error) throw error;
+        
+        const updatedMember = { ...selectedMember, ...memberData };
+        setMembers(members.map(m => m.id === selectedMember.id ? updatedMember as Member : m));
         
         toast({
           title: "Membro atualizado",
@@ -149,14 +195,47 @@ const Members = () => {
             Gerencie todos os membros da igreja
           </p>
         </div>
-        <Button onClick={handleCreateMember} className="bg-church-blue flex-1 sm:flex-none">
-          <PlusCircle className="mr-2 h-4 w-4" /> Novo Membro
-        </Button>
+        <div className="flex gap-2">
+          <div className="flex border rounded-md">
+            <Button
+              variant={viewMode === 'cards' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('cards')}
+              className="rounded-r-none"
+            >
+              <Grid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className="rounded-l-none"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+          <Button onClick={handleCreateMember} className="bg-church-blue">
+            <PlusCircle className="mr-2 h-4 w-4" /> Novo Membro
+          </Button>
+        </div>
       </div>
 
-      <MembersList 
-        onEdit={handleEditMember} 
-      />
+      {isLoading ? (
+        <div className="text-center py-12">
+          <p>Carregando membros...</p>
+        </div>
+      ) : viewMode === 'cards' ? (
+        <MembersCardView 
+          members={members}
+          onView={handleViewMember}
+          onEdit={handleEditMember}
+          onDelete={handleDeleteMember}
+        />
+      ) : (
+        <MembersList 
+          onEdit={handleEditMember} 
+        />
+      )}
 
       <MemberModal 
         isOpen={isModalOpen}
@@ -164,6 +243,12 @@ const Members = () => {
         onSave={handleSaveMember}
         member={selectedMember}
         title={mode === 'edit' ? "Editar Membro" : "Novo Membro"}
+      />
+
+      <MemberViewModal
+        isOpen={isViewModalOpen}
+        onClose={setIsViewModalOpen}
+        member={viewingMember}
       />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
