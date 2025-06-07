@@ -24,32 +24,14 @@ const BookModal: React.FC<BookModalProps> = ({
   book,
   onSuccess
 }) => {
-  const { createBook, updateBook } = useBookService();
+  const { saveBook } = useBookService();
   const { toast } = useToast();
 
   const handleSave = async (formData: BookFormValues) => {
-    try {
-      if (book) {
-        await updateBook(book.id, formData);
-        toast({
-          title: "Livro atualizado",
-          description: "O livro foi atualizado com sucesso."
-        });
-      } else {
-        await createBook(formData);
-        toast({
-          title: "Livro criado",
-          description: "O livro foi criado com sucesso."
-        });
-      }
+    const success = await saveBook(formData, book?.id);
+    if (success) {
       onSuccess();
       onClose();
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao salvar o livro.",
-        variant: "destructive"
-      });
     }
   };
 
