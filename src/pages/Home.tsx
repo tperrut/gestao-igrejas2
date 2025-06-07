@@ -10,8 +10,11 @@ import CallToAction from '@/components/home/CallToAction';
 import Footer from '@/components/home/Footer';
 
 const Home: React.FC = () => {
-  const { user } = useAuth();
-
+  const { user, isAdmin, isMember } = useAuth();
+  
+  let dashboardPath = "/dashboard";
+  if (isMember && isMember()) dashboardPath = "/member-dashboard";
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Navigation */}

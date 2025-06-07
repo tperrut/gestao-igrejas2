@@ -25,10 +25,15 @@ const Auth: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   // Redirect if already authenticated
-  if (user && !loading) {
-    return <Navigate to="/dashboard" replace />;
+ const { profile } = useAuth();
+  if (user && !loading && profile) {
+    if (profile.role === "admin") {
+      return <Navigate to="/dashboard" replace />;
+    } else if (profile.role === "member") {
+      return <Navigate to="/member-dashboard" replace />;
+    }
+    // Outros perfis se necessário
   }
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
