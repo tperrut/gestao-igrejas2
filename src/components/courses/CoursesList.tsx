@@ -84,6 +84,10 @@ const CoursesList: React.FC<CoursesListProps> = ({ courses, isLoading, onEdit, o
     setIsViewModalOpen(true);
   };
 
+  const handleCloseViewModal = () => {
+    setIsViewModalOpen(false);
+  };
+
   const handleStudents = (courseId: string) => {
     toast({
       title: "Gerenciar alunos",
@@ -178,7 +182,7 @@ const CoursesList: React.FC<CoursesListProps> = ({ courses, isLoading, onEdit, o
 
       <CourseViewModal
         isOpen={isViewModalOpen}
-        onClose={setIsViewModalOpen}
+        onClose={handleCloseViewModal}
         course={viewingCourse}
       />
     </>

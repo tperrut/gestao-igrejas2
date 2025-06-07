@@ -13,11 +13,15 @@ const Layout: React.FC = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
+  const closeSidebar = () => {
+    setSidebarOpen(false);
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar toggleSidebar={toggleSidebar} />
       <div className="flex flex-1">
-        <Sidebar isOpen={sidebarOpen} />
+        <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
         <main 
           className={cn(
             "flex-1 transition-all duration-300 ease-in-out p-4 md:p-8 overflow-x-hidden", 
