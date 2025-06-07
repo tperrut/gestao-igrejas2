@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Reservation } from '@/types/reservationTypes';
+import { Reservation, ReservationStatus } from '@/types/reservationTypes';
 import { useToast } from "@/components/ui/use-toast";
 
 export const useReservationService = () => {
@@ -44,7 +44,7 @@ export const useReservationService = () => {
         },
         reservation_date: reservation.reservation_date,
         expires_at: reservation.expires_at,
-        status: reservation.status,
+        status: reservation.status as ReservationStatus,
         created_at: reservation.created_at,
         updated_at: reservation.updated_at
       })) || [];
