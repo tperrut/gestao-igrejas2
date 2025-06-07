@@ -374,11 +374,63 @@ export type Database = {
         }
         Relationships: []
       }
+      reservations: {
+        Row: {
+          book_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          member_id: string
+          reservation_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          book_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          member_id: string
+          reservation_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          book_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          member_id?: string
+          reservation_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      expire_reservations: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       has_role: {
         Args: { user_id: string; required_role: string }
         Returns: boolean
