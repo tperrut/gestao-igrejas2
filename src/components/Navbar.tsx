@@ -85,15 +85,34 @@ const Navbar: React.FC = () => {
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      <div className="container flex h-16 items-center justify-between">
+        <div className="flex items-center gap-2">
+          
+          
+          <Link to="/" className="flex items-center gap-2">
+            <img 
+              src="https://images.seeklogo.com/logo-png/27/1/imw-igreja-metodista-wesleyana-logo-png_seeklogo-275760.png?v=1962823770704272104" 
+              alt="Igreja Metodista Wesleyana Logo" 
+              className="h-10 w-auto" 
+            />
+            <span className="hidden font-montserrat font-bold text-xl text-church-blue sm:inline-block">
+              Igreja Metodista Wesleyana
+            </span>
+            <span className="font-montserrat font-bold text-xl text-church-blue sm:hidden">
+              IMW
+            </span>
+          </Link>
+        </div>
+       </div> 
       <div className="flex h-14 items-center px-4 lg:px-6">
         <div className="mr-4 flex">
-          <button 
+         {/*  <button 
             onClick={handleLogoClick}
             className="mr-6 flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
             <div className="h-6 w-6 bg-primary rounded" />
             <span className="hidden font-bold sm:inline-block">Igreja</span>
-          </button>
+          </button> */}
 
           {/* Desktop Menu */}
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">

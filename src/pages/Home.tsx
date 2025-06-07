@@ -26,7 +26,7 @@ const Home: React.FC = () => {
             </div>
             <div className="flex items-center space-x-4">
               {user ? (
-                <Link to="/dashboard">
+                <Link to={dashboardPath}>
                   <Button variant="default">
                     Ir para Dashboard
                   </Button>
