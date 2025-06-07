@@ -52,7 +52,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     },
     { 
       to: "/finance", 
-      label: "Financeiro", 
+      label: "Ofertar", 
       icon: DollarSign,
       adminOnly: false // Liberado para todos os membros
     },

@@ -63,7 +63,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
             Membros
           </Link>
           <Link to="/finance" className="text-sm font-medium hover:text-church-blue transition-colors">
-            Financeiro
+            Ofertar
           </Link>
         </nav>
 
@@ -116,7 +116,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
               Membros
             </Link>
             <Link to="/finance" className="text-sm font-medium p-2 hover:bg-muted rounded-md">
-              Financeiro
+              Ofertar
             </Link>
           </nav>
         </div>
