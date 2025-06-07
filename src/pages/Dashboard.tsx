@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,20 +50,22 @@ const UpcomingEvent: React.FC<{
 );
 
 const Dashboard: React.FC = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, profile } = useAuth();
 
   // Redirecionar se não for admin
   if (!isAdmin()) {
-    return <Navigate to="/calendar" replace />;
+    return <Navigate to="/member-dashboard" replace />;
   }
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Bem-vindo ao Painel de Controle da Igreja (Apenas Administradores)
-        </p>
+      {/* Mensagem de boas-vindas para administrador */}
+      <div className="bg-gradient-to-r from-church-blue to-church-blue-light text-white rounded-lg p-6">
+        <h1 className="text-2xl font-bold mb-2">
+          Olá <strong>{profile?.name || 'Administrador'}</strong>, seja bem-vindo!
+        </h1>
+        <p className="text-lg opacity-90">Deus te abençoe!</p>
+        <p className="text-sm opacity-75 mt-1">Painel de Controle da Igreja</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -10,6 +10,7 @@ import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import MemberDashboard from "./pages/MemberDashboard";
 import Library from "./pages/Library";
 import Members from "./pages/Members";
 import Events from "./pages/Events";
@@ -45,6 +46,7 @@ const App = () => (
                   <Dashboard />
                 </AuthGuard>
               } />
+              <Route path="/member-dashboard" element={<MemberDashboard />} />
               <Route path="/library" element={<Library />} />
               <Route path="/members" element={
                 <AuthGuard requireAdmin={true}>
