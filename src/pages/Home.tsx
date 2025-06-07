@@ -19,7 +19,7 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">Sistema Igreja</h1>
+              <h1 className="text-2xl font-bold text-gray-900"><span className="bg-gradient-to-r from-church-red to-amber-400 text-transparent bg-clip-text font-bold">Ir para Sua Igreja</span></h1>
             </div>
             <div className="flex items-center space-x-4">
               {user ? (
@@ -31,7 +31,7 @@ const Home: React.FC = () => {
               ) : (
                 <Link to="/auth">
                   <Button variant="default">
-                    Entrar no Sistema
+                    Acessar Sistema
                   </Button>
                 </Link>
               )}

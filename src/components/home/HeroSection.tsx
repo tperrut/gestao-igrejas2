@@ -19,11 +19,11 @@ const HeroSection: React.FC = () => {
             A plataforma completa para gestão da sua igreja. Integre membros, recursos e atividades em um só lugar.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link to="/dashboard">
+            {/* <Link to="/dashboard">
               <Button size="lg" className="bg-white text-church-blue hover:bg-gray-100">
                 Acessar Sistema
               </Button>
-            </Link>
+            </Link> */}
             <Link to="/contact">
               <Button size="lg" className="bg-white text-church-blue hover:bg-orange-100">
                 Fale Conosco
