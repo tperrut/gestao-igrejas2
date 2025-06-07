@@ -61,6 +61,7 @@ export const useReservationService = () => {
 
   const createReservation = async (bookId: string, memberId: string): Promise<boolean> => {
     try {
+      console.log("Criando reserva para livro:", bookId, "e membro:", memberId);
       // Verificar se já existe uma reserva ativa para este livro
       const { data: existingReservation } = await supabase
         .from('reservations')

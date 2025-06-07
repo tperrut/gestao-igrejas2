@@ -33,7 +33,7 @@ const BookDetailModal: React.FC<BookDetailModalProps> = ({
 
   const handleReserve = async () => {
     if (!user) return;
-    
+    console.log("Reservando livro:", book.id, "para usuário:", user.id);
     const success = await createReservation(book.id, user.id);
     if (success) {
       onReservationSuccess?.();
