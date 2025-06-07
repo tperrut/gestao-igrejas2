@@ -59,15 +59,75 @@ const departments: DepartmentCard[] = [
   },
 ];
 
+// Componente QR Code simples para o CNPJ
+const QRCodeComponent = ({ cnpj }: { cnpj: string }) => (
+  <div className="bg-white p-4 rounded-lg flex justify-center">
+    <svg
+      className="h-48 w-48"
+      viewBox="0 0 200 200"
+      style={{ strokeLinecap: "round", stroke: "#000", fill: "none", strokeWidth: "2" }}
+    >
+      {/* QR Code Pattern simulado para o CNPJ */}
+      <rect x="10" y="10" width="30" height="30" fill="#000" />
+      <rect x="50" y="10" width="10" height="10" fill="#000" />
+      <rect x="70" y="10" width="10" height="10" fill="#000" />
+      <rect x="90" y="10" width="30" height="30" fill="#000" />
+      <rect x="130" y="10" width="10" height="10" fill="#000" />
+      <rect x="150" y="10" width="40" height="40" fill="#000" />
+      
+      <rect x="10" y="50" width="10" height="10" fill="#000" />
+      <rect x="30" y="50" width="10" height="10" fill="#000" />
+      <rect x="50" y="50" width="20" height="20" fill="#000" />
+      <rect x="80" y="50" width="10" height="10" fill="#000" />
+      <rect x="100" y="50" width="20" height="20" fill="#000" />
+      <rect x="130" y="50" width="20" height="20" fill="#000" />
+      <rect x="160" y="50" width="10" height="10" fill="#000" />
+      <rect x="180" y="50" width="10" height="10" fill="#000" />
+      
+      <rect x="10" y="80" width="20" height="20" fill="#000" />
+      <rect x="40" y="80" width="10" height="10" fill="#000" />
+      <rect x="60" y="80" width="30" height="30" fill="#000" />
+      <rect x="100" y="80" width="10" height="10" fill="#000" />
+      <rect x="120" y="80" width="10" height="10" fill="#000" />
+      <rect x="140" y="80" width="20" height="20" fill="#000" />
+      <rect x="170" y="80" width="20" height="20" fill="#000" />
+      
+      <rect x="10" y="110" width="10" height="10" fill="#000" />
+      <rect x="30" y="110" width="20" height="20" fill="#000" />
+      <rect x="60" y="110" width="10" height="10" fill="#000" />
+      <rect x="80" y="110" width="10" height="10" fill="#000" />
+      <rect x="100" y="110" width="30" height="30" fill="#000" />
+      <rect x="140" y="110" width="10" height="10" fill="#000" />
+      <rect x="160" y="110" width="30" height="30" fill="#000" />
+      
+      <rect x="10" y="140" width="30" height="30" fill="#000" />
+      <rect x="50" y="140" width="20" height="20" fill="#000" />
+      <rect x="80" y="140" width="10" height="10" fill="#000" />
+      <rect x="100" y="140" width="10" height="10" fill="#000" />
+      <rect x="120" y="140" width="10" height="10" fill="#000" />
+      <rect x="140" y="140" width="20" height="20" fill="#000" />
+      <rect x="170" y="140" width="10" height="10" fill="#000" />
+      
+      <rect x="10" y="170" width="10" height="10" fill="#000" />
+      <rect x="30" y="170" width="40" height="20" fill="#000" />
+      <rect x="80" y="170" width="20" height="20" fill="#000" />
+      <rect x="110" y="170" width="10" height="10" fill="#000" />
+      <rect x="130" y="170" width="10" height="10" fill="#000" />
+      <rect x="150" y="170" width="40" height="20" fill="#000" />
+    </svg>
+  </div>
+);
+
 const Finance = () => {
   const [pixDialogOpen, setPixDialogOpen] = useState(false);
+  const cnpj = "13.836.364/0129-11";
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">Ofertar</h1>
-          <p className="text-muted-foreground">Gerencie as finanças e doações para a igreja.</p>
+          <p className="text-muted-foreground">Faça sua doação para a igreja e seus departamentos.</p>
         </div>
         <Button 
           className="mt-4 md:mt-0" 
@@ -116,32 +176,12 @@ const Finance = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex justify-center py-6">
-            <div className="bg-white p-4 rounded-lg">
-              <svg
-                className="h-48 w-48"
-                viewBox="0 0 100 100"
-                style={{
-                  strokeLinecap: "round",
-                  stroke: "#000",
-                  fill: "none",
-                  strokeWidth: "4",
-                }}
-              >
-                <rect x="10" y="10" width="80" height="80" />
-                <line x1="20" y1="20" x2="40" y2="20" />
-                <line x1="20" y1="30" x2="30" y2="30" />
-                <rect x="50" y="20" width="20" height="20" />
-                <circle cx="35" cy="50" r="10" />
-                <path d="M60,50 Q70,35 80,50 Q70,65 60,50" />
-                <line x1="20" y1="70" x2="30" y2="80" />
-                <line x1="40" y1="70" x2="30" y2="80" />
-                <rect x="50" y="60" width="30" height="20" />
-              </svg>
-            </div>
+            <QRCodeComponent cnpj={cnpj} />
           </div>
           <div className="text-center text-sm mb-4">
-            <p className="font-medium">Chave PIX: igreja@example.com</p>
-            <p className="text-muted-foreground">Nome: Igreja Evangélica</p>
+            <p className="font-medium">CNPJ: {cnpj}</p>
+            <p className="font-medium">Chave PIX: igreja@imw.com.br</p>
+            <p className="text-muted-foreground">Nome: Igreja Metodista Wesleyana</p>
           </div>
           <AlertDialogFooter>
             <AlertDialogAction>Fechar</AlertDialogAction>

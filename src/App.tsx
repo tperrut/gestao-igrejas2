@@ -40,7 +40,11 @@ const App = () => (
                 <Layout />
               </AuthGuard>
             }>
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard" element={
+                <AuthGuard requireAdmin={true}>
+                  <Dashboard />
+                </AuthGuard>
+              } />
               <Route path="/library" element={<Library />} />
               <Route path="/members" element={
                 <AuthGuard requireAdmin={true}>
@@ -59,11 +63,7 @@ const App = () => (
                   <Loans />
                 </AuthGuard>
               } />
-              <Route path="/finance" element={
-                <AuthGuard requireAdmin={true}>
-                  <Finance />
-                </AuthGuard>
-              } />
+              <Route path="/finance" element={<Finance />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/pastoral-appointment" element={<PastoralAppointment />} />
               <Route path="/pastoral-management" element={
