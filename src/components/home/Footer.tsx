@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import Logo from '@/components/ui/logo';
 
+
 const Footer: React.FC = () => {
   return (
     <footer className="py-8 bg-gray-800 text-white">
@@ -23,17 +24,24 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-lg font-bold mb-4">Links Rápidos</h3>
             <ul className="space-y-2">
-              <li><Link to="/dashboard" className="text-gray-400 hover:text-white">Dashboard</Link></li>
-              <li><Link to="/library" className="text-gray-400 hover:text-white">Biblioteca</Link></li>
-              <li><Link to="/calendar" className="text-gray-400 hover:text-white">Agenda</Link></li>
-              <li><Link to="/finance" className="text-gray-400 hover:text-white">Ofertar</Link></li>
+     {/*          <li><Link to="https://x.com/tperrut" className="text-gray-400 hover:text-white">X</Link></li>
+              <li><Link to="/library" className="text-gray-400 hover:text-white">Instagram</Link></li>
+ */}              <li><Link to="https://linkedin.com/tperrut" className="text-gray-400 hover:text-white"> <svg
+      mlns="http://www.w3.org/2000/svg"
+      className="h-5 w-5"
+      fill="currentColor"
+      viewBox="0 0 24 24"x
+    >
+      <path d="M19 0h-14c-2.761...z" /> {/* Pode colar o path completo do LinkedIn */}
+    </svg>Linkedin</Link></li>
+              <li><Link to="https://perrutinho-resume.lovable.app" className="text-gray-400 hover:text-white">Resume</Link></li>
             </ul>
           </div>
           <div>
             <h3 className="text-lg font-bold mb-4">Contato</h3>
             <p className="text-gray-400">
-              contato@imw.com<br />
-              (11) 1234-5678
+              thi.perrut@gmail.com.com<br />
+              (21) 98511-0076
             </p>
           </div>
         </div>
