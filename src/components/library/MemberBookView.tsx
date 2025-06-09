@@ -88,34 +88,44 @@ const MemberBookView: React.FC = () => {
         </div>
       </div>
 
-      {/* Lista de Livros */}
+      {/* Lista de Livros com Imagens */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredBooks.map((book) => (
-          <Card key={book.id} className="card-hover">
-            <CardHeader className="pb-3">
+          <Card key={book.id} className="card-hover overflow-hidden">
+            <CardHeader className="p-0">
+              <div className="h-48 overflow-hidden">
+                <img
+                  src={book.cover_url || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=200'}
+                  alt={book.title}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            </CardHeader>
+            <CardContent className="p-4 space-y-3">
               <div className="flex justify-between items-start gap-2">
-                <CardTitle className="text-lg leading-tight">{book.title}</CardTitle>
-                <Badge variant={book.copies > 0 ? "default" : "destructive"} className="shrink-0">
-                  {book.copies > 0 ? "Disponível" : "Indisponível"}
+                <CardTitle className="text-lg leading-tight line-clamp-2">{book.title}</CardTitle>
+                <Badge variant={book.available_copies > 0 ? "default" : "destructive"} className="shrink-0">
+                  {book.available_copies > 0 ? "Disponível" : "Indisponível"}
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground">por {book.author}</p>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Categoria:</span>
-                <span>{book.category}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Cópias:</span>
-                <span>{book.copies}</span>
-              </div>
-              {book.publication_year && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Ano:</span>
-                  <span>{book.publication_year}</span>
+              
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Categoria:</span>
+                  <span>{book.category}</span>
                 </div>
-              )}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Cópias disponíveis:</span>
+                  <span>{book.available_copies} de {book.copies}</span>
+                </div>
+                {book.publication_year && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Ano:</span>
+                    <span>{book.publication_year}</span>
+                  </div>
+                )}
+              </div>
               
               <Button 
                 variant="outline" 
@@ -123,7 +133,7 @@ const MemberBookView: React.FC = () => {
                 onClick={() => handleViewDetails(book)}
               >
                 <Eye className="mr-2 h-4 w-4" />
-                Ver Detalhes
+                Ver Detalhes e Reservar
               </Button>
             </CardContent>
           </Card>

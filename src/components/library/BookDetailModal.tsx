@@ -41,7 +41,7 @@ const BookDetailModal: React.FC<BookDetailModalProps> = ({
     }
   };
 
-  const isAvailable = book.copies > 0;
+  const isAvailable = book.available_copies > 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -56,37 +56,35 @@ const BookDetailModal: React.FC<BookDetailModalProps> = ({
         <div className="space-y-6">
           {/* Capa e informações básicas */}
           <div className="flex flex-col sm:flex-row gap-4">
-            {book.cover_url && (
-              <div className="flex-shrink-0">
-                <img 
-                  src={book.cover_url} 
-                  alt={book.title}
-                  className="w-32 h-48 object-cover rounded-lg border"
-                />
-              </div>
-            )}
+            <div className="flex-shrink-0 mx-auto sm:mx-0">
+              <img 
+                src={book.cover_url || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=200'} 
+                alt={book.title}
+                className="w-40 h-60 object-cover rounded-lg border shadow-md"
+              />
+            </div>
             
-            <div className="flex-1 space-y-3">
+            <div className="flex-1 space-y-4">
               <div>
-                <h3 className="text-xl font-semibold">{book.title}</h3>
-                <p className="text-muted-foreground">por {book.author}</p>
+                <h3 className="text-xl font-semibold leading-tight">{book.title}</h3>
+                <p className="text-muted-foreground text-lg">por {book.author}</p>
               </div>
               
               <div className="flex flex-wrap gap-2">
                 <Badge variant={isAvailable ? "default" : "destructive"}>
-                  {isAvailable ? "Disponível" : "Indisponível"}
+                  {isAvailable ? `${book.available_copies} disponível(is)` : "Indisponível"}
                 </Badge>
                 <Badge variant="outline">{book.category}</Badge>
               </div>
               
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  <span>{book.copies} cópias</span>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span>{book.copies} cópias total</span>
                 </div>
                 {book.publication_year && (
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>{book.publication_year}</span>
                   </div>
                 )}
@@ -95,7 +93,7 @@ const BookDetailModal: React.FC<BookDetailModalProps> = ({
           </div>
 
           {/* Informações detalhadas */}
-          <div className="grid gap-4">
+          <div className="space-y-4">
             {book.description && (
               <div>
                 <h4 className="font-medium mb-2 flex items-center gap-2">
@@ -129,6 +127,18 @@ const BookDetailModal: React.FC<BookDetailModalProps> = ({
                 </div>
               )}
             </div>
+
+            {/* Informação sobre reserva */}
+            {isAvailable && (
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <h4 className="font-medium text-blue-800 mb-2">Como funciona a reserva?</h4>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• Você terá 24 horas para retirar o livro na secretaria</li>
+                  <li>• Após esse prazo, a reserva será cancelada automaticamente</li>
+                  <li>• Leve um documento de identificação para retirada</li>
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Ações */}
