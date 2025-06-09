@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock } from 'lucide-react';
 
 const contactFormSchema = z.object({
   name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres" }),
@@ -61,6 +61,27 @@ const Contact: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-4">
+          {/* Logo e Nome */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <img 
+                  src="https://images.seeklogo.com/logo-png/27/1/imw-igreja-metodista-wesleyana-logo-png_seeklogo-275760.png?v=1962823770704272104" 
+                  alt="Igreja Metodista Wesleyana Logo" 
+                  className="h-10 w-auto" 
+                />
+                <div>
+                  <span className="hidden font-montserrat font-bold text-lg text-church-blue sm:inline-block">
+                    Igreja Metodista Wesleyana
+                  </span>
+                  <span className="font-montserrat font-bold text-lg text-church-blue sm:hidden">
+                    IMW
+                  </span>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Informações de Contato</CardTitle>
@@ -69,22 +90,21 @@ const Contact: React.FC = () => {
             <CardContent className="space-y-4">
               <div className="flex items-start space-x-3">
                 <div className="bg-primary/10 p-2 rounded-full">
-                  <Mail className="h-5 w-5 text-primary" />
+                  <Phone className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-medium">E-mail</h3>
-                  <p className="text-sm text-muted-foreground">contato@igreja360.com</p>
+                  <h3 className="font-medium">Telefone</h3>
+                  <p className="text-sm text-muted-foreground">(21) 2719-3106</p>
                 </div>
               </div>
 
               <div className="flex items-start space-x-3">
                 <div className="bg-primary/10 p-2 rounded-full">
-                  <Phone className="h-5 w-5 text-primary" />
+                  <Mail className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-medium">Telefone</h3>
-                  <p className="text-sm text-muted-foreground">(11) 5555-5555</p>
-                  <p className="text-sm text-muted-foreground">(11) 98888-8888 (WhatsApp)</p>
+                  <h3 className="font-medium">E-mail</h3>
+                  <p className="text-sm text-muted-foreground">imwcentraldeniteroi@gmail.com</p>
                 </div>
               </div>
 
@@ -95,8 +115,9 @@ const Contact: React.FC = () => {
                 <div>
                   <h3 className="font-medium">Endereço</h3>
                   <p className="text-sm text-muted-foreground">
-                    Rua Exemplo, 123 - Bairro<br />
-                    São Paulo - SP, 01234-567
+                    Rua Barão do Amazonas, 207<br />
+                    Centro, Niterói - RJ<br />
+                    CEP: 24030-111
                   </p>
                 </div>
               </div>
@@ -105,21 +126,24 @@ const Contact: React.FC = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Horários</CardTitle>
+              <CardTitle>Nossas Reuniões</CardTitle>
               <CardDescription>Quando estamos disponíveis</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex justify-between">
-                <span className="font-medium">Segunda a Sexta:</span>
-                <span>09:00 - 18:00</span>
+            <CardContent className="space-y-3">
+              <div>
+                <div className="flex items-center gap-2 font-semibold">
+                  <Clock className="h-4 w-4" />
+                  <span>Quintas:</span>
+                </div>
+                <p className="ml-6">Culto da Benção - 19:30h</p>
               </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Sábado:</span>
-                <span>09:00 - 12:00</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Domingo:</span>
-                <span>Cultos: 09:00 e 18:00</span>
+              <div>
+                <div className="flex items-center gap-2 font-semibold">
+                  <Clock className="h-4 w-4" />
+                  <span>Domingos:</span>
+                </div>
+                <p className="ml-6">Escola Bíblica Dominical - 9h</p>
+                <p className="ml-6">Culto de Celebração - 18h</p>
               </div>
             </CardContent>
           </Card>
@@ -173,7 +197,7 @@ const Contact: React.FC = () => {
                         <FormItem>
                           <FormLabel>Telefone</FormLabel>
                           <FormControl>
-                            <Input placeholder="(11) 98765-4321" {...field} />
+                            <Input placeholder="(21) 98765-4321" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

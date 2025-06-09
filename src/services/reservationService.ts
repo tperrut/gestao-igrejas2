@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Reservation, ReservationStatus } from '@/types/reservationTypes';
 import { useToast } from "@/components/ui/use-toast";
@@ -59,9 +58,42 @@ export const useReservationService = () => {
     }
   };
 
-  const createReservation = async (bookId: string, memberId: string): Promise<boolean> => {
+  const createReservation = async (bookId: string, userId: string): Promise<boolean> => {
     try {
-      console.log("Criando reserva para livro:", bookId, "e membro:", memberId);
+      console.log("Criando reserva para livro:", bookId, "e usuário:", userId);
+      
+      // Primeiro, buscar o ID do membro correspondente ao usuário autenticado
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .eq('id', userId)
+        .single();
+
+      if (profileError || !profile) {
+        toast({
+          title: "Erro",
+          description: "Perfil de usuário não encontrado.",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      // Buscar o membro pelo email do perfil
+      const { data: member, error: memberError } = await supabase
+        .from('members')
+        .select('id, name')
+        .eq('email', profile.email)
+        .single();
+
+      if (memberError || !member) {
+        toast({
+          title: "Erro",
+          description: "Registro de membro não encontrado. Entre em contato com a administração.",
+          variant: "destructive"
+        });
+        return false;
+      }
+
       // Verificar se já existe uma reserva ativa para este livro
       const { data: existingReservation } = await supabase
         .from('reservations')
@@ -83,22 +115,15 @@ export const useReservationService = () => {
         .from('reservations')
         .insert([{
           book_id: bookId,
-          member_id: memberId,
+          member_id: member.id,
           status: 'active'
         }]);
 
       if (error) throw error;
 
-      // Buscar nome do membro para a mensagem
-      const { data: member } = await supabase
-        .from('members')
-        .select('name')
-        .eq('id', memberId)
-        .single();
-
       toast({
         title: "Reserva realizada com sucesso!",
-        description: `Olá ${member?.name || 'membro'}, sua reserva foi realizada, dirija-se à secretaria para retirar seu livro. Deus te abençoe!`,
+        description: `Olá ${member.name}, sua reserva foi realizada, dirija-se à secretaria para retirar seu livro. Deus te abençoe!`,
       });
       return true;
     } catch (error) {
