@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { PlusCircle, List, Grid } from 'lucide-react';
@@ -18,18 +17,8 @@ import MemberModal from '@/components/members/MemberModal';
 import MemberViewModal from '@/components/members/MemberViewModal';
 import { useToast } from '@/components/ui/use-toast';
 import { Member } from '@/types/libraryTypes';
+import { MemberFormValues } from '@/components/members/MemberForm';
 import { supabase } from '@/integrations/supabase/client';
-
-export interface MemberFormValues {
-  name: string;
-  email: string;
-  phone?: string;
-  birth_date?: string;
-  join_date: string;
-  status: 'active' | 'inactive';
-  role?: string;
-  avatar_url?: string;
-}
 
 const Members = () => {
   const [members, setMembers] = useState<Member[]>([]);
@@ -129,12 +118,12 @@ const Members = () => {
             {
               name: memberData.name,
               email: memberData.email,
-              phone: memberData.phone,
-              role: memberData.role,
+              phone: memberData.phone || null,
+              role: memberData.role || null,
               status: memberData.status,
               join_date: memberData.join_date,
-              birth_date: memberData.birth_date,
-              avatar_url: memberData.avatar_url,
+              birth_date: memberData.birth_date || null,
+              avatar_url: memberData.avatar_url || null,
             }
           ])
           .select();
@@ -155,12 +144,12 @@ const Members = () => {
           .update({
             name: memberData.name,
             email: memberData.email,
-            phone: memberData.phone,
-            role: memberData.role,
+            phone: memberData.phone || null,
+            role: memberData.role || null,
             status: memberData.status,
             join_date: memberData.join_date,
-            birth_date: memberData.birth_date,
-            avatar_url: memberData.avatar_url,
+            birth_date: memberData.birth_date || null,
+            avatar_url: memberData.avatar_url || null,
           })
           .eq('id', selectedMember.id);
 

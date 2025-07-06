@@ -59,7 +59,7 @@ const MemberForm: React.FC<MemberFormProps> = ({
       birth_date: defaultValues?.birth_date || '',
       join_date: defaultValues?.join_date || new Date().toISOString().split('T')[0],
       role: defaultValues?.role || '',
-      status: (defaultValues?.status as 'active' | 'inactive') || 'active',
+      status: defaultValues?.status || 'active',
       avatar_url: defaultValues?.avatar_url || '',
     }
   });
@@ -69,7 +69,6 @@ const MemberForm: React.FC<MemberFormProps> = ({
   const onFormSubmit = (data: MemberFormValues) => {
     // Sanitize text inputs before submission
     const sanitizedData: MemberFormValues = {
-      ...data,
       name: sanitizeText(data.name),
       email: data.email.toLowerCase().trim(),
       phone: data.phone?.trim() || '',
