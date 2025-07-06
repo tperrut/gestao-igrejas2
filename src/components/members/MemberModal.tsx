@@ -37,7 +37,7 @@ const MemberModal: React.FC<MemberModalProps> = ({
     join_date: member.join_date,
     status: member.status as 'active' | 'inactive',
     role: member.role || "",
-    avatar_url: ""
+    avatar_url: member.avatar_url || ""
   } : {
     name: "",
     email: "",

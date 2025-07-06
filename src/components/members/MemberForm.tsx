@@ -28,13 +28,14 @@ const memberSchema = z.object({
   join_date: z.string().min(1, 'Data de entrada é obrigatória'),
   role: z.string().optional(),
   status: z.enum(['active', 'inactive']),
+  avatar_url: z.string().optional(),
 });
 
-type MemberFormData = z.infer<typeof memberSchema>;
+export type MemberFormValues = z.infer<typeof memberSchema>;
 
 interface MemberFormProps {
-  defaultValues?: Partial<Member>;
-  onSubmit: (data: Omit<Member, 'id' | 'created_at' | 'updated_at'>) => void;
+  defaultValues?: Partial<MemberFormValues>;
+  onSubmit: (data: MemberFormValues) => void;
   onCancel: () => void;
 }
 
@@ -49,7 +50,7 @@ const MemberForm: React.FC<MemberFormProps> = ({
     setValue,
     watch,
     formState: { errors, isSubmitting }
-  } = useForm<MemberFormData>({
+  } = useForm<MemberFormValues>({
     resolver: zodResolver(memberSchema),
     defaultValues: {
       name: defaultValues?.name || '',
@@ -58,21 +59,25 @@ const MemberForm: React.FC<MemberFormProps> = ({
       birth_date: defaultValues?.birth_date || '',
       join_date: defaultValues?.join_date || new Date().toISOString().split('T')[0],
       role: defaultValues?.role || '',
-      status: defaultValues?.status || 'active',
+      status: (defaultValues?.status as 'active' | 'inactive') || 'active',
+      avatar_url: defaultValues?.avatar_url || '',
     }
   });
 
   const [avatarFile, setAvatarFile] = React.useState<File | null>(null);
 
-  const onFormSubmit = (data: MemberFormData) => {
+  const onFormSubmit = (data: MemberFormValues) => {
     // Sanitize text inputs before submission
-    const sanitizedData = {
+    const sanitizedData: MemberFormValues = {
       ...data,
       name: sanitizeText(data.name),
       email: data.email.toLowerCase().trim(),
-      phone: data.phone?.trim() || null,
-      role: data.role ? sanitizeText(data.role) : null,
-      avatar_url: defaultValues?.avatar_url || null, // Will be updated separately if avatar is uploaded
+      phone: data.phone?.trim() || '',
+      role: data.role ? sanitizeText(data.role) : '',
+      avatar_url: data.avatar_url || '',
+      status: data.status,
+      birth_date: data.birth_date || '',
+      join_date: data.join_date,
     };
 
     onSubmit(sanitizedData);
