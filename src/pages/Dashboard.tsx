@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,16 +51,25 @@ const UpcomingEvent: React.FC<{
 );
 
 const Dashboard: React.FC = () => {
-  const { isAdmin, profile } = useAuth();
+  const { profile, loading } = useAuth();
 
-  // Redirecionar se não for admin
-  if (!isAdmin()) {
+  // Wait for loading to complete
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Redirect if not admin
+  if (profile && profile.role !== 'admin') {
     return <Navigate to="/member-dashboard" replace />;
   }
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Mensagem de boas-vindas para administrador */}
+      {/* Welcome message for admin */}
       <div className="bg-gradient-to-r from-church-blue to-church-blue-light text-white rounded-lg p-6">
         <h1 className="text-2xl font-bold mb-2">
           Olá <strong>{profile?.name || 'Administrador'}</strong>, seja bem-vindo!
