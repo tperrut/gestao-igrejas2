@@ -22,7 +22,7 @@ export const Logo: React.FC<LogoProps> = ({
     <div className={`flex items-center gap-2 ${className}`}>
       <div className={`${sizeClasses[size]} relative`}>
         <img   
-          src="https://gecwfcexufkvdkndbjip.supabase.co/storage/v1/object/sign/lp-altar-hub/logoAltarHub.PNG?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV85YjczNjdiYi0yMWRjLTQxM2QtYWMzNy0zNjQzMTFjNGFhMGUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJscC1hbHRhci1odWIvbG9nb0FsdGFySHViLlBORyIsImlhdCI6MTc1MTM0MTYwNCwiZXhwIjoxNzgyODc3NjA0fQ.u8HKuXlomOG0DIF7mDR4qqKDD0wApnjAfceOWf98bKE" 
+          src="https://gecwfcexufkvdkndbjip.supabase.co/storage/v1/object/sign/lp-altar-hub/logo2_com_texto.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV85YjczNjdiYi0yMWRjLTQxM2QtYWMzNy0zNjQzMTFjNGFhMGUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJscC1hbHRhci1odWIvbG9nbzJfY29tX3RleHRvLnBuZyIsImlhdCI6MTc1MTgyNzQ5OSwiZXhwIjoxNzgzMzYzNDk5fQ.EMUPwpstZ6_cS90Ablq6X5zqN66zlmFz9rYRKd5xzvA" 
           alt="AltarHub Logo" 
           className="bg-white rounded-full p-2 flex items-center justify-center"
         />
