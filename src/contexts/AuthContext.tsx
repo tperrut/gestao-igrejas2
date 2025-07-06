@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { validateEmail, validatePassword } from '@/utils/validation';
 
 interface Profile {
   id: string;
@@ -42,6 +43,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  // Security: Track failed login attempts
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lastFailedAttempt, setLastFailedAttempt] = useState<Date | null>(null);
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -50,8 +55,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         
+        // Security: Reset failed attempts on successful auth
+        if (event === 'SIGNED_IN') {
+          setFailedAttempts(0);
+          setLastFailedAttempt(null);
+        }
+        
         if (session?.user) {
-          // Fetch user profile
+          // Defer profile fetching to avoid auth state callback issues
           setTimeout(async () => {
             await fetchUserProfile(session.user.id);
           }, 0);
@@ -100,14 +111,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Security: Check if user should be rate limited
+  const isRateLimited = (): boolean => {
+    if (failedAttempts >= 5 && lastFailedAttempt) {
+      const timeSinceLastAttempt = Date.now() - lastFailedAttempt.getTime();
+      const lockoutDuration = 15 * 60 * 1000; // 15 minutes
+      return timeSinceLastAttempt < lockoutDuration;
+    }
+    return false;
+  };
+
   const signIn = async (email: string, password: string) => {
     try {
+      // Security: Input validation
+      if (!validateEmail(email)) {
+        const error = new Error('Email inválido');
+        toast({
+          title: "Erro no login",
+          description: "Email inválido",
+          variant: "destructive",
+        });
+        return { error };
+      }
+
+      // Security: Rate limiting
+      if (isRateLimited()) {
+        const error = new Error('Muitas tentativas de login. Tente novamente em 15 minutos.');
+        toast({
+          title: "Acesso bloqueado",
+          description: "Muitas tentativas de login. Tente novamente em 15 minutos.",
+          variant: "destructive",
+        });
+        return { error };
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.toLowerCase().trim(),
         password,
       });
 
       if (error) {
+        // Security: Track failed attempts
+        setFailedAttempts(prev => prev + 1);
+        setLastFailedAttempt(new Date());
+        
         toast({
           title: "Erro no login",
           description: error.message,
@@ -129,15 +176,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, name: string) => {
     try {
+      // Security: Input validation
+      if (!validateEmail(email)) {
+        const error = new Error('Email inválido');
+        toast({
+          title: "Erro no cadastro",
+          description: "Email inválido",
+          variant: "destructive",
+        });
+        return { error };
+      }
+
+      const passwordValidation = validatePassword(password);
+      if (!passwordValidation.valid) {
+        const error = new Error(passwordValidation.message);
+        toast({
+          title: "Senha inválida",
+          description: passwordValidation.message,
+          variant: "destructive",
+        });
+        return { error };
+      }
+
+      if (!name.trim() || name.trim().length < 2) {
+        const error = new Error('Nome deve ter pelo menos 2 caracteres');
+        toast({
+          title: "Nome inválido",
+          description: "Nome deve ter pelo menos 2 caracteres",
+          variant: "destructive",
+        });
+        return { error };
+      }
+
       const redirectUrl = `${window.location.origin}/`;
       
       const { error } = await supabase.auth.signUp({
-        email,
+        email: email.toLowerCase().trim(),
         password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            name: name,
+            name: name.trim(),
           }
         }
       });
@@ -172,6 +251,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           variant: "destructive",
         });
       } else {
+        // Security: Clear sensitive data
+        setFailedAttempts(0);
+        setLastFailedAttempt(null);
+        
         toast({
           title: "Logout realizado",
           description: "Você foi desconectado com sucesso.",

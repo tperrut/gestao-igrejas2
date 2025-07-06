@@ -439,6 +439,14 @@ export type Database = {
         Args: { user_id: string }
         Returns: boolean
       }
+      is_valid_email: {
+        Args: { email: string }
+        Returns: boolean
+      }
+      is_valid_phone: {
+        Args: { phone: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

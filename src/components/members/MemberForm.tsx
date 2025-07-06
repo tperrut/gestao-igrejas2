@@ -1,277 +1,200 @@
 
-import React, { useState } from 'react';
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from "@/components/ui/use-toast";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Upload, UserRound } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Member } from '@/types/libraryTypes';
+import { validateEmail, validatePhone, sanitizeText } from '@/utils/validation';
+import SecurityAlert from '@/components/security/SecurityAlert';
+import SecureImageUpload from '@/components/security/SecureImageUpload';
 
-const memberFormSchema = z.object({
-  name: z.string().min(2, { message: "Nome deve ter pelo menos 2 caracteres" }),
-  email: z.string().email({ message: "E-mail inválido" }),
-  phone: z.string().min(10, { message: "Telefone deve ter pelo menos 10 dígitos" }),
-  status: z.enum(["active", "inactive"]),
-  role: z.string().min(1, { message: "Função é obrigatória" }),
-  join_date: z.string().min(1, { message: "Data de entrada é obrigatória" }),
+const memberSchema = z.object({
+  name: z.string()
+    .min(2, 'Nome deve ter pelo menos 2 caracteres')
+    .max(100, 'Nome deve ter no máximo 100 caracteres')
+    .refine((val) => val.trim().length > 0, 'Nome não pode estar vazio'),
+  email: z.string()
+    .email('Email inválido')
+    .refine(validateEmail, 'Formato de email inválido'),
+  phone: z.string()
+    .optional()
+    .refine((val) => !val || validatePhone(val), 'Formato de telefone inválido'),
   birth_date: z.string().optional(),
+  join_date: z.string().min(1, 'Data de entrada é obrigatória'),
+  role: z.string().optional(),
+  status: z.enum(['active', 'inactive']),
 });
 
-export type MemberFormValues = z.infer<typeof memberFormSchema> & {
-  avatar_url?: string;
-};
+type MemberFormData = z.infer<typeof memberSchema>;
 
 interface MemberFormProps {
-  defaultValues?: Partial<MemberFormValues>;
-  onSubmit: (data: MemberFormValues) => void;
+  defaultValues?: Partial<Member>;
+  onSubmit: (data: Omit<Member, 'id' | 'created_at' | 'updated_at'>) => void;
   onCancel: () => void;
 }
 
 const MemberForm: React.FC<MemberFormProps> = ({
-  defaultValues = {
-    name: "",
-    email: "",
-    phone: "",
-    status: "active",
-    role: "",
-    join_date: "",
-    birth_date: "",
-    avatar_url: "",
-  },
+  defaultValues,
   onSubmit,
   onCancel
 }) => {
-  const form = useForm<MemberFormValues>({
-    resolver: zodResolver(memberFormSchema),
-    defaultValues,
-  });
-  const { toast } = useToast();
-  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(defaultValues.avatar_url);
-  const [uploading, setUploading] = useState(false);
-
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    try {
-      if (!event.target.files || event.target.files.length === 0) {
-        return;
-      }
-      
-      const file = event.target.files[0];
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${Date.now()}.${fileExt}`;
-      
-      setUploading(true);
-      
-      // Upload da imagem para o bucket "members"
-      const { error: uploadError, data } = await supabase.storage
-        .from('members')
-        .upload(filePath, file);
-        
-      if (uploadError) {
-        throw uploadError;
-      }
-      
-      // Obter a URL pública da imagem
-      const { data: { publicUrl } } = supabase.storage
-        .from('members')
-        .getPublicUrl(filePath);
-        
-      setAvatarUrl(publicUrl);
-      toast({
-        title: "Imagem carregada com sucesso",
-        description: "A imagem do membro foi carregada."
-      });
-    } catch (error) {
-      console.error("Erro ao fazer upload da imagem:", error);
-      toast({
-        title: "Erro ao carregar imagem",
-        description: "Ocorreu um erro ao fazer upload da imagem.",
-        variant: "destructive"
-      });
-    } finally {
-      setUploading(false);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting }
+  } = useForm<MemberFormData>({
+    resolver: zodResolver(memberSchema),
+    defaultValues: {
+      name: defaultValues?.name || '',
+      email: defaultValues?.email || '',
+      phone: defaultValues?.phone || '',
+      birth_date: defaultValues?.birth_date || '',
+      join_date: defaultValues?.join_date || new Date().toISOString().split('T')[0],
+      role: defaultValues?.role || '',
+      status: defaultValues?.status || 'active',
     }
-  };
+  });
 
-  const handleFormSubmit = (data: MemberFormValues) => {
-    onSubmit({ ...data, avatar_url: avatarUrl });
+  const [avatarFile, setAvatarFile] = React.useState<File | null>(null);
+
+  const onFormSubmit = (data: MemberFormData) => {
+    // Sanitize text inputs before submission
+    const sanitizedData = {
+      ...data,
+      name: sanitizeText(data.name),
+      email: data.email.toLowerCase().trim(),
+      phone: data.phone?.trim() || null,
+      role: data.role ? sanitizeText(data.role) : null,
+      avatar_url: defaultValues?.avatar_url || null, // Will be updated separately if avatar is uploaded
+    };
+
+    onSubmit(sanitizedData);
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
-        <div className="flex flex-col items-center mb-6">
-          <Avatar className="h-24 w-24 mb-4">
-            {avatarUrl ? (
-              <AvatarImage src={avatarUrl} alt="Foto do membro" />
-            ) : (
-              <AvatarFallback>
-                <UserRound className="h-12 w-12 text-gray-400" />
-              </AvatarFallback>
-            )}
-          </Avatar>
-          
-          <div className="flex items-center">
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              disabled={uploading}
-              className="hidden"
-              id="avatar-upload"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => document.getElementById('avatar-upload')?.click()}
-              disabled={uploading}
-              className="flex items-center"
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              {uploading ? "Carregando..." : "Upload de Foto"}
-            </Button>
-          </div>
-        </div>
+    <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
+      <SecurityAlert
+        type="info"
+        title="Informações de Segurança"
+        description="Todos os dados serão validados e sanitizados antes do armazenamento. Mantenha as informações atualizadas e precisas."
+        className="mb-4"
+      />
 
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nome</FormLabel>
-              <FormControl>
-                <Input placeholder="João Silva" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="name">Nome Completo *</Label>
+          <Input
+            id="name"
+            {...register('name')}
+            placeholder="Digite o nome completo"
+            className={errors.name ? 'border-red-500' : ''}
+          />
+          {errors.name && (
+            <p className="text-sm text-red-500">{errors.name.message}</p>
           )}
-        />
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>E-mail</FormLabel>
-                <FormControl>
-                  <Input placeholder="exemplo@email.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+        <div className="space-y-2">
+          <Label htmlFor="email">Email *</Label>
+          <Input
+            id="email"
+            type="email"
+            {...register('email')}
+            placeholder="exemplo@email.com"
+            className={errors.email ? 'border-red-500' : ''}
           />
+          {errors.email && (
+            <p className="text-sm text-red-500">{errors.email.message}</p>
+          )}
+        </div>
 
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Telefone</FormLabel>
-                <FormControl>
-                  <Input placeholder="(11) 99999-9999" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+        <div className="space-y-2">
+          <Label htmlFor="phone">Telefone</Label>
+          <Input
+            id="phone"
+            {...register('phone')}
+            placeholder="(11) 99999-9999"
+            className={errors.phone ? 'border-red-500' : ''}
+          />
+          {errors.phone && (
+            <p className="text-sm text-red-500">{errors.phone.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="birth_date">Data de Nascimento</Label>
+          <Input
+            id="birth_date"
+            type="date"
+            {...register('birth_date')}
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="inactive">Inativo</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+        <div className="space-y-2">
+          <Label htmlFor="join_date">Data de Entrada *</Label>
+          <Input
+            id="join_date"
+            type="date"
+            {...register('join_date')}
+            className={errors.join_date ? 'border-red-500' : ''}
           />
+          {errors.join_date && (
+            <p className="text-sm text-red-500">{errors.join_date.message}</p>
+          )}
+        </div>
 
-          <FormField
-            control={form.control}
-            name="role"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Função</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma função" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Pastor">Pastor</SelectItem>
-                    <SelectItem value="Líder de Louvor">Líder de Louvor</SelectItem>
-                    <SelectItem value="Diácono">Diácono</SelectItem>
-                    <SelectItem value="Membro">Membro</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+        <div className="space-y-2">
+          <Label htmlFor="role">Função</Label>
+          <Input
+            id="role"
+            {...register('role')}
+            placeholder="Ex: Diácono, Presbítero, etc."
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="join_date"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data de Entrada</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="birth_date"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data de Nascimento</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <div className="space-y-2">
+          <Label htmlFor="status">Status *</Label>
+          <Select 
+            value={watch('status')} 
+            onValueChange={(value) => setValue('status', value as 'active' | 'inactive')}
+          >
+            <SelectTrigger className={errors.status ? 'border-red-500' : ''}>
+              <SelectValue placeholder="Selecione o status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Ativo</SelectItem>
+              <SelectItem value="inactive">Inativo</SelectItem>
+            </SelectContent>
+          </Select>
+          {errors.status && (
+            <p className="text-sm text-red-500">{errors.status.message}</p>
+          )}
         </div>
+      </div>
 
-        <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-4">
-          <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">Cancelar</Button>
-          <Button type="submit" className="w-full sm:w-auto">Salvar</Button>
-        </div>
-      </form>
-    </Form>
+      <SecureImageUpload
+        onImageSelect={setAvatarFile}
+        currentImageUrl={defaultValues?.avatar_url}
+        maxSizeMB={2}
+        className="md:col-span-2"
+      />
+
+      <div className="flex gap-3 pt-4">
+        <Button type="submit" disabled={isSubmitting} className="flex-1">
+          {isSubmitting ? 'Salvando...' : 'Salvar Membro'}
+        </Button>
+        <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+          Cancelar
+        </Button>
+      </div>
+    </form>
   );
 };
 
