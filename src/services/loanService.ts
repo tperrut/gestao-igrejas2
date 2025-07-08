@@ -3,12 +3,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loan, LoanStatus } from '@/types/libraryTypes';
 import { useToast } from "@/components/ui/use-toast";
 import { LoanFormValues } from '@/components/library/LoanForm';
+import { logger } from '@/utils/logger';
 
 export const useLoanService = () => {
   const { toast } = useToast();
 
   const fetchLoans = async (): Promise<Loan[]> => {
     try {
+      logger.dbLog('Fetching loans from database');
+      
       const { data, error } = await supabase
         .from('loans')
         .select(`
@@ -63,8 +66,11 @@ export const useLoanService = () => {
         }
       });
 
+      logger.dbLog('Loans fetched successfully', { count: formattedLoans.length });
       return formattedLoans;
     } catch (error) {
+      logger.dbError('Failed to fetch loans', error instanceof Error ? error : new Error(String(error)));
+      
       toast({
         title: "Erro ao carregar empréstimos",
         description: "Ocorreu um erro ao buscar os empréstimos.",
@@ -77,6 +83,12 @@ export const useLoanService = () => {
 
   const saveLoan = async (loanData: LoanFormValues): Promise<boolean> => {
     try {
+      logger.businessLog('Creating new loan', { 
+        bookId: loanData.book_id, 
+        memberId: loanData.member_id,
+        dueDate: loanData.due_date 
+      });
+      
       const { error } = await supabase
         .from('loans')
         .insert([{
@@ -90,12 +102,22 @@ export const useLoanService = () => {
 
       if (error) throw error;
 
+      logger.businessLog('Loan created successfully', { 
+        bookId: loanData.book_id, 
+        memberId: loanData.member_id 
+      });
+      
       toast({
         title: "Empréstimo registrado",
         description: "O empréstimo foi registrado com sucesso."
       });
       return true;
     } catch (error) {
+      logger.businessError('Failed to create loan', error instanceof Error ? error : new Error(String(error)), {
+        bookId: loanData.book_id,
+        memberId: loanData.member_id
+      });
+      
       toast({
         title: "Erro",
         description: "Ocorreu um erro ao registrar o empréstimo.",

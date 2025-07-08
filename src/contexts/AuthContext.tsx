@@ -4,6 +4,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { validateEmail, validatePassword } from '@/utils/validation';
+import { logger, LogCategory } from '@/utils/logger';
 
 interface Profile {
   id: string;
@@ -88,6 +89,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      logger.dbLog('Fetching user profile', { userId });
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -95,6 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
+        logger.dbError('Failed to fetch user profile', error, { userId });
         console.error('Error fetching profile:', error);
         return;
       }
@@ -106,7 +110,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
 
       setProfile(profileData);
+      logger.authLog('User profile fetched successfully', userId, { role: profileData.role });
     } catch (error) {
+      logger.authError('Error fetching user profile', error instanceof Error ? error : new Error(String(error)), { userId }, userId);
       console.error('Error fetching user profile:', error);
     }
   };
@@ -122,10 +128,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signIn = async (email: string, password: string) => {
+    const loginAttemptId = `login_${Date.now()}`;
+    
     try {
+      logger.authLog('Sign in attempt started', undefined, { email, attemptId: loginAttemptId });
+      
       // Security: Input validation
       if (!validateEmail(email)) {
         const error = new Error('Email inválido');
+        logger.validationError('Invalid email format in sign in', error, { email });
         toast({
           title: "Erro no login",
           description: "Email inválido",
@@ -137,6 +148,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Security: Rate limiting
       if (isRateLimited()) {
         const error = new Error('Muitas tentativas de login. Tente novamente em 15 minutos.');
+        logger.securityLog('Rate limit triggered for sign in', { 
+          email, 
+          failedAttempts, 
+          lastFailedAttempt: lastFailedAttempt?.toISOString() 
+        });
         toast({
           title: "Acesso bloqueado",
           description: "Muitas tentativas de login. Tente novamente em 15 minutos.",
@@ -155,12 +171,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setFailedAttempts(prev => prev + 1);
         setLastFailedAttempt(new Date());
         
+        logger.authError('Sign in failed', error, { 
+          email, 
+          attemptId: loginAttemptId,
+          failedAttempts: failedAttempts + 1
+        }, undefined);
+        
         toast({
           title: "Erro no login",
           description: error.message,
           variant: "destructive",
         });
       } else {
+        logger.authLog('Sign in successful', undefined, { 
+          email, 
+          attemptId: loginAttemptId 
+        });
+        
         toast({
           title: "Login realizado",
           description: "Bem-vindo de volta!",
@@ -169,6 +196,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { error };
     } catch (error) {
+      logger.authError('Unexpected error during sign in', error instanceof Error ? error : new Error(String(error)), { 
+        email, 
+        attemptId: loginAttemptId 
+      }, undefined);
       console.error('Error signing in:', error);
       return { error };
     }
