@@ -28,7 +28,18 @@ const BookModal: React.FC<BookModalProps> = ({
   const { toast } = useToast();
 
   const handleSave = async (formData: BookFormValues) => {
-    const success = await saveBook(formData, book?.id);
+    // For new books, available_copies should equal copies
+    // For existing books, preserve the current available_copies unless copies changed
+    const bookData = {
+      ...formData,
+      available_copies: book 
+        ? (formData.copies !== book.copies 
+            ? book.available_copies + (formData.copies - book.copies)
+            : book.available_copies)
+        : formData.copies
+    };
+
+    const success = await saveBook(bookData, book?.id);
     if (success) {
       onSuccess();
       onClose();
