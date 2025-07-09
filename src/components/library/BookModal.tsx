@@ -31,7 +31,15 @@ const BookModal: React.FC<BookModalProps> = ({
     // For new books, available_copies should equal copies
     // For existing books, preserve the current available_copies unless copies changed
     const bookData = {
-      ...formData,
+      title: formData.title,
+      author: formData.author,
+      category: formData.category,
+      isbn: formData.isbn || '',
+      publisher: formData.publisher || '',
+      publication_year: formData.publication_year || '',
+      copies: formData.copies,
+      description: formData.description || '',
+      cover_url: formData.cover_url || '',
       available_copies: book 
         ? (formData.copies !== book.copies 
             ? book.available_copies + (formData.copies - book.copies)
