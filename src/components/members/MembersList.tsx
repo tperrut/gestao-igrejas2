@@ -14,17 +14,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
+import { MoreHorizontal, Edit, Trash2, Eye, UserX, UserCheck } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
 import { Member } from "@/types/libraryTypes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import MemberViewModal from './MemberViewModal';
 import MembersFilter from './MembersFilter';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { useMemberService } from '@/services/memberService';
 
 interface MembersListProps {
   onEdit?: (member: Member) => void;
@@ -38,42 +38,37 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [searchName, setSearchName] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
-  const { toast } = useToast();
+  
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    action: () => void;
+    variant?: 'default' | 'destructive';
+  }>({
+    isOpen: false,
+    title: '',
+    description: '',
+    action: () => {},
+    variant: 'default'
+  });
+
+  const { fetchMembers, inactivateMember, reactivateMember, deleteMember } = useMemberService();
 
   useEffect(() => {
-    fetchMembers();
+    loadMembers();
   }, []);
 
   useEffect(() => {
     filterMembers();
   }, [members, searchName, roleFilter]);
 
-  async function fetchMembers() {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('members')
-        .select('*')
-        .order('name');
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        setMembers(data as Member[]);
-      }
-    } catch (error) {
-      toast({
-        title: "Erro ao carregar membros",
-        description: "Ocorreu um erro ao buscar os membros.",
-        variant: "destructive"
-      });
-      console.error("Erro ao buscar membros:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const loadMembers = async () => {
+    setLoading(true);
+    const memberData = await fetchMembers();
+    setMembers(memberData);
+    setLoading(false);
+  };
 
   const filterMembers = () => {
     let filtered = members;
@@ -95,36 +90,64 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
     setFilteredMembers(filtered);
   };
 
-  const handleDelete = async (memberId: string) => {
-    try {
-      const { error } = await supabase
-        .from('members')
-        .delete()
-        .eq('id', memberId);
-      
-      if (error) {
-        throw error;
-      }
-      
-      setMembers(members.filter(member => member.id !== memberId));
-      
-      toast({
-        title: "Membro removido",
-        description: "O membro foi removido com sucesso."
-      });
-    } catch (error) {
-      toast({
-        title: "Erro ao remover membro",
-        description: "Ocorreu um erro ao remover o membro.",
-        variant: "destructive"
-      });
-      console.error("Erro ao excluir membro:", error);
+  const handleInactivate = async (member: Member) => {
+    const success = await inactivateMember(member.id);
+    if (success) {
+      await loadMembers();
     }
+  };
+
+  const handleReactivate = async (member: Member) => {
+    const success = await reactivateMember(member.id);
+    if (success) {
+      await loadMembers();
+    }
+  };
+
+  const handleDelete = async (member: Member) => {
+    const success = await deleteMember(member.id);
+    if (success) {
+      await loadMembers();
+    }
+  };
+
+  const openInactivateDialog = (member: Member) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Inativar Membro',
+      description: `Tem certeza que deseja inativar ${member.name}? O membro não poderá fazer novos empréstimos, mas o histórico será mantido.`,
+      action: () => handleInactivate(member),
+      variant: 'destructive'
+    });
+  };
+
+  const openReactivateDialog = (member: Member) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Reativar Membro',
+      description: `Deseja reativar ${member.name}? O membro poderá voltar a fazer empréstimos.`,
+      action: () => handleReactivate(member),
+      variant: 'default'
+    });
+  };
+
+  const openDeleteDialog = (member: Member) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Excluir Membro',
+      description: `ATENÇÃO: Deseja excluir permanentemente ${member.name}? Esta ação não pode ser desfeita e só é permitida para membros sem histórico de empréstimos.`,
+      action: () => handleDelete(member),
+      variant: 'destructive'
+    });
   };
 
   const handleView = (member: Member) => {
     setViewingMember(member);
     setIsViewModalOpen(true);
+  };
+
+  const closeDialog = () => {
+    setConfirmDialog(prev => ({ ...prev, isOpen: false }));
   };
 
   const getInitials = (name: string): string => {
@@ -206,7 +229,7 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
                   <TableCell>
                     <Badge 
                       variant={member.status === 'active' ? "default" : "outline"}
-                      className={member.status === 'active' ? "bg-green-500" : ""}
+                      className={member.status === 'active' ? "bg-green-500" : "bg-red-500"}
                     >
                       {member.status === 'active' ? 'Ativo' : 'Inativo'}
                     </Badge>
@@ -229,9 +252,24 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
                         <DropdownMenuItem onClick={() => onEdit && onEdit(member)}>
                           <Edit className="mr-2 h-4 w-4" /> Editar
                         </DropdownMenuItem>
+                        {member.status === 'active' ? (
+                          <DropdownMenuItem 
+                            className="text-orange-600"
+                            onClick={() => openInactivateDialog(member)}
+                          >
+                            <UserX className="mr-2 h-4 w-4" /> Inativar
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem 
+                            className="text-green-600"
+                            onClick={() => openReactivateDialog(member)}
+                          >
+                            <UserCheck className="mr-2 h-4 w-4" /> Reativar
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem 
                           className="text-red-600" 
-                          onClick={() => handleDelete(member.id)}
+                          onClick={() => openDeleteDialog(member)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" /> Excluir
                         </DropdownMenuItem>
@@ -249,6 +287,15 @@ const MembersList: React.FC<MembersListProps> = ({ onEdit }) => {
         isOpen={isViewModalOpen}
         onClose={setIsViewModalOpen}
         member={viewingMember}
+      />
+
+      <ConfirmationDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={closeDialog}
+        onConfirm={confirmDialog.action}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        variant={confirmDialog.variant}
       />
     </>
   );
