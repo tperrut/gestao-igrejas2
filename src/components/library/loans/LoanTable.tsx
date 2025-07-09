@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TabsContent } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowUpDown, AlertCircle, CheckCircle, Clock, MoreHorizontal, XCircle } from 'lucide-react';
 import { Loan, LoanStatus } from '@/types/libraryTypes';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
@@ -117,7 +118,7 @@ const LoanTable: React.FC<LoanTableProps> = ({
                     <ArrowUpDown className="h-3 w-3" />
                   </div>
                 </TableHead>
-                <TableHead className="min-w-[120px]">Membro</TableHead>
+                <TableHead className="min-w-[160px]">Membro</TableHead>
                 {type !== 'reserved' && (
                   <>
                     <TableHead className="min-w-[120px]">Data de Empréstimo</TableHead>
@@ -134,7 +135,20 @@ const LoanTable: React.FC<LoanTableProps> = ({
                 loans.map((loan) => (
                   <TableRow key={loan.id}>
                     <TableCell className="font-medium">{loan.book.title}</TableCell>
-                    <TableCell>{loan.member.name}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage 
+                            src={loan.member.avatar_url} 
+                            alt={loan.member.name}
+                          />
+                          <AvatarFallback className="text-xs">
+                            {loan.member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-medium">{loan.member.name}</span>
+                      </div>
+                    </TableCell>
                     {type !== 'reserved' && (
                       <>
                         <TableCell>{new Date(loan.borrow_date).toLocaleDateString('pt-BR')}</TableCell>

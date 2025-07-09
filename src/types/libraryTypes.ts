@@ -1,3 +1,4 @@
+
 export interface Book {
   id: string;
   title: string;
@@ -39,6 +40,7 @@ export interface Loan {
   member: {
     id: string;
     name: string;
+    avatar_url?: string;
   };
   borrow_date: string;
   due_date: string;

@@ -27,7 +27,7 @@ export const useLoanService = () => {
           book_id,
           books:book_id (id, title, author),
           member_id,
-          members:member_id (id, name, email),
+          members:member_id (id, name, email, avatar_url),
           borrow_date,
           due_date,
           return_date,
@@ -50,7 +50,8 @@ export const useLoanService = () => {
         member_id: loan.member_id,
         member: {
           id: loan.members.id,
-          name: loan.members.name
+          name: loan.members.name,
+          avatar_url: loan.members.avatar_url
         },
         borrow_date: loan.borrow_date,
         due_date: loan.due_date,

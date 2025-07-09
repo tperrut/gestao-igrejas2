@@ -76,13 +76,7 @@ const LoanManagement: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Gerenciamento de Empréstimos</h1>
-          <p className="text-muted-foreground">
-            Controle os empréstimos e reservas de livros da biblioteca.
-          </p>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-4">
         <Button className="sm:self-end" onClick={handleOpenCreateModal}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Novo Empréstimo
