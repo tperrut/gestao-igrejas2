@@ -1,3 +1,4 @@
+
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useBookService } from '@/services/bookService'
@@ -73,6 +74,7 @@ describe('useBookService', () => {
         publisher: 'Editora',
         publication_year: '2023',
         copies: 5,
+        available_copies: 5,
         description: 'Descrição do livro',
         cover_url: null,
       }
@@ -97,7 +99,7 @@ describe('useBookService', () => {
         publisher: bookData.publisher,
         publication_year: bookData.publication_year,
         copies: bookData.copies,
-        available_copies: bookData.copies,
+        available_copies: bookData.available_copies,
         description: bookData.description,
         cover_url: bookData.cover_url,
       }])
@@ -117,6 +119,7 @@ describe('useBookService', () => {
         publisher: 'Editora',
         publication_year: '2023',
         copies: 5,
+        available_copies: 5,
         description: 'Descrição do livro',
         cover_url: null,
       }
@@ -162,6 +165,7 @@ describe('useBookService', () => {
         publisher: 'Editora',
         publication_year: '2023',
         copies: 5,
+        available_copies: 5,
         description: 'Descrição do livro',
         cover_url: null,
       }

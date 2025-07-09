@@ -54,40 +54,88 @@ export const useBookService = () => {
     }
   };
 
-  const saveBook = async (bookData: Omit<Book, 'id' | 'created_at' | 'updated_at'>): Promise<boolean> => {
+  const saveBook = async (bookData: Omit<Book, 'id' | 'created_at' | 'updated_at'>, bookId?: string): Promise<boolean> => {
     try {
-      logger.businessLog('Creating new book', { title: bookData.title, author: bookData.author });
+      if (bookId) {
+        // Update existing book
+        logger.businessLog('Updating book', { id: bookId, updates: bookData });
+        
+        const { error } = await supabase
+          .from('books')
+          .update({
+            title: bookData.title,
+            author: bookData.author,
+            category: bookData.category,
+            isbn: bookData.isbn,
+            publisher: bookData.publisher,
+            publication_year: bookData.publication_year,
+            copies: bookData.copies,
+            description: bookData.description,
+            cover_url: bookData.cover_url,
+          })
+          .eq('id', bookId);
+
+        if (error) throw error;
+
+        // Log detailed book update
+        logBookAction('LIVRO_ATUALIZADO', {
+          id: bookId,
+          titulo: bookData.title,
+          autor: bookData.author,
+          alteracoes: Object.keys(bookData)
+        });
+
+        toast({
+          title: "Livro atualizado",
+          description: `${bookData.title} foi atualizado com sucesso.`
+        });
+      } else {
+        // Create new book
+        logger.businessLog('Creating new book', { title: bookData.title, author: bookData.author });
+        
+        const { error } = await supabase
+          .from('books')
+          .insert([{
+            title: bookData.title,
+            author: bookData.author,
+            category: bookData.category,
+            isbn: bookData.isbn,
+            publisher: bookData.publisher,
+            publication_year: bookData.publication_year,
+            copies: bookData.copies,
+            available_copies: bookData.available_copies,
+            description: bookData.description,
+            cover_url: bookData.cover_url,
+          }]);
+
+        if (error) throw error;
+
+        // Log detailed book creation
+        logBookAction('LIVRO_CRIADO', {
+          titulo: bookData.title,
+          autor: bookData.author,
+          categoria: bookData.category,
+          isbn: bookData.isbn,
+          copias: bookData.copies,
+          copiasDisponiveis: bookData.available_copies
+        });
+
+        toast({
+          title: "Livro adicionado",
+          description: `${bookData.title} foi adicionado com sucesso.`
+        });
+      }
       
-      const { error } = await supabase
-        .from('books')
-        .insert([bookData]);
-
-      if (error) throw error;
-
-      // Log detailed book creation
-      logBookAction('LIVRO_CRIADO', {
-        titulo: bookData.title,
-        autor: bookData.author,
-        categoria: bookData.category,
-        isbn: bookData.isbn,
-        copias: bookData.copies,
-        copiasDisponiveis: bookData.available_copies
-      });
-
-      toast({
-        title: "Livro adicionado",
-        description: "O livro foi adicionado com sucesso."
-      });
       return true;
     } catch (error) {
-      logger.businessError('Failed to create book', error instanceof Error ? error : new Error(String(error)));
+      logger.businessError('Failed to save book', error instanceof Error ? error : new Error(String(error)));
       
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao adicionar o livro.",
+        description: "Ocorreu um erro ao salvar o livro.",
         variant: "destructive"
       });
-      console.error("Erro ao criar livro:", error);
+      console.error("Erro ao salvar livro:", error);
       return false;
     }
   };

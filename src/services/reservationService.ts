@@ -194,9 +194,79 @@ export const useReservationService = () => {
     }
   };
 
+  const convertReservationToLoan = async (reservationId: string, dueDate: string): Promise<boolean> => {
+    try {
+      // Get reservation details
+      const { data: reservationData, error: reservationError } = await supabase
+        .from('reservations')
+        .select(`
+          book_id,
+          member_id,
+          books:book_id (title, author),
+          members:member_id (name, email)
+        `)
+        .eq('id', reservationId)
+        .single();
+
+      if (reservationError) throw reservationError;
+
+      // Create the loan
+      const { error: loanError } = await supabase
+        .from('loans')
+        .insert([{
+          book_id: reservationData.book_id,
+          member_id: reservationData.member_id,
+          borrow_date: new Date().toISOString().split('T')[0],
+          due_date: dueDate,
+          status: 'active'
+        }]);
+
+      if (loanError) throw loanError;
+
+      // Update reservation status to converted
+      const { error: updateError } = await supabase
+        .from('reservations')
+        .update({ status: 'converted' })
+        .eq('id', reservationId);
+
+      if (updateError) throw updateError;
+
+      // Log the conversion
+      logReservationAction('RESERVA_CONVERTIDA_EMPRESTIMO', {
+        livro: {
+          titulo: reservationData.books?.title,
+          autor: reservationData.books?.author
+        },
+        membro: {
+          nome: reservationData.members?.name,
+          email: reservationData.members?.email
+        },
+        dataEmprestimo: new Date().toISOString().split('T')[0],
+        dataDevolucao: dueDate
+      });
+
+      toast({
+        title: "Empréstimo criado",
+        description: "A reserva foi convertida em empréstimo com sucesso."
+      });
+      return true;
+    } catch (error) {
+      logger.businessError('Failed to convert reservation to loan', error instanceof Error ? error : new Error(String(error)));
+      
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao criar o empréstimo.",
+        variant: "destructive"
+      });
+      console.error("Erro ao converter reserva:", error);
+      return false;
+    }
+  };
+
   return {
     fetchReservations,
     createReservation,
-    cancelReservation
+    cancelReservation,
+    convertReservationToLoan
   };
 };
