@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,11 @@ const HeroSection: React.FC = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link to="/commercial-contact">
-              <Button size="lg" className="bg-white text-church-blue hover:bg-orange-100">
+              <Button 
+                size="lg" 
+                className="bg-white text-church-blue hover:bg-orange-100"
+                aria-label="Entrar em contato para demonstração comercial da plataforma"
+              >
                 Fale Conosco
               </Button>
             </Link>

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,6 +20,7 @@ import Loans from "./pages/Loans";
 import Finance from "./pages/Finance";
 import Contact from "./pages/Contact";
 import CommercialContact from "./pages/CommercialContact";
+import Pricing from "./pages/Pricing";
 import PastoralAppointment from "./pages/PastoralAppointment";
 import PastoralManagement from "./pages/PastoralManagement";
 import Settings from "./pages/Settings";
@@ -36,6 +38,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/pricing" element={<Pricing />} />
             <Route path="/commercial-contact" element={<CommercialContact />} />
             <Route element={
               <AuthGuard>

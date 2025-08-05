@@ -11,8 +11,12 @@ const CallToAction: React.FC = () => {
         <p className="text-xl mb-8 max-w-2xl mx-auto">
           Junte-se a centenas de igrejas que estão usando a <span className="font-bold text-yellow-200">Plataforma AltarHub</span> para simplificar sua administração.
         </p>
-        <Link to="/dashboard">
-          <Button size="lg" className="bg-white text-church-red hover:bg-gray-100">
+        <Link to="/commercial-contact">
+          <Button 
+            size="lg" 
+            className="bg-white text-church-red hover:bg-gray-100"
+            aria-label="Começar agora - entrar em contato comercial para demonstração"
+          >
             Começar Agora
           </Button>
         </Link>
