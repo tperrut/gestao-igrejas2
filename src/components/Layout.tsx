@@ -1,17 +1,17 @@
-
 import React from 'react';
-import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
-import Footer from './ui/Footer';
+import Footer from './Footer';
+import SecurityMonitor from '@/components/security/SecurityMonitor';
 
-const Layout: React.FC = () => {
+const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="flex-1 p-4 md:p-8 overflow-x-hidden">
-        <Outlet />
+      <main className="flex-1">
+        {children}
       </main>
       <Footer />
+      <SecurityMonitor />
     </div>
   );
 };

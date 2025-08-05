@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,11 +47,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [lastFailedAttempt, setLastFailedAttempt] = useState<Date | null>(null);
 
+  // Enhanced security tracking
+  const [securityEvents, setSecurityEvents] = useState<Array<{
+    type: string;
+    timestamp: Date;
+    details: any;
+  }>>([]);
+
+  const logSecurityEvent = (type: string, details: any) => {
+    const event = {
+      type,
+      timestamp: new Date(),
+      details
+    };
+    
+    setSecurityEvents(prev => [...prev.slice(-10), event]); // Keep last 10 events
+    logger.securityLog(type, details);
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session);
+        
+        // Log authentication events for security monitoring
+        logSecurityEvent('auth_state_change', {
+          event,
+          userId: session?.user?.id,
+          timestamp: new Date().toISOString()
+        });
+        
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -60,6 +85,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (event === 'SIGNED_IN') {
           setFailedAttempts(0);
           setLastFailedAttempt(null);
+          logSecurityEvent('successful_sign_in', {
+            userId: session?.user?.id,
+            email: session?.user?.email
+          });
+        }
+        
+        if (event === 'SIGNED_OUT') {
+          logSecurityEvent('sign_out', {
+            userId: user?.id
+          });
         }
         
         if (session?.user) {
@@ -80,6 +115,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchUserProfile(session.user.id);
+        logSecurityEvent('session_restored', {
+          userId: session.user.id
+        });
       }
       setLoading(false);
     });
@@ -117,12 +155,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Security: Check if user should be rate limited
+  // Enhanced security: Check if user should be rate limited
   const isRateLimited = (): boolean => {
     if (failedAttempts >= 5 && lastFailedAttempt) {
       const timeSinceLastAttempt = Date.now() - lastFailedAttempt.getTime();
       const lockoutDuration = 15 * 60 * 1000; // 15 minutes
-      return timeSinceLastAttempt < lockoutDuration;
+      
+      if (timeSinceLastAttempt < lockoutDuration) {
+        logSecurityEvent('rate_limit_active', {
+          failedAttempts,
+          lockoutRemaining: lockoutDuration - timeSinceLastAttempt
+        });
+        return true;
+      }
     }
     return false;
   };
@@ -137,6 +182,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!validateEmail(email)) {
         const error = new Error('Email inválido');
         logger.validationError('Invalid email format in sign in', error, { email });
+        logSecurityEvent('invalid_email_attempt', { email });
         toast({
           title: "Erro no login",
           description: "Email inválido",
@@ -148,7 +194,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Security: Rate limiting
       if (isRateLimited()) {
         const error = new Error('Muitas tentativas de login. Tente novamente em 15 minutos.');
-        logger.securityLog('Rate limit triggered for sign in', { 
+        logSecurityEvent('rate_limit_triggered', { 
           email, 
           failedAttempts, 
           lastFailedAttempt: lastFailedAttempt?.toISOString() 
@@ -170,6 +216,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Security: Track failed attempts
         setFailedAttempts(prev => prev + 1);
         setLastFailedAttempt(new Date());
+        
+        logSecurityEvent('sign_in_failed', {
+          email,
+          attemptId: loginAttemptId,
+          failedAttempts: failedAttempts + 1,
+          errorMessage: error.message
+        });
         
         logger.authError('Sign in failed', error, { 
           email, 
@@ -297,7 +350,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const isAdmin = () => {
-    return profile?.role === 'admin';
+    const adminCheck = profile?.role === 'admin';
+    if (adminCheck) {
+      logSecurityEvent('admin_access_check', {
+        userId: user?.id,
+        profileRole: profile?.role
+      });
+    }
+    return adminCheck;
   };
 
   const isMember = () => {
@@ -314,6 +374,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     isAdmin,
     isMember,
+    securityEvents, // Expose security events for monitoring
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

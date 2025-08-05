@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
 
 export const useSecureAuth = () => {
-  const { user, session, loading } = useAuth();
+  const { user, session, loading, profile, isAdmin, isMember } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -25,12 +25,6 @@ export const useSecureAuth = () => {
 
   const isAuthenticated = (): boolean => {
     return !loading && !!user && !!session;
-  };
-
-  const isAdmin = (): boolean => {
-    // This should be checked on the server side as well
-    // This is just for UI purposes
-    return isAuthenticated() && user?.user_metadata?.role === 'admin';
   };
 
   const requireAuth = (callback: () => void) => {
@@ -59,11 +53,12 @@ export const useSecureAuth = () => {
 
   return {
     isAuthenticated,
-    isAdmin,
+    isAdmin, // Use the centralized isAdmin from AuthContext
     requireAuth,
     requireAdmin,
     user,
     session,
+    profile,
     loading
   };
 };
