@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -19,12 +18,7 @@ const HeroSection: React.FC = () => {
             A plataforma completa para gestão da sua igreja. Integre membros, recursos e atividades em um só lugar.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            {/* <Link to="/dashboard">
-              <Button size="lg" className="bg-white text-church-blue hover:bg-gray-100">
-                Acessar Sistema
-              </Button>
-            </Link> */}
-            <Link to="/contact">
+            <Link to="/commercial-contact">
               <Button size="lg" className="bg-white text-church-blue hover:bg-orange-100">
                 Fale Conosco
               </Button>
