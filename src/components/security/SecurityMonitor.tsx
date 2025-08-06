@@ -43,7 +43,7 @@ const SecurityMonitor: React.FC = () => {
             <span>Sessão segura ativa</span>
             <Badge variant="outline" className="text-xs">
               <Clock className="h-3 w-3 mr-1" />
-              {Math.floor((Date.now() - new Date(session.created_at || '').getTime()) / (1000 * 60))}m
+              Ativa
             </Badge>
           </AlertDescription>
         </Alert>

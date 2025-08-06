@@ -1,6 +1,6 @@
 import React from 'react';
 import Navbar from './Navbar';
-import Footer from './Footer';
+import Footer from './ui/Footer';
 import SecurityMonitor from '@/components/security/SecurityMonitor';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {

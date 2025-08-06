@@ -24,6 +24,11 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   isAdmin: () => boolean;
   isMember: () => boolean;
+  securityEvents: Array<{
+    type: string;
+    timestamp: Date;
+    details: any;
+  }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
