@@ -1,5 +1,6 @@
 
 import React from 'react';
+import logoImage from '@/assets/logo-altarhub.png';
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -22,7 +23,7 @@ export const Logo: React.FC<LogoProps> = ({
     <div className={`flex items-center gap-2 ${className}`}>
       <div className={`${sizeClasses[size]} relative`}>
         <img   
-          src="https://gecwfcexufkvdkndbjip.supabase.co/storage/v1/object/sign/lp-altar-hub/logo2_com_texto.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV85YjczNjdiYi0yMWRjLTQxM2QtYWMzNy0zNjQzMTFjNGFhMGUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJscC1hbHRhci1odWIvbG9nbzJfY29tX3RleHRvLnBuZyIsImlhdCI6MTc1MTgyNzQ5OSwiZXhwIjoxNzgzMzYzNDk5fQ.EMUPwpstZ6_cS90Ablq6X5zqN66zlmFz9rYRKd5xzvA" 
+          src={logoImage}
           alt="AltarHub Logo" 
           className="bg-white rounded-full p-2 flex items-center justify-center"
         />
