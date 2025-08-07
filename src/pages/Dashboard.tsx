@@ -6,6 +6,7 @@ import { Book, Calendar, CreditCard, Users } from 'lucide-react';
 import BirthdayCard from '@/components/dashboard/BirthdayCard';
 import RecentActivityList from '@/components/dashboard/RecentActivityList';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
 
 const StatCard: React.FC<{
   title: string;
@@ -52,6 +53,7 @@ const UpcomingEvent: React.FC<{
 
 const Dashboard: React.FC = () => {
   const { profile, loading } = useAuth();
+  const { stats, upcomingEvents, loading: statsLoading } = useDashboardStats();
 
   // Wait for loading to complete
   if (loading) {
@@ -81,30 +83,30 @@ const Dashboard: React.FC = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Membros Ativos"
-          value="356"
-          description="↗︎ 12% em relação ao mês anterior"
+          value={statsLoading ? "..." : stats.totalMembers.toString()}
+          description="Total de membros cadastrados"
           icon={<Users className="h-4 w-4" />}
           colorClass="bg-church-blue"
         />
         <StatCard
-          title="Empréstimos Biblioteca"
-          value="28"
-          description="↗︎ 4% em relação ao mês anterior"
+          title="Total de Livros"
+          value={statsLoading ? "..." : stats.totalBooks.toString()}
+          description="Livros disponíveis na biblioteca"
           icon={<Book className="h-4 w-4" />}
           colorClass="bg-church-red"
         />
         <StatCard
-          title="Eventos este Mês"
-          value="12"
-          description="↘︎ 2% em relação ao mês anterior"
-          icon={<Calendar className="h-4 w-4" />}
+          title="Empréstimos Ativos"
+          value={statsLoading ? "..." : stats.activeLoans.toString()}
+          description="Livros emprestados atualmente"
+          icon={<Book className="h-4 w-4" />}
           colorClass="bg-green-600"
         />
         <StatCard
-          title="Dízimos e Ofertas"
-          value="R$ 12.540"
-          description="↗︎ 8% em relação ao mês anterior"
-          icon={<CreditCard className="h-4 w-4" />}
+          title="Próximos Eventos"
+          value={statsLoading ? "..." : stats.upcomingEvents.toString()}
+          description="Eventos nos próximos 7 dias"
+          icon={<Calendar className="h-4 w-4" />}
           colorClass="bg-amber-500"
         />
       </div>
@@ -118,30 +120,25 @@ const Dashboard: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <UpcomingEvent
-              title="Culto de Adoração"
-              date="Domingo, 12 de Maio"
-              time="10:00"
-              type="Culto"
-            />
-            <UpcomingEvent
-              title="Curso de Liderança"
-              date="Terça, 14 de Maio"
-              time="19:30"
-              type="Curso"
-            />
-            <UpcomingEvent
-              title="Reunião de Oração"
-              date="Quarta, 15 de Maio"
-              time="19:00"
-              type="Reunião"
-            />
-            <UpcomingEvent
-              title="Ensaio do Coral"
-              date="Quinta, 16 de Maio"
-              time="20:00"
-              type="Ensaio"
-            />
+            {statsLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-church-blue"></div>
+              </div>
+            ) : upcomingEvents.length > 0 ? (
+              upcomingEvents.map((event) => (
+                <UpcomingEvent
+                  key={event.id}
+                  title={event.title}
+                  date={event.date}
+                  time={event.time}
+                  type={event.type}
+                />
+              ))
+            ) : (
+              <p className="text-center text-muted-foreground py-4">
+                Nenhum evento encontrado para os próximos dias.
+              </p>
+            )}
           </CardContent>
         </Card>
 
