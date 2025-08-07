@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Book, Calendar, CreditCard, MessageSquare, Settings, Users } from 'lucide-react';
 import BirthdayCard from '@/components/dashboard/BirthdayCard';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
 
 const MenuCard: React.FC<{
   title: string;
@@ -51,18 +52,19 @@ const UpcomingEvent: React.FC<{
 const MemberDashboard: React.FC = () => {
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const { stats, upcomingEvents, loading } = useDashboardStats();
 
   const menuItems = [
     {
       title: "Biblioteca",
-      description: "Explore nosso acervo de livros",
+      description: `${stats.totalBooks} livros disponíveis`,
       icon: <Book className="h-5 w-5" />,
       path: "/library",
       colorClass: "bg-church-blue"
     },
     {
       title: "Calendário",
-      description: "Veja eventos e programações",
+      description: `${stats.upcomingEvents} eventos próximos`,
       icon: <Calendar className="h-5 w-5" />,
       path: "/calendar",
       colorClass: "bg-church-red"
@@ -146,24 +148,25 @@ const MemberDashboard: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <UpcomingEvent
-              title="Culto de Adoração"
-              date="Domingo, 12 de Maio"
-              time="10:00"
-              type="Culto"
-            />
-            <UpcomingEvent
-              title="Curso de Liderança"
-              date="Terça, 14 de Maio"
-              time="19:30"
-              type="Curso"
-            />
-            <UpcomingEvent
-              title="Reunião de Oração"
-              date="Quarta, 15 de Maio"
-              time="19:00"
-              type="Reunião"
-            />
+            {loading ? (
+              <div className="flex items-center justify-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-church-blue"></div>
+              </div>
+            ) : upcomingEvents.length > 0 ? (
+              upcomingEvents.map((event) => (
+                <UpcomingEvent
+                  key={event.id}
+                  title={event.title}
+                  date={event.date}
+                  time={event.time}
+                  type={event.type}
+                />
+              ))
+            ) : (
+              <p className="text-center text-muted-foreground py-4">
+                Nenhum evento encontrado para os próximos dias.
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
