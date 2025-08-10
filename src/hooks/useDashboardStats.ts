@@ -36,93 +36,67 @@ export const useDashboardStats = () => {
     try {
       setLoading(true);
 
-      // Buscar total de membros ativos
-      const { count: membersCount, error: membersError } = await supabase
-        .from('members')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
-
-      if (membersError) throw membersError;
-
-      // Buscar total de livros
-      const { count: booksCount, error: booksError } = await supabase
-        .from('books')
-        .select('*', { count: 'exact', head: true });
-
-      if (booksError) throw booksError;
-
-      // Buscar empréstimos ativos
-      const { count: loansCount, error: loansError } = await supabase
-        .from('loans')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
-
-      if (loansError) throw loansError;
-
-      // Buscar próximos eventos (próximos 7 dias)
       const today = new Date();
       const nextWeek = new Date();
       nextWeek.setDate(today.getDate() + 7);
 
-      const { data: eventsData, error: eventsError } = await supabase
-        .from('events')
-        .select('id, title, date, time, type')
-        .gte('date', today.toISOString().split('T')[0])
-        .lte('date', nextWeek.toISOString().split('T')[0])
-        .eq('status', 'scheduled')
-        .order('date', { ascending: true })
-        .limit(3);
+      // Executar todas as consultas em paralelo
+      const [
+        { count: membersCount },
+        { count: booksCount },
+        { count: loansCount },
+        { data: eventsData },
+        { data: coursesData }
+      ] = await Promise.all([
+        supabase
+          .from('members')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active'),
+        supabase
+          .from('books')
+          .select('*', { count: 'exact', head: true }),
+        supabase
+          .from('loans')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active'),
+        supabase
+          .from('events')
+          .select('id, title, date, time, type')
+          .gte('date', today.toISOString().split('T')[0])
+          .lte('date', nextWeek.toISOString().split('T')[0])
+          .eq('status', 'scheduled')
+          .order('date', { ascending: true })
+          .limit(3),
+        supabase
+          .from('courses')
+          .select('id, title, created_at')
+          .order('created_at', { ascending: false })
+          .limit(3)
+      ]);
 
-      if (eventsError) throw eventsError;
-
-      // Buscar próximos cursos
-      const { data: coursesData, error: coursesError } = await supabase
-        .from('courses')
-        .select('id, title, start_date, instructor, status')
-        .gte('start_date', today.toISOString().split('T')[0])
-        .lte('start_date', nextWeek.toISOString().split('T')[0])
-        .in('status', ['scheduled', 'active'])
-        .order('start_date', { ascending: true })
-        .limit(2);
-
-      if (coursesError) throw coursesError;
-
-      // Formatar eventos
-      const formattedEvents: UpcomingEvent[] = [
-        ...(eventsData || []).map(event => ({
-          id: event.id,
-          title: event.title,
-          date: new Date(event.date).toLocaleDateString('pt-BR', { 
-            weekday: 'long', 
-            day: 'numeric', 
-            month: 'long' 
-          }),
-          time: event.time,
-          type: event.type === 'worship' ? 'Culto' : 
-                event.type === 'meeting' ? 'Reunião' : 
-                event.type === 'conference' ? 'Conferência' : 'Evento'
-        })),
-        ...(coursesData || []).map(course => ({
-          id: course.id,
-          title: course.title,
-          date: new Date(course.start_date).toLocaleDateString('pt-BR', { 
-            weekday: 'long', 
-            day: 'numeric', 
-            month: 'long' 
-          }),
-          time: '19:30',
-          type: 'Curso'
-        }))
-      ];
+      // Formatar apenas os eventos para exibição
+      const formattedEvents: UpcomingEvent[] = (eventsData || []).map(event => ({
+        id: event.id,
+        title: event.title,
+        date: new Date(event.date).toLocaleDateString('pt-BR', { 
+          weekday: 'long', 
+          day: 'numeric', 
+          month: 'long' 
+        }),
+        time: event.time,
+        type: event.type === 'worship' ? 'Culto' : 
+              event.type === 'meeting' ? 'Reunião' : 
+              event.type === 'conference' ? 'Conferência' : 'Evento'
+      }));
 
       setStats({
         totalMembers: membersCount || 0,
         totalBooks: booksCount || 0,
         activeLoans: loansCount || 0,
-        upcomingEvents: (eventsData?.length || 0) + (coursesData?.length || 0),
+        upcomingEvents: eventsData?.length || 0,
       });
 
-      setUpcomingEvents(formattedEvents.slice(0, 3));
+      setUpcomingEvents(formattedEvents);
 
     } catch (error: any) {
       console.error('Erro ao buscar dados do dashboard:', error);
