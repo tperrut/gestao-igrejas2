@@ -34,57 +34,97 @@ export const useDashboardStats = () => {
   }, []);
 
   const fetchDashboardData = async () => {
-    logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Iniciando carregamento dos dados - VERSÃO SIMPLIFICADA');
+    logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Iniciando carregamento dos dados');
     
     try {
       setLoading(true);
       logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Loading state definido como true');
 
-      // Versão simplificada para evitar recursão infinita
-      // Vamos buscar apenas dados básicos sem depender de RLS complexas
+      const today = new Date();
+      const nextWeek = new Date();
+      nextWeek.setDate(today.getDate() + 7);
       
-      logger.info(LogCategory.DATABASE, 'Dashboard: Testando conexão básica com Supabase');
-      
-      // Teste simples primeiro - apenas verificar se conseguimos nos conectar
-      const testResult = await supabase.from('books').select('id').limit(1);
-      logger.info(LogCategory.DATABASE, 'Dashboard: Teste de conexão com books', {
-        success: !testResult.error,
-        error: testResult.error?.message,
-        count: testResult.data?.length
+      logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Período de busca calculado', {
+        today: today.toISOString().split('T')[0],
+        nextWeek: nextWeek.toISOString().split('T')[0]
       });
 
-      if (testResult.error) {
-        throw new Error(`Erro na conexão básica: ${testResult.error.message}`);
-      }
+      // Buscar contadores básicos com as novas políticas seguras
+      logger.info(LogCategory.DATABASE, 'Dashboard: Iniciando consultas paralelas para contadores');
+      
+      const [membersResult, booksResult, loansResult] = await Promise.all([
+        supabase
+          .from('members')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active'),
+        supabase
+          .from('books')
+          .select('*', { count: 'exact', head: true }),
+        supabase
+          .from('loans')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active')
+      ]);
 
-      // Buscar apenas contadores simples
-      logger.info(LogCategory.DATABASE, 'Dashboard: Buscando contadores básicos');
-      
-      const booksResult = await supabase
-        .from('books')
-        .select('id', { count: 'exact', head: true });
-      
-      logger.info(LogCategory.DATABASE, 'Dashboard: Resultado livros', {
-        count: booksResult.count,
-        error: booksResult.error?.message
+      logger.info(LogCategory.DATABASE, 'Dashboard: Consultas de contadores concluídas', {
+        membersCount: membersResult.count,
+        membersError: membersResult.error?.message,
+        booksCount: booksResult.count,
+        booksError: booksResult.error?.message,
+        loansCount: loansResult.count,
+        loansError: loansResult.error?.message
       });
 
-      // Definir stats com valores seguros
+      // Buscar eventos próximos
+      logger.info(LogCategory.DATABASE, 'Dashboard: Iniciando consulta de eventos');
+      
+      const eventsResult = await supabase
+        .from('events')
+        .select('id, title, date, time, type')
+        .gte('date', today.toISOString().split('T')[0])
+        .lte('date', nextWeek.toISOString().split('T')[0])
+        .eq('status', 'scheduled')
+        .order('date', { ascending: true })
+        .limit(3);
+
+      logger.info(LogCategory.DATABASE, 'Dashboard: Consulta de eventos concluída', {
+        eventsCount: eventsResult.data?.length || 0,
+        eventsError: eventsResult.error?.message
+      });
+
+      const eventsData = eventsResult.data || [];
+
+      // Formatar eventos para exibição
+      const formattedEvents: UpcomingEvent[] = eventsData.map(event => ({
+        id: event.id,
+        title: event.title,
+        date: new Date(event.date).toLocaleDateString('pt-BR', { 
+          weekday: 'long', 
+          day: 'numeric', 
+          month: 'long' 
+        }),
+        time: event.time,
+        type: event.type === 'worship' ? 'Culto' : 
+              event.type === 'meeting' ? 'Reunião' : 
+              event.type === 'conference' ? 'Conferência' : 'Evento'
+      }));
+
       const finalStats = {
-        totalMembers: 0, // Temporariamente fixo
+        totalMembers: membersResult.count || 0,
         totalBooks: booksResult.count || 0,
-        activeLoans: 0, // Temporariamente fixo
-        upcomingEvents: 0, // Temporariamente fixo
+        activeLoans: loansResult.count || 0,
+        upcomingEvents: eventsData.length || 0,
       };
 
-      logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Atualizando estados (versão simplificada)', {
-        stats: finalStats
+      logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Atualizando estados finais', {
+        stats: finalStats,
+        upcomingEventsCount: formattedEvents.length
       });
 
       setStats(finalStats);
-      setUpcomingEvents([]); // Lista vazia temporariamente
+      setUpcomingEvents(formattedEvents);
       
-      logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Carregamento simplificado concluído com sucesso');
+      logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Carregamento concluído com sucesso');
 
     } catch (error: any) {
       logger.error(LogCategory.BUSINESS_LOGIC, 'Dashboard: Erro crítico durante carregamento', error, {
