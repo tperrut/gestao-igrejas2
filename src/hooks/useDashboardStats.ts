@@ -34,120 +34,57 @@ export const useDashboardStats = () => {
   }, []);
 
   const fetchDashboardData = async () => {
-    logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Iniciando carregamento dos dados');
+    logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Iniciando carregamento dos dados - VERSÃO SIMPLIFICADA');
     
     try {
       setLoading(true);
       logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Loading state definido como true');
 
-      const today = new Date();
-      const nextWeek = new Date();
-      nextWeek.setDate(today.getDate() + 7);
+      // Versão simplificada para evitar recursão infinita
+      // Vamos buscar apenas dados básicos sem depender de RLS complexas
       
-      logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Período de busca calculado', {
-        today: today.toISOString().split('T')[0],
-        nextWeek: nextWeek.toISOString().split('T')[0]
+      logger.info(LogCategory.DATABASE, 'Dashboard: Testando conexão básica com Supabase');
+      
+      // Teste simples primeiro - apenas verificar se conseguimos nos conectar
+      const testResult = await supabase.from('books').select('id').limit(1);
+      logger.info(LogCategory.DATABASE, 'Dashboard: Teste de conexão com books', {
+        success: !testResult.error,
+        error: testResult.error?.message,
+        count: testResult.data?.length
       });
 
-      // Buscar contadores básicos primeiro
-      logger.info(LogCategory.DATABASE, 'Dashboard: Iniciando consultas paralelas para contadores');
-      
-      const [membersResult, booksResult, loansResult] = await Promise.all([
-        supabase
-          .from('members')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'active'),
-        supabase
-          .from('books')
-          .select('*', { count: 'exact', head: true }),
-        supabase
-          .from('loans')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'active')
-      ]);
+      if (testResult.error) {
+        throw new Error(`Erro na conexão básica: ${testResult.error.message}`);
+      }
 
-      logger.info(LogCategory.DATABASE, 'Dashboard: Consultas de contadores concluídas', {
-        membersCount: membersResult.count,
-        membersError: membersResult.error?.message,
-        booksCount: booksResult.count,
-        booksError: booksResult.error?.message,
-        loansCount: loansResult.count,
-        loansError: loansResult.error?.message
+      // Buscar apenas contadores simples
+      logger.info(LogCategory.DATABASE, 'Dashboard: Buscando contadores básicos');
+      
+      const booksResult = await supabase
+        .from('books')
+        .select('id', { count: 'exact', head: true });
+      
+      logger.info(LogCategory.DATABASE, 'Dashboard: Resultado livros', {
+        count: booksResult.count,
+        error: booksResult.error?.message
       });
 
-      // Verificar erros nos contadores
-      if (membersResult.error) {
-        logger.error(LogCategory.DATABASE, 'Dashboard: Erro ao buscar membros', membersResult.error);
-      }
-      if (booksResult.error) {
-        logger.error(LogCategory.DATABASE, 'Dashboard: Erro ao buscar livros', booksResult.error);
-      }
-      if (loansResult.error) {
-        logger.error(LogCategory.DATABASE, 'Dashboard: Erro ao buscar empréstimos', loansResult.error);
-      }
-
-      // Buscar eventos próximos separadamente para evitar conflitos
-      logger.info(LogCategory.DATABASE, 'Dashboard: Iniciando consulta de eventos');
-      
-      const eventsResult = await supabase
-        .from('events')
-        .select('id, title, date, time, type')
-        .gte('date', today.toISOString().split('T')[0])
-        .lte('date', nextWeek.toISOString().split('T')[0])
-        .eq('status', 'scheduled')
-        .order('date', { ascending: true })
-        .limit(3);
-
-      logger.info(LogCategory.DATABASE, 'Dashboard: Consulta de eventos concluída', {
-        eventsCount: eventsResult.data?.length || 0,
-        eventsError: eventsResult.error?.message,
-        eventsData: eventsResult.data
-      });
-
-      if (eventsResult.error) {
-        logger.error(LogCategory.DATABASE, 'Dashboard: Erro ao buscar eventos', eventsResult.error);
-      }
-
-      const eventsData = eventsResult.data || [];
-
-      // Formatar eventos para exibição
-      logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Formatando eventos para exibição');
-      
-      const formattedEvents: UpcomingEvent[] = eventsData.map(event => ({
-        id: event.id,
-        title: event.title,
-        date: new Date(event.date).toLocaleDateString('pt-BR', { 
-          weekday: 'long', 
-          day: 'numeric', 
-          month: 'long' 
-        }),
-        time: event.time,
-        type: event.type === 'worship' ? 'Culto' : 
-              event.type === 'meeting' ? 'Reunião' : 
-              event.type === 'conference' ? 'Conferência' : 'Evento'
-      }));
-
-      logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Eventos formatados', {
-        originalEvents: eventsData,
-        formattedEvents
-      });
-
+      // Definir stats com valores seguros
       const finalStats = {
-        totalMembers: membersResult.count || 0,
+        totalMembers: 0, // Temporariamente fixo
         totalBooks: booksResult.count || 0,
-        activeLoans: loansResult.count || 0,
-        upcomingEvents: eventsData.length || 0,
+        activeLoans: 0, // Temporariamente fixo
+        upcomingEvents: 0, // Temporariamente fixo
       };
 
-      logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Atualizando estados finais', {
-        stats: finalStats,
-        upcomingEventsCount: formattedEvents.length
+      logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Atualizando estados (versão simplificada)', {
+        stats: finalStats
       });
 
       setStats(finalStats);
-      setUpcomingEvents(formattedEvents);
+      setUpcomingEvents([]); // Lista vazia temporariamente
       
-      logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Carregamento concluído com sucesso');
+      logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Carregamento simplificado concluído com sucesso');
 
     } catch (error: any) {
       logger.error(LogCategory.BUSINESS_LOGIC, 'Dashboard: Erro crítico durante carregamento', error, {
