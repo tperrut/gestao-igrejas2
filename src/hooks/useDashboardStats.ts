@@ -40,14 +40,8 @@ export const useDashboardStats = () => {
       const nextWeek = new Date();
       nextWeek.setDate(today.getDate() + 7);
 
-      // Executar todas as consultas em paralelo
-      const [
-        { count: membersCount },
-        { count: booksCount },
-        { count: loansCount },
-        { data: eventsData },
-        { data: coursesData }
-      ] = await Promise.all([
+      // Buscar contadores básicos primeiro
+      const [membersResult, booksResult, loansResult] = await Promise.all([
         supabase
           .from('members')
           .select('*', { count: 'exact', head: true })
@@ -58,24 +52,23 @@ export const useDashboardStats = () => {
         supabase
           .from('loans')
           .select('*', { count: 'exact', head: true })
-          .eq('status', 'active'),
-        supabase
-          .from('events')
-          .select('id, title, date, time, type')
-          .gte('date', today.toISOString().split('T')[0])
-          .lte('date', nextWeek.toISOString().split('T')[0])
-          .eq('status', 'scheduled')
-          .order('date', { ascending: true })
-          .limit(3),
-        supabase
-          .from('courses')
-          .select('id, title, created_at')
-          .order('created_at', { ascending: false })
-          .limit(3)
+          .eq('status', 'active')
       ]);
 
-      // Formatar apenas os eventos para exibição
-      const formattedEvents: UpcomingEvent[] = (eventsData || []).map(event => ({
+      // Buscar eventos próximos separadamente para evitar conflitos
+      const eventsResult = await supabase
+        .from('events')
+        .select('id, title, date, time, type')
+        .gte('date', today.toISOString().split('T')[0])
+        .lte('date', nextWeek.toISOString().split('T')[0])
+        .eq('status', 'scheduled')
+        .order('date', { ascending: true })
+        .limit(3);
+
+      const eventsData = eventsResult.data || [];
+
+      // Formatar eventos para exibição
+      const formattedEvents: UpcomingEvent[] = eventsData.map(event => ({
         id: event.id,
         title: event.title,
         date: new Date(event.date).toLocaleDateString('pt-BR', { 
@@ -90,16 +83,25 @@ export const useDashboardStats = () => {
       }));
 
       setStats({
-        totalMembers: membersCount || 0,
-        totalBooks: booksCount || 0,
-        activeLoans: loansCount || 0,
-        upcomingEvents: eventsData?.length || 0,
+        totalMembers: membersResult.count || 0,
+        totalBooks: booksResult.count || 0,
+        activeLoans: loansResult.count || 0,
+        upcomingEvents: eventsData.length || 0,
       });
 
       setUpcomingEvents(formattedEvents);
 
     } catch (error: any) {
       console.error('Erro ao buscar dados do dashboard:', error);
+      // Definir valores padrão em caso de erro
+      setStats({
+        totalMembers: 0,
+        totalBooks: 0,
+        activeLoans: 0,
+        upcomingEvents: 0,
+      });
+      setUpcomingEvents([]);
+      
       toast({
         title: "Erro ao carregar dados",
         description: "Não foi possível carregar as informações do dashboard.",
