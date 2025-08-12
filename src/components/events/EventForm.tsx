@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import EventImageUpload from './EventImageUpload';
+import { sanitizeText } from "@/utils/validation";
 
 const eventFormSchema = z.object({
   title: z.string().min(3, { message: "Título deve ter pelo menos 3 caracteres" }),
@@ -74,8 +75,15 @@ const EventForm: React.FC<EventFormProps> = ({
 
   const handleFormSubmit = (data: EventFormValues) => {
     onSubmit({
-      ...data,
-      image_url: imageUrl,
+      title: sanitizeText(data.title),
+      date: sanitizeText(data.date),
+      time: sanitizeText(data.time),
+      location: sanitizeText(data.location),
+      type: sanitizeText(data.type),
+      organizer: sanitizeText(data.organizer),
+      capacity: Number(data.capacity),
+      description: sanitizeText(data.description || ''),
+      image_url: sanitizeText(imageUrl || ''),
     });
   };
 

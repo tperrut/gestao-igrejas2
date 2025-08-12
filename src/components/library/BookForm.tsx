@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { sanitizeText } from "@/utils/validation";
 
 const bookFormSchema = z.object({
   title: z.string().min(3, { message: "Título deve ter pelo menos 3 caracteres" }),
@@ -56,9 +57,24 @@ const BookForm: React.FC<BookFormProps> = ({
     defaultValues,
   });
 
+  const handleSanitizedSubmit = (data: BookFormValues) => {
+    const sanitized: BookFormValues = {
+      title: sanitizeText(data.title),
+      author: sanitizeText(data.author),
+      category: sanitizeText(data.category),
+      isbn: sanitizeText(data.isbn || ''),
+      publisher: sanitizeText(data.publisher || ''),
+      publication_year: sanitizeText(data.publication_year || ''),
+      copies: Number(data.copies),
+      description: sanitizeText(data.description || ''),
+      cover_url: sanitizeText(data.cover_url || ''),
+    };
+    onSubmit(sanitized);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSanitizedSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="title"

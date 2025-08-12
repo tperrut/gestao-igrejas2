@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ImageUpload from './ImageUpload';
+import { sanitizeText } from "@/utils/validation";
 
 const courseFormSchema = z.object({
   title: z.string().min(3, { message: "Título deve ter pelo menos 3 caracteres" }),
@@ -80,8 +81,18 @@ const CourseForm: React.FC<CourseFormProps> = ({
 
   const handleFormSubmit = (data: CourseFormValues) => {
     onSubmit({
-      ...data,
-      image_url: imageUrl,
+      title: sanitizeText(data.title),
+      description: sanitizeText(data.description || ''),
+      instructor: sanitizeText(data.instructor),
+      start_date: sanitizeText(data.start_date),
+      end_date: sanitizeText(data.end_date),
+      location: sanitizeText(data.location || ''),
+      max_students: Number(data.max_students),
+      students: Number(data.students),
+      status: sanitizeText(data.status),
+      category: sanitizeText(data.category),
+      prerequisites: sanitizeText(data.prerequisites || ''),
+      image_url: sanitizeText(imageUrl || ''),
     });
   };
 
