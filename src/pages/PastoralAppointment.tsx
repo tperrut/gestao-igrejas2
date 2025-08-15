@@ -20,6 +20,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Calendar as CalendarIcon, Clock, Phone, Mail, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { sanitizeText } from '@/utils/validation';
 
 const appointmentFormSchema = z.object({
   member_name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres" }),
@@ -103,13 +104,13 @@ const PastoralAppointment: React.FC = () => {
         .from('pastoral_appointments')
         .insert([{
           user_id: currentUser.id,
-          member_name: data.member_name,
-          member_email: data.member_email,
-          member_phone: data.member_phone,
+          member_name: sanitizeText(data.member_name),
+          member_email: data.member_email.toLowerCase().trim(),
+          member_phone: sanitizeText(data.member_phone),
           appointment_date: data.appointment_date,
           appointment_time: data.appointment_time,
-          reason: data.reason,
-          message: data.message,
+          reason: sanitizeText(data.reason),
+          message: data.message ? sanitizeText(data.message) : null,
           status: 'pending'
         }]);
 

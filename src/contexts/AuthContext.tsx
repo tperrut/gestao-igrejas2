@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state changed:', event, session);
         
         // Log authentication events for security monitoring
@@ -356,12 +356,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isAdmin = () => {
     const adminCheck = profile?.role === 'admin';
-    if (adminCheck) {
-      logSecurityEvent('admin_access_check', {
-        userId: user?.id,
-        profileRole: profile?.role
-      });
-    }
+    // Reduced logging: Only log admin access during critical operations
     return adminCheck;
   };
 
