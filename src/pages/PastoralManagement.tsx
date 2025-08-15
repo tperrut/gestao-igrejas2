@@ -12,6 +12,7 @@ import PastoralScheduleManagement from '@/components/pastoral/PastoralScheduleMa
 
 interface PastoralAppointment {
   id: string;
+  user_id?: string;
   member_name: string;
   member_email: string;
   member_phone: string | null;

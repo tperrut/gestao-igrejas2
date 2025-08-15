@@ -94,10 +94,15 @@ const PastoralAppointment: React.FC = () => {
 
   async function onSubmit(data: AppointmentFormValues) {
     try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        throw new Error('Usuário não autenticado');
+      }
+
       const { error } = await supabase
         .from('pastoral_appointments')
         .insert([{
-          member_id: user?.id,
+          user_id: currentUser.id,
           member_name: data.member_name,
           member_email: data.member_email,
           member_phone: data.member_phone,
