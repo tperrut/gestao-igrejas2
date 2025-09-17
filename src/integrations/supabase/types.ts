@@ -460,11 +460,267 @@ export type Database = {
         }
         Relationships: []
       }
+      sunday_school_attendance: {
+        Row: {
+          arrival_time: string | null
+          created_at: string
+          id: string
+          lesson_id: string
+          member_id: string
+          notes: string | null
+          present: boolean
+        }
+        Insert: {
+          arrival_time?: string | null
+          created_at?: string
+          id?: string
+          lesson_id: string
+          member_id: string
+          notes?: string | null
+          present?: boolean
+        }
+        Update: {
+          arrival_time?: string | null
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          member_id?: string
+          notes?: string | null
+          present?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sunday_school_attendance_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "sunday_school_lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sunday_school_attendance_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sunday_school_class_teachers: {
+        Row: {
+          assigned_at: string
+          class_id: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          teacher_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          class_id: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          teacher_id: string
+        }
+        Update: {
+          assigned_at?: string
+          class_id?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sunday_school_class_teachers_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "sunday_school_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sunday_school_class_teachers_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "sunday_school_teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sunday_school_classes: {
+        Row: {
+          age_group: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          age_group: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          age_group?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sunday_school_enrollments: {
+        Row: {
+          class_id: string
+          created_at: string
+          enrollment_date: string
+          id: string
+          member_id: string
+          notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          enrollment_date?: string
+          id?: string
+          member_id: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          enrollment_date?: string
+          id?: string
+          member_id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sunday_school_enrollments_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "sunday_school_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sunday_school_enrollments_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sunday_school_lessons: {
+        Row: {
+          class_id: string
+          created_at: string
+          id: string
+          lesson_date: string
+          notes: string | null
+          offering_amount: number | null
+          teacher_id: string
+          topic: string | null
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          id?: string
+          lesson_date: string
+          notes?: string | null
+          offering_amount?: number | null
+          teacher_id: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          id?: string
+          lesson_date?: string
+          notes?: string | null
+          offering_amount?: number | null
+          teacher_id?: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sunday_school_lessons_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "sunday_school_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sunday_school_lessons_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "sunday_school_teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sunday_school_teachers: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          specialization: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          specialization?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          specialization?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      can_access_pastoral_appointment: {
+        Args: { appointment_user_id: string }
+        Returns: boolean
+      }
       expire_reservations: {
         Args: Record<PropertyKey, never>
         Returns: undefined
