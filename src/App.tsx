@@ -24,6 +24,7 @@ import Pricing from "./pages/Pricing";
 import PastoralAppointment from "./pages/PastoralAppointment";
 import PastoralManagement from "./pages/PastoralManagement";
 import Settings from "./pages/Settings";
+import SundaySchool from "./pages/SundaySchool";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -77,6 +78,11 @@ const App = () => (
               <Route path="/pastoral-management" element={
                 <AuthGuard requireAdmin={true}>
                   <PastoralManagement />
+                </AuthGuard>
+              } />
+              <Route path="/sunday-school" element={
+                <AuthGuard requireAdmin={true}>
+                  <SundaySchool />
                 </AuthGuard>
               } />
               <Route path="/settings" element={<Settings />} />

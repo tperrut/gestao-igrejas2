@@ -25,7 +25,8 @@ import {
   BookOpen,
   UserCheck,
   BarChart3,
-  DollarSign
+  DollarSign,
+  GraduationCap
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ThemeToggle } from './ThemeToggle';
@@ -77,6 +78,7 @@ const Navbar: React.FC = () => {
   const adminOnlyItems = [
     { name: 'Membros', href: '/members', icon: UserCheck },
     { name: 'Eventos', href: '/events', icon: Calendar },
+    { name: 'Escola Dominical', href: '/sunday-school', icon: GraduationCap },
     { name: 'Empréstimos', href: '/loans', icon: BookOpen },
     { name: 'Gestão Pastoral', href: '/pastoral-management', icon: MessageSquare },
   ];
