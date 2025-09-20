@@ -24,8 +24,13 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-export const SundaySchoolTeachersList: React.FC = () => {
-  const { teachers, deleteTeacher, loading } = useSundaySchool();
+interface SundaySchoolTeachersListProps {
+  teachers: any[];
+  onEdit: (teacher: any) => void;
+}
+
+export const SundaySchoolTeachersList: React.FC<SundaySchoolTeachersListProps> = ({ teachers, onEdit }) => {
+  const { deleteTeacher, loading } = useSundaySchool();
 
   const handleDelete = async (id: string) => {
     await deleteTeacher(id);
@@ -98,7 +103,11 @@ export const SundaySchoolTeachersList: React.FC = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => onEdit(teacher)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <AlertDialog>

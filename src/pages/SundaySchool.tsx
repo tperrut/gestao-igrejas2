@@ -30,6 +30,9 @@ const SundaySchool: React.FC = () => {
   const [showClassForm, setShowClassForm] = useState(false);
   const [showEnrollmentForm, setShowEnrollmentForm] = useState(false);
   const [showLessonForm, setShowLessonForm] = useState(false);
+  const [editingTeacher, setEditingTeacher] = useState<any>(null);
+  const [editingClass, setEditingClass] = useState<any>(null);
+  const [editingEnrollment, setEditingEnrollment] = useState<any>(null);
   const [stats, setStats] = useState({
     totalTeachers: 0,
     totalClasses: 0,
@@ -37,7 +40,7 @@ const SundaySchool: React.FC = () => {
     recentLessons: []
   });
 
-  const { getDashboardStats } = useSundaySchool();
+  const { teachers, classes, enrollments, getDashboardStats } = useSundaySchool();
 
   useEffect(() => {
     const loadStats = async () => {
@@ -203,12 +206,22 @@ const SundaySchool: React.FC = () => {
               Novo Professor
             </Button>
           </div>
-          <SundaySchoolTeachersList />
+          <SundaySchoolTeachersList 
+            teachers={teachers} 
+            onEdit={(teacher) => {
+              setEditingTeacher(teacher);
+              setShowTeacherForm(true);
+            }}
+          />
           {showTeacherForm && (
-            <SundaySchoolTeacherForm
-              open={showTeacherForm}
-              onOpenChange={setShowTeacherForm}
-            />
+      <SundaySchoolTeacherForm
+        open={showTeacherForm}
+        onOpenChange={(open) => {
+          setShowTeacherForm(open);
+          if (!open) setEditingTeacher(null);
+        }}
+        teacher={editingTeacher}
+      />
           )}
         </TabsContent>
 
@@ -220,12 +233,22 @@ const SundaySchool: React.FC = () => {
               Nova Turma
             </Button>
           </div>
-          <SundaySchoolClassesList />
+          <SundaySchoolClassesList 
+            classes={classes} 
+            onEdit={(classData) => {
+              setEditingClass(classData);
+              setShowClassForm(true);
+            }}
+          />
           {showClassForm && (
-            <SundaySchoolClassForm
-              open={showClassForm}
-              onOpenChange={setShowClassForm}
-            />
+      <SundaySchoolClassForm
+        open={showClassForm}
+        onOpenChange={(open) => {
+          setShowClassForm(open);
+          if (!open) setEditingClass(null);
+        }}
+        class={editingClass}
+      />
           )}
         </TabsContent>
 
@@ -237,12 +260,22 @@ const SundaySchool: React.FC = () => {
               Nova Matrícula
             </Button>
           </div>
-          <SundaySchoolEnrollmentsList />
+          <SundaySchoolEnrollmentsList 
+            enrollments={enrollments} 
+            onEdit={(enrollment) => {
+              setEditingEnrollment(enrollment);
+              setShowEnrollmentForm(true);
+            }}
+          />
           {showEnrollmentForm && (
-            <SundaySchoolEnrollmentForm
-              open={showEnrollmentForm}
-              onOpenChange={setShowEnrollmentForm}
-            />
+      <SundaySchoolEnrollmentForm
+        open={showEnrollmentForm}
+        onOpenChange={(open) => {
+          setShowEnrollmentForm(open);
+          if (!open) setEditingEnrollment(null);
+        }}
+        enrollment={editingEnrollment}
+      />
           )}
         </TabsContent>
 

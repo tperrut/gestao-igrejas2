@@ -49,7 +49,7 @@ export const SundaySchoolTeacherForm: React.FC<SundaySchoolTeacherFormProps> = (
   onOpenChange,
   teacher,
 }) => {
-  const { createTeacher, loading } = useSundaySchool();
+  const { createTeacher, updateTeacher, loading } = useSundaySchool();
 
   const form = useForm<SundaySchoolTeacherFormValues>({
     resolver: zodResolver(formSchema),
@@ -64,7 +64,13 @@ export const SundaySchoolTeacherForm: React.FC<SundaySchoolTeacherFormProps> = (
   });
 
   const onSubmit = async (data: SundaySchoolTeacherFormValues) => {
-    const success = await createTeacher(data);
+    let success;
+    if (teacher) {
+      success = await updateTeacher(teacher.id, data);
+    } else {
+      success = await createTeacher(data);
+    }
+    
     if (success) {
       form.reset();
       onOpenChange(false);

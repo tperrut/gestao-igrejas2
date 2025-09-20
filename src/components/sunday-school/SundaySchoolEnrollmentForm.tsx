@@ -59,7 +59,7 @@ export const SundaySchoolEnrollmentForm: React.FC<SundaySchoolEnrollmentFormProp
   onOpenChange,
   enrollment,
 }) => {
-  const { createEnrollment, classes, loading } = useSundaySchool();
+  const { createEnrollment, updateEnrollment, classes, loading } = useSundaySchool();
   const [members, setMembers] = useState<any[]>([]);
 
   const form = useForm({
@@ -100,7 +100,13 @@ export const SundaySchoolEnrollmentForm: React.FC<SundaySchoolEnrollmentFormProp
       enrollment_date: format(data.enrollment_date, 'yyyy-MM-dd'),
     };
 
-    const success = await createEnrollment(enrollmentData);
+    let success;
+    if (enrollment) {
+      success = await updateEnrollment(enrollment.id, enrollmentData);
+    } else {
+      success = await createEnrollment(enrollmentData);
+    }
+    
     if (success) {
       form.reset();
       onOpenChange(false);

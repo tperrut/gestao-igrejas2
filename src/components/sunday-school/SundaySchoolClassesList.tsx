@@ -24,8 +24,13 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-export const SundaySchoolClassesList: React.FC = () => {
-  const { classes, deleteClass, loading } = useSundaySchool();
+interface SundaySchoolClassesListProps {
+  classes: any[];
+  onEdit: (classData: any) => void;
+}
+
+export const SundaySchoolClassesList: React.FC<SundaySchoolClassesListProps> = ({ classes, onEdit }) => {
+  const { deleteClass, loading } = useSundaySchool();
 
   const handleDelete = async (id: string) => {
     await deleteClass(id);
@@ -83,7 +88,11 @@ export const SundaySchoolClassesList: React.FC = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => onEdit(classItem)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <AlertDialog>

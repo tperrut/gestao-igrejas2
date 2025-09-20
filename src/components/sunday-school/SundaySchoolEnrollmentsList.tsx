@@ -13,8 +13,12 @@ import {
 import { Trash2, Edit, User, Calendar } from 'lucide-react';
 import { useSundaySchool } from '@/hooks/useSundaySchool';
 
-export const SundaySchoolEnrollmentsList: React.FC = () => {
-  const { enrollments } = useSundaySchool();
+interface SundaySchoolEnrollmentsListProps {
+  enrollments: any[];
+  onEdit: (enrollment: any) => void;
+}
+
+export const SundaySchoolEnrollmentsList: React.FC<SundaySchoolEnrollmentsListProps> = ({ enrollments, onEdit }) => {
 
   if (enrollments.length === 0) {
     return (
@@ -89,7 +93,11 @@ export const SundaySchoolEnrollmentsList: React.FC = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => onEdit(enrollment)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button variant="outline" size="sm">

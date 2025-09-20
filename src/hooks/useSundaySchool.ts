@@ -218,6 +218,91 @@ export const useSundaySchool = () => {
     }
   };
 
+  // Update functions
+  const updateTeacher = async (id: string, teacherData: Partial<SundaySchoolTeacher>) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('sunday_school_teachers')
+        .update(teacherData)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Professor atualizado com sucesso!",
+      });
+
+      await fetchTeachers();
+      return true;
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar professor",
+        description: error.message,
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateClass = async (id: string, classData: Partial<SundaySchoolClass>) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('sunday_school_classes')
+        .update(classData)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Turma atualizada com sucesso!",
+      });
+
+      await fetchClasses();
+      return true;
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar turma",
+        description: error.message,
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateEnrollment = async (id: string, enrollmentData: Partial<SundaySchoolEnrollment>) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('sunday_school_enrollments')
+        .update(enrollmentData)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Matrícula atualizada com sucesso!",
+      });
+
+      await fetchEnrollments();
+      return true;
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar matrícula",
+        description: error.message,
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Delete functions
   const deleteTeacher = async (id: string) => {
     try {
@@ -335,6 +420,9 @@ export const useSundaySchool = () => {
     createClass,
     createEnrollment,
     createLesson,
+    updateTeacher,
+    updateClass,
+    updateEnrollment,
     deleteTeacher,
     deleteClass,
     getDashboardStats

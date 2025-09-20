@@ -466,27 +466,30 @@ export type Database = {
           created_at: string
           id: string
           lesson_id: string
-          member_id: string
+          member_id: string | null
           notes: string | null
           present: boolean
+          visitor_name: string | null
         }
         Insert: {
           arrival_time?: string | null
           created_at?: string
           id?: string
           lesson_id: string
-          member_id: string
+          member_id?: string | null
           notes?: string | null
           present?: boolean
+          visitor_name?: string | null
         }
         Update: {
           arrival_time?: string | null
           created_at?: string
           id?: string
           lesson_id?: string
-          member_id?: string
+          member_id?: string | null
           notes?: string | null
           present?: boolean
+          visitor_name?: string | null
         }
         Relationships: [
           {

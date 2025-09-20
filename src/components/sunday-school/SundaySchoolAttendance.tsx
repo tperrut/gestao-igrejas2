@@ -10,10 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar, Users, UserCheck, Clock } from 'lucide-react';
+import { Calendar, Users, UserCheck, Clock, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useSundaySchool } from '@/hooks/useSundaySchool';
+import { SundaySchoolVisitorForm } from './SundaySchoolVisitorForm';
 
 export const SundaySchoolAttendance: React.FC = () => {
   const [selectedLesson, setSelectedLesson] = useState<string>('');
@@ -21,6 +22,7 @@ export const SundaySchoolAttendance: React.FC = () => {
   const [attendance, setAttendance] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showVisitorForm, setShowVisitorForm] = useState(false);
   
   const { lessons } = useSundaySchool();
   const { toast } = useToast();
@@ -135,6 +137,45 @@ export const SundaySchoolAttendance: React.FC = () => {
     }
   };
 
+  const handleAddVisitor = async (visitorData: any) => {
+    if (!selectedLesson) return;
+    
+    try {
+      setSaving(true);
+      const { error } = await supabase
+        .from('sunday_school_attendance')
+        .insert([{
+          lesson_id: selectedLesson,
+          member_id: null,
+          visitor_name: visitorData.visitor_name,
+          present: visitorData.present,
+          arrival_time: visitorData.arrival_time || null,
+          notes: visitorData.notes || null,
+        }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Visitante adicionado com sucesso!",
+      });
+
+      // Reload the lesson students to include the new visitor
+      const lesson = lessons.find(l => l.id === selectedLesson);
+      if (lesson) {
+        setSelectedLesson(''); // Reset to trigger reload
+        setSelectedLesson(selectedLesson);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro ao adicionar visitante",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const selectedLessonData = lessons.find(l => l.id === selectedLesson);
   const presentCount = Object.values(attendance).filter(Boolean).length;
 
@@ -224,9 +265,20 @@ export const SundaySchoolAttendance: React.FC = () => {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Lista de Presença</CardTitle>
-              <Button onClick={saveAttendance} disabled={saving}>
-                {saving ? 'Salvando...' : 'Salvar Presença'}
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => setShowVisitorForm(true)} 
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Visitante
+                </Button>
+                <Button onClick={saveAttendance} disabled={saving}>
+                  {saving ? 'Salvando...' : 'Salvar Presença'}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -267,6 +319,13 @@ export const SundaySchoolAttendance: React.FC = () => {
           </CardContent>
         </Card>
       )}
+
+      <SundaySchoolVisitorForm
+        open={showVisitorForm}
+        onOpenChange={setShowVisitorForm}
+        onSubmit={handleAddVisitor}
+        loading={saving}
+      />
     </div>
   );
 };

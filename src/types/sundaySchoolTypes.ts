@@ -67,10 +67,11 @@ export interface SundaySchoolLesson {
 export interface SundaySchoolAttendance {
   id: string;
   lesson_id: string;
-  member_id: string;
+  member_id: string | null;
   present: boolean;
   arrival_time?: string;
   notes?: string;
+  visitor_name?: string;
   created_at: string;
   member?: {
     id: string;
