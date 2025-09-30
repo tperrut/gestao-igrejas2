@@ -10,19 +10,26 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Calendar, User, DollarSign, BookOpen, Users } from 'lucide-react';
+import { Calendar, User, DollarSign, BookOpen, Users, Eye, Edit2 } from 'lucide-react';
 import { useSundaySchool } from '@/hooks/useSundaySchool';
 import { SundaySchoolLessonViewModal } from './SundaySchoolLessonViewModal';
+import { SundaySchoolLessonForm } from './SundaySchoolLessonForm';
 import { SundaySchoolLesson } from '@/types/sundaySchoolTypes';
 
 export const SundaySchoolLessonsList: React.FC = () => {
   const { lessons } = useSundaySchool();
   const [selectedLesson, setSelectedLesson] = useState<SundaySchoolLesson | null>(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   const handleViewDetails = (lesson: SundaySchoolLesson) => {
     setSelectedLesson(lesson);
     setViewModalOpen(true);
+  };
+
+  const handleEditLesson = (lesson: SundaySchoolLesson) => {
+    setSelectedLesson(lesson);
+    setEditModalOpen(true);
   };
 
   if (lessons.length === 0) {
@@ -103,13 +110,22 @@ export const SundaySchoolLessonsList: React.FC = () => {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleViewDetails(lesson)}
-                    >
-                      Ver Detalhes
-                    </Button>
+                    <div className="flex gap-2 justify-end">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleViewDetails(lesson)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEditLesson(lesson)}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -122,6 +138,12 @@ export const SundaySchoolLessonsList: React.FC = () => {
         lesson={selectedLesson}
         open={viewModalOpen}
         onOpenChange={setViewModalOpen}
+      />
+
+      <SundaySchoolLessonForm
+        lesson={selectedLesson}
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
       />
     </Card>
   );

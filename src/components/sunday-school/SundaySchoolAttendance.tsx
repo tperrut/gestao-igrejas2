@@ -121,11 +121,21 @@ export const SundaySchoolAttendance: React.FC = () => {
         .eq('lesson_id', selectedLesson);
 
       // Insert new attendance records
-      const attendanceRecords = lessonStudents.map(student => ({
-        lesson_id: selectedLesson,
-        member_id: student.member_id,
-        present: attendance[student.member_id] || false,
-      }));
+      const attendanceRecords = lessonStudents.map(student => {
+        if (student.isVisitor) {
+          return {
+            lesson_id: selectedLesson,
+            member_id: null,
+            visitor_name: student.member?.name,
+            present: attendance[student.member_id] || false,
+          };
+        }
+        return {
+          lesson_id: selectedLesson,
+          member_id: student.member_id,
+          present: attendance[student.member_id] || false,
+        };
+      });
 
       const { error } = await supabase
         .from('sunday_school_attendance')

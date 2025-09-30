@@ -218,6 +218,35 @@ export const useSundaySchool = () => {
     }
   };
 
+  // Update Lesson
+  const updateLesson = async (id: string, lessonData: Partial<SundaySchoolLesson>) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('sunday_school_lessons')
+        .update(lessonData)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Aula atualizada com sucesso!",
+      });
+
+      await fetchLessons();
+      return true;
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar aula",
+        description: error.message,
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Update functions
   const updateTeacher = async (id: string, teacherData: Partial<SundaySchoolTeacher>) => {
     try {
@@ -363,7 +392,11 @@ export const useSundaySchool = () => {
   // Get dashboard stats
   const getDashboardStats = async () => {
     try {
-      const [teachersCount, classesCount, enrollmentsCount, lastSundayData] = await Promise.all([
+      const currentMonth = new Date();
+      const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+      const lastDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+
+      const [teachersCount, classesCount, enrollmentsCount, lastSundayData, visitorsThisMonth] = await Promise.all([
         supabase.from('sunday_school_teachers').select('id', { count: 'exact' }),
         supabase.from('sunday_school_classes').select('id', { count: 'exact' }),
         supabase.from('sunday_school_enrollments').select('id', { count: 'exact' }).eq('status', 'active'),
@@ -375,13 +408,24 @@ export const useSundaySchool = () => {
             attendance:sunday_school_attendance(present)
           `)
           .order('lesson_date', { ascending: false })
-          .limit(10)
+          .limit(10),
+        supabase
+          .from('sunday_school_attendance')
+          .select(`
+            *,
+            lesson:sunday_school_lessons(lesson_date)
+          `)
+          .not('visitor_name', 'is', null)
+          .gte('lesson.lesson_date', firstDayOfMonth.toISOString().split('T')[0])
+          .lte('lesson.lesson_date', lastDayOfMonth.toISOString().split('T')[0])
+          .eq('present', true)
       ]);
 
       return {
         totalTeachers: teachersCount.count || 0,
         totalClasses: classesCount.count || 0,
         totalStudents: enrollmentsCount.count || 0,
+        visitorsThisMonth: visitorsThisMonth.count || 0,
         recentLessons: lastSundayData.data || []
       };
     } catch (error: any) {
@@ -394,6 +438,7 @@ export const useSundaySchool = () => {
         totalTeachers: 0,
         totalClasses: 0,
         totalStudents: 0,
+        visitorsThisMonth: 0,
         recentLessons: []
       };
     }
@@ -423,6 +468,7 @@ export const useSundaySchool = () => {
     updateTeacher,
     updateClass,
     updateEnrollment,
+    updateLesson,
     deleteTeacher,
     deleteClass,
     getDashboardStats

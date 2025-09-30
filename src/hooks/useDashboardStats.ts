@@ -8,6 +8,9 @@ interface DashboardStats {
   totalBooks: number;
   activeLoans: number;
   upcomingEvents: number;
+  sundaySchoolStats?: {
+    visitorsThisMonth: number;
+  };
 }
 
 interface UpcomingEvent {
@@ -24,6 +27,9 @@ export const useDashboardStats = () => {
     totalBooks: 0,
     activeLoans: 0,
     upcomingEvents: 0,
+    sundaySchoolStats: {
+      visitorsThisMonth: 0,
+    },
   });
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +58,11 @@ export const useDashboardStats = () => {
       // Buscar contadores básicos com as novas políticas seguras
       logger.info(LogCategory.DATABASE, 'Dashboard: Iniciando consultas paralelas para contadores');
       
-      const [membersResult, booksResult, loansResult] = await Promise.all([
+      const currentMonth = new Date();
+      const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+      const lastDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+      
+      const [membersResult, booksResult, loansResult, visitorsResult] = await Promise.all([
         supabase
           .from('members')
           .select('*', { count: 'exact', head: true })
@@ -63,7 +73,17 @@ export const useDashboardStats = () => {
         supabase
           .from('loans')
           .select('*', { count: 'exact', head: true })
-          .eq('status', 'active')
+          .eq('status', 'active'),
+        supabase
+          .from('sunday_school_attendance')
+          .select(`
+            *,
+            lesson:sunday_school_lessons(lesson_date)
+          `, { count: 'exact', head: true })
+          .not('visitor_name', 'is', null)
+          .gte('lesson.lesson_date', firstDayOfMonth.toISOString().split('T')[0])
+          .lte('lesson.lesson_date', lastDayOfMonth.toISOString().split('T')[0])
+          .eq('present', true)
       ]);
 
       logger.info(LogCategory.DATABASE, 'Dashboard: Consultas de contadores concluídas', {
@@ -114,6 +134,9 @@ export const useDashboardStats = () => {
         totalBooks: booksResult.count || 0,
         activeLoans: loansResult.count || 0,
         upcomingEvents: eventsData.length || 0,
+        sundaySchoolStats: {
+          visitorsThisMonth: visitorsResult.count || 0,
+        },
       };
 
       logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Atualizando estados finais', {
@@ -141,6 +164,9 @@ export const useDashboardStats = () => {
         totalBooks: 0,
         activeLoans: 0,
         upcomingEvents: 0,
+        sundaySchoolStats: {
+          visitorsThisMonth: 0,
+        },
       };
       
       logger.warn(LogCategory.BUSINESS_LOGIC, 'Dashboard: Aplicando valores padrão devido ao erro', {

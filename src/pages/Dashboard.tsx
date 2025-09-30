@@ -103,11 +103,11 @@ const Dashboard: React.FC = () => {
           colorClass="bg-green-600"
         />
         <StatCard
-          title="Próximos Eventos"
-          value={statsLoading ? "..." : stats.upcomingEvents.toString()}
-          description="Eventos nos próximos 7 dias"
-          icon={<Calendar className="h-4 w-4" />}
-          colorClass="bg-amber-500"
+          title="Visitantes EBD"
+          value={statsLoading ? "..." : (stats.sundaySchoolStats?.visitorsThisMonth || 0).toString()}
+          description="Visitantes este mês"
+          icon={<Users className="h-4 w-4" />}
+          colorClass="bg-purple-600"
         />
       </div>
 

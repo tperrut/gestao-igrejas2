@@ -60,7 +60,7 @@ export const SundaySchoolLessonForm: React.FC<SundaySchoolLessonFormProps> = ({
   onOpenChange,
   lesson,
 }) => {
-  const { createLesson, classes, teachers, loading } = useSundaySchool();
+  const { createLesson, updateLesson, classes, teachers, loading } = useSundaySchool();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -80,7 +80,10 @@ export const SundaySchoolLessonForm: React.FC<SundaySchoolLessonFormProps> = ({
       lesson_date: format(data.lesson_date, 'yyyy-MM-dd'),
     };
 
-    const success = await createLesson(lessonData);
+    const success = lesson 
+      ? await updateLesson(lesson.id, lessonData)
+      : await createLesson(lessonData);
+    
     if (success) {
       form.reset();
       onOpenChange(false);
