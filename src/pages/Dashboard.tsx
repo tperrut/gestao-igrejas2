@@ -111,10 +111,13 @@ const Dashboard: React.FC = () => {
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card className="card-hover">
           <CardHeader>
-            <CardTitle>Próximos Eventos</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              Próximos Eventos
+            </CardTitle>
             <CardDescription>
               Eventos agendados para os próximos 7 dias.
             </CardDescription>
@@ -142,10 +145,8 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        <div className="grid grid-rows-2 gap-4">
-          <BirthdayCard />
-          <RecentActivityList />
-        </div>
+        <BirthdayCard />
+        <RecentActivityList />
       </div>
     </div>
   );

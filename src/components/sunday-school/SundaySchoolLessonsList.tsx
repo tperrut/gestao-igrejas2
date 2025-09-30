@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,9 +12,18 @@ import {
 } from '@/components/ui/table';
 import { Calendar, User, DollarSign, BookOpen, Users } from 'lucide-react';
 import { useSundaySchool } from '@/hooks/useSundaySchool';
+import { SundaySchoolLessonViewModal } from './SundaySchoolLessonViewModal';
+import { SundaySchoolLesson } from '@/types/sundaySchoolTypes';
 
 export const SundaySchoolLessonsList: React.FC = () => {
   const { lessons } = useSundaySchool();
+  const [selectedLesson, setSelectedLesson] = useState<SundaySchoolLesson | null>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+
+  const handleViewDetails = (lesson: SundaySchoolLesson) => {
+    setSelectedLesson(lesson);
+    setViewModalOpen(true);
+  };
 
   if (lessons.length === 0) {
     return (
@@ -94,7 +103,11 @@ export const SundaySchoolLessonsList: React.FC = () => {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleViewDetails(lesson)}
+                    >
                       Ver Detalhes
                     </Button>
                   </TableCell>
@@ -104,6 +117,12 @@ export const SundaySchoolLessonsList: React.FC = () => {
           </Table>
         </div>
       </CardContent>
+
+      <SundaySchoolLessonViewModal
+        lesson={selectedLesson}
+        open={viewModalOpen}
+        onOpenChange={setViewModalOpen}
+      />
     </Card>
   );
 };

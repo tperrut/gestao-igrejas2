@@ -60,12 +60,24 @@ export const SundaySchoolAttendance: React.FC = () => {
 
         if (attendanceError) throw attendanceError;
 
-        // Combine enrollment data with attendance data
+        // Combine enrollment data with attendance data, plus visitors
         const studentsWithAttendance = enrollments?.map(enrollment => ({
           member_id: enrollment.member_id,
           member: enrollment.member,
-          attendance: existingAttendance?.find(att => att.member_id === enrollment.member_id)
+          attendance: existingAttendance?.find(att => att.member_id === enrollment.member_id),
+          isVisitor: false
         })) || [];
+
+        // Add visitors to the list
+        const visitors = existingAttendance?.filter(att => !att.member_id && att.visitor_name) || [];
+        visitors.forEach(visitor => {
+          studentsWithAttendance.push({
+            member_id: `visitor_${visitor.id}`,
+            member: { id: `visitor_${visitor.id}`, name: visitor.visitor_name, email: 'Visitante' },
+            attendance: visitor,
+            isVisitor: true
+          });
+        });
 
         setLessonStudents(studentsWithAttendance);
 
@@ -159,12 +171,9 @@ export const SundaySchoolAttendance: React.FC = () => {
         title: "Visitante adicionado com sucesso!",
       });
 
-      // Reload the lesson students to include the new visitor
-      const lesson = lessons.find(l => l.id === selectedLesson);
-      if (lesson) {
-        setSelectedLesson(''); // Reset to trigger reload
-        setSelectedLesson(selectedLesson);
-      }
+      // Reload the attendance data properly
+      setSelectedLesson('');
+      setTimeout(() => setSelectedLesson(selectedLesson), 100);
     } catch (error: any) {
       toast({
         title: "Erro ao adicionar visitante",
