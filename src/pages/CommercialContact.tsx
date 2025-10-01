@@ -215,11 +215,11 @@ const CommercialContact: React.FC = () => {
                     <div>
                       <p className="font-medium">Email Comercial</p>
                       <a 
-                        href="mailto:vendas@altarhub.com" 
+                        href="mailto:vendas@betelhub.com" 
                         className="text-church-blue hover:underline"
                         aria-label="Enviar email para equipe comercial"
                       >
-                        vendas@altarhub.com
+                        vendas@betelhub.com
                       </a>
                     </div>
                   </div>
@@ -263,7 +263,7 @@ const CommercialContact: React.FC = () => {
               {/* Benefits */}
               <Card className="card-hover bg-church-blue text-white">
                 <CardHeader>
-                  <CardTitle>Por que escolher a AltarHub?</CardTitle>
+                  <CardTitle>Por que escolher a BetelHub?</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-start space-x-3">

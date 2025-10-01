@@ -1,6 +1,6 @@
 
 import React from 'react';
-import logoImage from '@/assets/logo-altarhub.png';
+import logoImage from '@/assets/logo-betelhub.png';
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -24,7 +24,7 @@ export const Logo: React.FC<LogoProps> = ({
       <div className={`${sizeClasses[size]} relative`}>
         <img   
           src={logoImage}
-          alt="AltarHub Logo" 
+          alt="BetelHub Logo" 
           className="bg-white rounded-full p-2 flex items-center justify-center"
         />
       </div>

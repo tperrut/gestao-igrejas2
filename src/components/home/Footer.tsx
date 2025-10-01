@@ -12,7 +12,7 @@ const Footer: React.FC = () => {
             <div className="flex items-center gap-3 mb-4">
               <Logo size="sm" withText />
             </div>
-            <h3 className="text-xl font-bold mb-4">Plataforma AltarHub</h3>
+            <h3 className="text-xl font-bold mb-4">Plataforma BetelHub</h3>
             <p className="text-gray-400">
               A solução completa para gestão da sua igreja.
             </p>
@@ -45,7 +45,7 @@ const Footer: React.FC = () => {
           </div>
         </div>
         <div className="border-t border-gray-700 pt-4 text-center text-gray-400">
-          <p>&copy; 2025 Plataforma <span className="font-bold text-church-red">AltarHub</span>. Todos os direitos reservados.</p>
+          <p>&copy; 2025 Plataforma <span className="font-bold text-church-red">BetelHub</span>. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

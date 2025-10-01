@@ -13,7 +13,7 @@ const HeroSection: React.FC = () => {
           <div className="flex items-center gap-4 mb-6">
             <Logo size="lg" withText />
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold">
-              <span className="bg-gradient-to-r from-church-blue to-church-red text-transparent bg-clip-text font-bold">Plataforma</span> <span className="bg-gradient-to-r from-church-red to-amber-400 text-transparent bg-clip-text font-bold">AltarHub</span>, a gestão da sua igreja 100% Online!
+              <span className="bg-gradient-to-r from-church-blue to-church-red text-transparent bg-clip-text font-bold">Plataforma</span> <span className="bg-gradient-to-r from-church-red to-amber-400 text-transparent bg-clip-text font-bold">BetelHub</span>, a gestão da sua igreja 100% Online!
             </h1>
           </div>
           <p className="text-xl md:text-2xl mb-8 text-gray-600 dark:text-gray-300">

@@ -155,7 +155,7 @@ const Pricing: React.FC = () => {
                 <Logo size="sm" />
                 <h1 className="text-xl font-bold text-gray-900 dark:text-white font-montserrat">
                   <span className="bg-gradient-to-r from-church-red to-amber-400 text-transparent bg-clip-text">
-                    AltarHub
+                    BetelHub
                   </span>
                   <span className="text-gray-600 dark:text-gray-300 ml-2">Preços</span>
                 </h1>
@@ -194,7 +194,7 @@ const Pricing: React.FC = () => {
           <div className="inline-flex items-center space-x-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg">
             <Star className="w-5 h-5 text-yellow-500" />
             <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-              Mais de 500+ igrejas confiam na AltarHub
+              Mais de 500+ igrejas confiam na BetelHub
             </span>
           </div>
         </div>
@@ -230,7 +230,7 @@ const Pricing: React.FC = () => {
               <span className="bg-gradient-to-r from-church-blue to-church-red text-transparent bg-clip-text">
                 Por que escolher
               </span>
-              <span className="text-gray-900 dark:text-white"> a AltarHub?</span>
+              <span className="text-gray-900 dark:text-white"> a BetelHub?</span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-12">
               Uma plataforma completa, segura e pensada especificamente para igrejas
@@ -343,14 +343,14 @@ const Pricing: React.FC = () => {
           </h2>
           <p className="text-xl md:text-2xl mb-10 max-w-3xl mx-auto opacity-90 leading-relaxed">
             Junte-se a centenas de igrejas que estão usando a 
-            <span className="font-bold text-yellow-200"> AltarHub</span> para simplificar sua administração.
+            <span className="font-bold text-yellow-200"> BetelHub</span> para simplificar sua administração.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/commercial-contact">
               <Button 
                 size="lg" 
                 className="bg-white text-church-blue hover:bg-gray-100 px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300"
-                aria-label="Iniciar teste gratuito da plataforma AltarHub"
+                aria-label="Iniciar teste gratuito da plataforma BetelHub"
               >
                 Começar Teste Gratuito
               </Button>
