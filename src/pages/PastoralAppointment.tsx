@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { getDefaultTenantId } from '@/utils/tenant';
 import {
   Form,
   FormControl,
@@ -111,7 +112,8 @@ const PastoralAppointment: React.FC = () => {
           appointment_time: data.appointment_time,
           reason: sanitizeText(data.reason),
           message: data.message ? sanitizeText(data.message) : null,
-          status: 'pending'
+          status: 'pending',
+          tenant_id: getDefaultTenantId(),
         }]);
 
       if (error) throw error;

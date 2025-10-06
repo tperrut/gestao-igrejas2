@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import EventModal from './EventModal';
 import { supabase } from '@/integrations/supabase/client';
 import { Event } from '@/types/libraryTypes';
+import { getDefaultTenantId } from '@/utils/tenant';
 
 const EventSchedule: React.FC = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());

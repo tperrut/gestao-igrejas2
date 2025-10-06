@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlusCircle, List, Grid } from 'lucide-react';
+import { getDefaultTenantId } from '@/utils/tenant';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -179,6 +180,7 @@ const Courses = () => {
           category: courseData.category,
           prerequisites: courseData.prerequisites || null,
           image_url: courseData.image_url || null,
+          tenant_id: getDefaultTenantId(),
         };
 
         console.log('Dados para inserção:', insertData);

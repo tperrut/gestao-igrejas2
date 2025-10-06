@@ -22,6 +22,7 @@ import { Event } from '@/types/libraryTypes';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
+import { getDefaultTenantId } from '@/utils/tenant';
 
 const Events = () => {
   const [events, setEvents] = useState<Event[]>([]);

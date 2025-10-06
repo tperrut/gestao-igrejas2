@@ -9,6 +9,7 @@ import {
   SundaySchoolAttendance,
   SundaySchoolClassTeacher
 } from '@/types/sundaySchoolTypes';
+import { getDefaultTenantId } from '@/utils/tenant';
 
 export const useSundaySchool = () => {
   const [teachers, setTeachers] = useState<SundaySchoolTeacher[]>([]);

@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useSundaySchool } from '@/hooks/useSundaySchool';
 import { SundaySchoolVisitorForm } from './SundaySchoolVisitorForm';
+import { getDefaultTenantId } from '@/utils/tenant';
 
 export const SundaySchoolAttendance: React.FC = () => {
   const [selectedLesson, setSelectedLesson] = useState<string>('');
@@ -128,12 +129,14 @@ export const SundaySchoolAttendance: React.FC = () => {
             member_id: null,
             visitor_name: student.member?.name,
             present: attendance[student.member_id] || false,
+            tenant_id: getDefaultTenantId(),
           };
         }
         return {
           lesson_id: selectedLesson,
           member_id: student.member_id,
           present: attendance[student.member_id] || false,
+          tenant_id: getDefaultTenantId(),
         };
       });
 

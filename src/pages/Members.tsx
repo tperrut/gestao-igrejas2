@@ -19,6 +19,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Member } from '@/types/libraryTypes';
 import { MemberFormValues } from '@/components/members/MemberForm';
 import { supabase } from '@/integrations/supabase/client';
+import { getDefaultTenantId } from '@/utils/tenant';
 
 const Members = () => {
   const [members, setMembers] = useState<Member[]>([]);
