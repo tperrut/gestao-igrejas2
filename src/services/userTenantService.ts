@@ -11,10 +11,10 @@ export const useUserTenantService = () => {
         .from('tenant_users')
         .select('*')
         .eq('tenant_id', tenantId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false});
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as TenantUser[];
     } catch (error) {
       console.error('Error fetching tenant users:', error);
       toast({

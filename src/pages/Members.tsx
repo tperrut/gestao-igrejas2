@@ -124,6 +124,7 @@ const Members = () => {
               join_date: memberData.join_date,
               birth_date: memberData.birth_date || null,
               avatar_url: memberData.avatar_url || null,
+              tenant_id: getDefaultTenantId(),
             }
           ])
           .select();

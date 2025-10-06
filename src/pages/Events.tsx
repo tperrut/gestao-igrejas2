@@ -151,6 +151,7 @@ const Events = () => {
           organizer: eventData.organizer,
           capacity: Number(eventData.capacity) || 0,
           image_url: eventData.image_url || null,
+          tenant_id: getDefaultTenantId(),
         };
 
         console.log('Dados para inserção:', insertData);

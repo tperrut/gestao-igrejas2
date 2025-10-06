@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Reservation, ReservationStatus } from '@/types/reservationTypes';
 import { useToast } from "@/components/ui/use-toast";
 import { logger } from '@/utils/logger';
+import { getDefaultTenantId } from '@/utils/tenant';
 
 export const useReservationService = () => {
   const { toast } = useToast();
@@ -106,7 +107,8 @@ export const useReservationService = () => {
         .insert([{
           book_id: bookId,
           member_id: memberId,
-          status: 'active'
+          status: 'active',
+          tenant_id: getDefaultTenantId(),
         }]);
 
       if (error) throw error;
@@ -218,7 +220,8 @@ export const useReservationService = () => {
           member_id: reservationData.member_id,
           borrow_date: new Date().toISOString().split('T')[0],
           due_date: dueDate,
-          status: 'active'
+          status: 'active',
+          tenant_id: getDefaultTenantId(),
         }]);
 
       if (loanError) throw loanError;

@@ -173,6 +173,7 @@ export const SundaySchoolAttendance: React.FC = () => {
           present: visitorData.present,
           arrival_time: visitorData.arrival_time || null,
           notes: visitorData.notes || null,
+          tenant_id: getDefaultTenantId(),
         }]);
 
       if (error) throw error;

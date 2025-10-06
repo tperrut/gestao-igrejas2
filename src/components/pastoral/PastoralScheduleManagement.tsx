@@ -124,7 +124,8 @@ const PastoralScheduleManagement: React.FC = () => {
           date: newSchedule.date,
           time: newSchedule.time,
           is_available: newSchedule.is_available,
-          notes: newSchedule.notes || null
+          notes: newSchedule.notes || null,
+          tenant_id: getDefaultTenantId(),
         }])
         .select();
 

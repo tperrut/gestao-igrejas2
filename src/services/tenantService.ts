@@ -13,7 +13,7 @@ export const useTenantService = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as Tenant[];
     } catch (error) {
       console.error('Error fetching tenants:', error);
       toast({
@@ -34,7 +34,7 @@ export const useTenantService = () => {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as Tenant;
     } catch (error) {
       console.error('Error fetching tenant:', error);
       return null;
@@ -61,7 +61,7 @@ export const useTenantService = () => {
         description: `${tenantData.name} foi criado com sucesso.`,
       });
 
-      return data;
+      return data as Tenant;
     } catch (error) {
       console.error('Error creating tenant:', error);
       toast({

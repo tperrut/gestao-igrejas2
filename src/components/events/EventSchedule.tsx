@@ -130,6 +130,7 @@ const EventSchedule: React.FC = () => {
           organizer: eventData.organizer.trim(),
           capacity: capacity,
           image_url: eventData.image_url || null,
+          tenant_id: getDefaultTenantId(),
         };
 
         console.log('Dados para inserção no calendário:', insertData);

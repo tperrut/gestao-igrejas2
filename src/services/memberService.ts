@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Member } from '@/types/libraryTypes';
 import { useToast } from "@/components/ui/use-toast";
 import { logger } from '@/utils/logger';
+import { getDefaultTenantId } from '@/utils/tenant';
 
 export const useMemberService = () => {
   const { toast } = useToast();
@@ -53,13 +54,13 @@ export const useMemberService = () => {
     }
   };
 
-  const saveMember = async (memberData: Omit<Member, 'id' | 'created_at' | 'updated_at'>): Promise<boolean> => {
+  const saveMember = async (memberData: Omit<Member, 'id' | 'created_at' | 'updated_at' | 'tenant_id'>): Promise<boolean> => {
     try {
       logger.businessLog('Creating new member', { name: memberData.name, email: memberData.email });
       
-      const { error } = await supabase
+      const { error} = await supabase
         .from('members')
-        .insert([memberData]);
+        .insert([{ ...memberData, tenant_id: getDefaultTenantId() }]);
 
       if (error) throw error;
 

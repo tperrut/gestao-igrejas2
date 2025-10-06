@@ -4,6 +4,7 @@ import { Loan, LoanStatus } from '@/types/libraryTypes';
 import { useToast } from "@/components/ui/use-toast";
 import { LoanFormValues } from '@/components/library/LoanForm';
 import { logger } from '@/utils/logger';
+import { getDefaultTenantId } from '@/utils/tenant';
 
 export const useLoanService = () => {
   const { toast } = useToast();
@@ -126,7 +127,8 @@ export const useLoanService = () => {
           borrow_date: loanData.borrow_date,
           due_date: loanData.due_date,
           notes: loanData.notes || null,
-          status: 'active'
+          status: 'active',
+          tenant_id: getDefaultTenantId(),
         }]);
 
       if (error) throw error;

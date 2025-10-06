@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Book } from '@/types/libraryTypes';
 import { useToast } from "@/components/ui/use-toast";
 import { logger } from '@/utils/logger';
+import { getDefaultTenantId } from '@/utils/tenant';
 
 export const useBookService = () => {
   const { toast } = useToast();
@@ -106,6 +107,7 @@ export const useBookService = () => {
             available_copies: bookData.available_copies,
             description: bookData.description,
             cover_url: bookData.cover_url,
+            tenant_id: getDefaultTenantId(),
           }]);
 
         if (error) throw error;

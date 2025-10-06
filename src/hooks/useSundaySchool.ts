@@ -103,12 +103,12 @@ export const useSundaySchool = () => {
   };
 
   // Create Teacher
-  const createTeacher = async (teacherData: Omit<SundaySchoolTeacher, 'id' | 'created_at' | 'updated_at'>) => {
+  const createTeacher = async (teacherData: Omit<SundaySchoolTeacher, 'id' | 'created_at' | 'updated_at' | 'tenant_id'>) => {
     try {
       setLoading(true);
       const { error } = await supabase
         .from('sunday_school_teachers')
-        .insert([teacherData]);
+        .insert([{ ...teacherData, tenant_id: getDefaultTenantId() }]);
 
       if (error) throw error;
 
@@ -132,12 +132,12 @@ export const useSundaySchool = () => {
   };
 
   // Create Class
-  const createClass = async (classData: Omit<SundaySchoolClass, 'id' | 'created_at' | 'updated_at'>) => {
+  const createClass = async (classData: Omit<SundaySchoolClass, 'id' | 'created_at' | 'updated_at' | 'tenant_id'>) => {
     try {
       setLoading(true);
       const { error } = await supabase
         .from('sunday_school_classes')
-        .insert([classData]);
+        .insert([{ ...classData, tenant_id: getDefaultTenantId() }]);
 
       if (error) throw error;
 
@@ -161,12 +161,12 @@ export const useSundaySchool = () => {
   };
 
   // Create Enrollment
-  const createEnrollment = async (enrollmentData: Omit<SundaySchoolEnrollment, 'id' | 'created_at' | 'updated_at'>) => {
+  const createEnrollment = async (enrollmentData: Omit<SundaySchoolEnrollment, 'id' | 'created_at' | 'updated_at' | 'tenant_id'>) => {
     try {
       setLoading(true);
       const { error } = await supabase
         .from('sunday_school_enrollments')
-        .insert([enrollmentData]);
+        .insert([{ ...enrollmentData, tenant_id: getDefaultTenantId() }]);
 
       if (error) throw error;
 
@@ -190,12 +190,12 @@ export const useSundaySchool = () => {
   };
 
   // Create Lesson
-  const createLesson = async (lessonData: Omit<SundaySchoolLesson, 'id' | 'created_at' | 'updated_at'>) => {
+  const createLesson = async (lessonData: Omit<SundaySchoolLesson, 'id' | 'created_at' | 'updated_at' | 'tenant_id'>) => {
     try {
       setLoading(true);
       const { error } = await supabase
         .from('sunday_school_lessons')
-        .insert([lessonData]);
+        .insert([{ ...lessonData, tenant_id: getDefaultTenantId() }]);
 
       if (error) throw error;
 
