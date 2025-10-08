@@ -960,6 +960,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      belongs_to_tenant: {
+        Args: { check_tenant_id: string }
+        Returns: boolean
+      }
       can_access_pastoral_appointment: {
         Args: { appointment_user_id: string }
         Returns: boolean
