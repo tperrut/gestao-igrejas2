@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
 const UserProfile: React.FC = () => {
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, isAdmin } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -125,7 +125,7 @@ const UserProfile: React.FC = () => {
             <div className="space-y-2">
               <Label>Função</Label>
               <Input
-                value={profile.role === 'admin' ? 'Administrador' : 'Membro'}
+                value={isAdmin() ? 'Administrador' : 'Membro'}
                 disabled
                 className="bg-muted"
               />

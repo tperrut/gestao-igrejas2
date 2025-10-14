@@ -16,14 +16,13 @@ export const useOwner = () => {
           return;
         }
 
-        // Verificar se o usuário é owner
+        // Verificar se o usuário é owner na tabela user_roles
         const { data } = await supabase
-          .from('tenant_users')
+          .from('user_roles')
           .select('role')
           .eq('user_id', user.id)
           .eq('role', 'owner')
-          .eq('status', 'active')
-          .single();
+          .maybeSingle();
 
         setIsOwner(!!data);
       } catch (error) {

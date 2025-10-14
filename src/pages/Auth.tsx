@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, EyeOff, LogIn, UserPlus } from 'lucide-react';
 
 const Auth: React.FC = () => {
-  const { user, profile, signIn, signUp, loading } = useAuth();
+  const { user, profile, signIn, signUp, loading, isAdmin, isMember } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -26,9 +26,9 @@ const Auth: React.FC = () => {
 
   // Redirect if already authenticated
   if (user && profile && !loading) {
-    if (profile.role === "admin") {
+    if (isAdmin()) {
       return <Navigate to="/dashboard" replace />;
-    } else if (profile.role === "member") {
+    } else if (isMember()) {
       return <Navigate to="/member-dashboard" replace />;
     }
   }

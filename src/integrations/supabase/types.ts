@@ -436,7 +436,6 @@ export type Database = {
           email: string
           id: string
           name: string
-          role: string
           tenant_id: string
           updated_at: string
         }
@@ -445,7 +444,6 @@ export type Database = {
           email: string
           id: string
           name: string
-          role?: string
           tenant_id: string
           updated_at?: string
         }
@@ -454,7 +452,6 @@ export type Database = {
           email?: string
           id?: string
           name?: string
-          role?: string
           tenant_id?: string
           updated_at?: string
         }
@@ -955,6 +952,41 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          tenant_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          tenant_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          tenant_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -991,7 +1023,17 @@ export type Database = {
         Returns: string
       }
       has_role: {
-        Args: { required_role: string; user_id: string }
+        Args:
+          | { _role: Database["public"]["Enums"]["app_role"]; _user_id: string }
+          | { required_role: string; user_id: string }
+        Returns: boolean
+      }
+      has_role_in_tenant: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _tenant_id: string
+          _user_id: string
+        }
         Returns: boolean
       }
       is_admin: {
@@ -1016,7 +1058,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "owner" | "admin" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1143,6 +1185,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["owner", "admin", "member"],
+    },
   },
 } as const

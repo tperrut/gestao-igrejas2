@@ -9,9 +9,13 @@ interface Profile {
   id: string;
   email: string;
   name: string;
-  role: 'member' | 'admin';
   created_at: string;
   updated_at: string;
+}
+
+interface UserRole {
+  role: 'owner' | 'admin' | 'member';
+  tenant_id: string;
 }
 
 interface AuthContextType {
@@ -45,6 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -109,6 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }, 0);
         } else {
           setProfile(null);
+          setUserRole(null);
         }
         setLoading(false);
       }
@@ -134,29 +140,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       logger.dbLog('Fetching user profile', { userId });
       
-      const { data, error } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (error) {
-        logger.dbError('Failed to fetch user profile', error, { userId });
-        console.error('Error fetching profile:', error);
+      if (profileError) {
+        logger.dbError('Failed to fetch user profile', profileError, { userId });
+        console.error('Error fetching profile:', profileError);
         return;
       }
 
-      // Ensure role is properly typed
-      const profileData: Profile = {
-        ...data,
-        role: data.role as 'member' | 'admin'
-      };
+      setProfile(profileData as Profile);
 
-      setProfile(profileData);
-      logger.authLog('User profile fetched successfully', userId, { role: profileData.role });
+      // Fetch user role from user_roles table
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role, tenant_id')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (roleError) {
+        logger.dbError('Failed to fetch user role', roleError, { userId });
+      }
+      
+      setUserRole(roleData as UserRole | null);
+      logger.authLog('User profile fetched successfully', userId, { role: roleData?.role });
     } catch (error) {
       logger.authError('Error fetching user profile', error instanceof Error ? error : new Error(String(error)), { userId }, userId);
       console.error('Error fetching user profile:', error);
+      setProfile(null);
+      setUserRole(null);
     }
   };
 
@@ -355,13 +370,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const isAdmin = () => {
-    const adminCheck = profile?.role === 'admin';
+    const adminCheck = userRole?.role === 'admin' || userRole?.role === 'owner';
     // Reduced logging: Only log admin access during critical operations
     return adminCheck;
   };
 
   const isMember = () => {
-    return profile?.role === 'member';
+    return userRole?.role === 'member';
   };
 
   const value = {

@@ -23,7 +23,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin = false })
     return <Navigate to="/auth" replace />;
   }
 
-  if (requireAdmin && profile?.role !== 'admin') {
+  if (requireAdmin && !profile) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

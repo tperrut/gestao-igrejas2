@@ -61,14 +61,17 @@ export const useUserTenantService = () => {
   };
 
   const updateUserTenantRole = async (
-    id: string,
-    role: 'admin' | 'member'
+    userId: string,
+    tenantId: string,
+    role: 'owner' | 'admin' | 'member'
   ): Promise<boolean> => {
     try {
+      // Update in user_roles table
       const { error } = await supabase
-        .from('tenant_users')
+        .from('user_roles')
         .update({ role })
-        .eq('id', id);
+        .eq('user_id', userId)
+        .eq('tenant_id', tenantId);
 
       if (error) throw error;
 

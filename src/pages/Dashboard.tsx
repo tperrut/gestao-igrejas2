@@ -52,7 +52,7 @@ const UpcomingEvent: React.FC<{
 );
 
 const Dashboard: React.FC = () => {
-  const { profile, loading } = useAuth();
+  const { profile, loading, isAdmin } = useAuth();
   const { stats, upcomingEvents, loading: statsLoading } = useDashboardStats();
 
   // Wait for loading to complete
@@ -65,7 +65,7 @@ const Dashboard: React.FC = () => {
   }
 
   // Redirect if not admin
-  if (profile && profile.role !== 'admin') {
+  if (profile && !isAdmin()) {
     return <Navigate to="/member-dashboard" replace />;
   }
 

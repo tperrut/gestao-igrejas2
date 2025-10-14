@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
 
 export const useSecureAuth = () => {
-  const { user, session, loading, profile, isAdmin, isMember } = useAuth();
+  const { user, session, loading, isAdmin, isMember } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -53,12 +53,11 @@ export const useSecureAuth = () => {
 
   return {
     isAuthenticated,
-    isAdmin, // Use the centralized isAdmin from AuthContext
+    isAdmin,
     requireAuth,
     requireAdmin,
     user,
     session,
-    profile,
     loading
   };
 };
