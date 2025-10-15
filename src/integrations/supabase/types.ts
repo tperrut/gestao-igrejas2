@@ -1000,6 +1000,10 @@ export type Database = {
         Args: { appointment_user_id: string }
         Returns: boolean
       }
+      check_user_role: {
+        Args: { _role: string; _user_id: string }
+        Returns: boolean
+      }
       create_tenant_with_admin: {
         Args: {
           admin_email: string
@@ -1054,6 +1058,10 @@ export type Database = {
       }
       is_valid_phone: {
         Args: { phone: string }
+        Returns: boolean
+      }
+      user_is_owner: {
+        Args: { _user_id: string }
         Returns: boolean
       }
     }
