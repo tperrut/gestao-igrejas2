@@ -36,19 +36,6 @@ const Home: React.FC = () => {
                   Preços
                 </Button>
               </Link>
-              {user ? (
-                <Link to={dashboardPath}>
-                  <Button variant="default" aria-label="Acessar painel administrativo do usuário">
-                    Ir para Dashboard
-                  </Button>
-                </Link>
-              ) : (
-                <Link to="/auth">
-                  <Button variant="default" aria-label="Fazer login ou criar conta no sistema">
-                    Acessar Sistema
-                  </Button>
-                </Link>
-              )}
             </div>
           </div>
         </div>

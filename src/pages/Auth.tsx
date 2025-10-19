@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,11 +8,43 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, EyeOff, LogIn, UserPlus } from 'lucide-react';
+import { detectSubdomain, getTenantSlug } from '@/utils/subdomain';
+import { supabase } from '@/integrations/supabase/client';
 
 const Auth: React.FC = () => {
   const { user, profile, signIn, signUp, loading, isAdmin, isMember } = useAuth();
+  const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [tenantSlug, setTenantSlug] = useState<string | null>(null);
+  const [tenantName, setTenantName] = useState<string>('');
+
+  // Detect tenant from subdomain or URL parameter
+  useEffect(() => {
+    const slug = searchParams.get('tenant') || getTenantSlug();
+    setTenantSlug(slug);
+    
+    // Fetch tenant name if slug exists
+    if (slug) {
+      fetchTenantName(slug);
+    }
+  }, [searchParams]);
+
+  const fetchTenantName = async (slug: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('tenants')
+        .select('name')
+        .eq('subdomain', slug)
+        .single();
+      
+      if (!error && data) {
+        setTenantName(data.name);
+      }
+    } catch (error) {
+      console.error('Error fetching tenant:', error);
+    }
+  };
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState('');
@@ -26,10 +58,22 @@ const Auth: React.FC = () => {
 
   // Redirect if already authenticated
   if (user && profile && !loading) {
-    if (isAdmin()) {
-      return <Navigate to="/dashboard" replace />;
-    } else if (isMember()) {
-      return <Navigate to="/member-dashboard" replace />;
+    const subdomainInfo = detectSubdomain();
+    
+    // If on subdomain, always redirect to dashboard
+    if (subdomainInfo.isSubdomain) {
+      if (isAdmin()) {
+        return <Navigate to="/dashboard" replace />;
+      } else if (isMember()) {
+        return <Navigate to="/member-dashboard" replace />;
+      }
+    } else {
+      // On main domain, redirect to dashboard
+      if (isAdmin()) {
+        return <Navigate to="/dashboard" replace />;
+      } else if (isMember()) {
+        return <Navigate to="/member-dashboard" replace />;
+      }
     }
   }
 
@@ -70,8 +114,17 @@ const Auth: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="w-full max-w-md">
+        {tenantName && (
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {tenantName}
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Sistema de Gestão</p>
+          </div>
+        )}
+        
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">Entrar</TabsTrigger>
@@ -86,7 +139,7 @@ const Auth: React.FC = () => {
                   Entrar no Sistema
                 </CardTitle>
                 <CardDescription>
-                  Entre com suas credenciais para acessar o sistema da igreja.
+                  Entre com suas credenciais para acessar o sistema.
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleLogin}>
