@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import AuthGuard from "./components/auth/AuthGuard";
 import Layout from "./components/Layout";
-import Home from "./pages/Home";
+import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import MemberDashboard from "./pages/MemberDashboard";
@@ -19,13 +19,14 @@ import Courses from "./pages/Courses";
 import Loans from "./pages/Loans";
 import Finance from "./pages/Finance";
 import Contact from "./pages/Contact";
-import CommercialContact from "./pages/CommercialContact";
-import Pricing from "./pages/Pricing";
 import PastoralAppointment from "./pages/PastoralAppointment";
 import PastoralManagement from "./pages/PastoralManagement";
 import Settings from "./pages/Settings";
 import SundaySchool from "./pages/SundaySchool";
 import NotFound from "./pages/NotFound";
+import OwnerDashboard from "./pages/OwnerDashboard";
+import TenantManagement from "./pages/TenantManagement";
+import OwnerGuard from "./components/auth/OwnerGuard";
 
 const queryClient = new QueryClient();
 
@@ -37,10 +38,22 @@ const App = () => (
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/commercial-contact" element={<CommercialContact />} />
+            
+            {/* Owner Routes */}
+            <Route path="/owner/dashboard" element={
+              <OwnerGuard>
+                <OwnerDashboard />
+              </OwnerGuard>
+            } />
+            <Route path="/owner/tenants" element={
+              <OwnerGuard>
+                <TenantManagement />
+              </OwnerGuard>
+            } />
+            
+            {/* Protected Tenant Routes */}
             <Route element={
               <AuthGuard>
                 <Layout>

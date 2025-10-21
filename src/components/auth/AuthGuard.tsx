@@ -9,7 +9,7 @@ interface AuthGuardProps {
 }
 
 const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin = false }) => {
-  const { user, profile, loading } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
 
   if (loading) {
     return (
@@ -23,7 +23,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin = false })
     return <Navigate to="/auth" replace />;
   }
 
-  if (requireAdmin && !profile) {
+  if (requireAdmin && (!isAdmin || !isAdmin())) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

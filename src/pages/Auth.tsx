@@ -1,32 +1,49 @@
 
 import React, { useState, useEffect } from 'react';
-import { Navigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, LogIn } from 'lucide-react';
-import { detectSubdomain, getTenantSlug } from '@/utils/subdomain';
+import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
+import { detectSubdomain, getTenantSlug, validateTenantExists } from '@/utils/subdomain';
 import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Auth: React.FC = () => {
   const { user, profile, signIn, loading, isAdmin, isMember } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [tenantSlug, setTenantSlug] = useState<string | null>(null);
   const [tenantName, setTenantName] = useState<string>('');
+  const [tenantValid, setTenantValid] = useState<boolean | null>(null);
 
   // Detect tenant from subdomain or URL parameter
   useEffect(() => {
-    const slug = searchParams.get('tenant') || getTenantSlug();
-    setTenantSlug(slug);
+    const validateAndFetchTenant = async () => {
+      const slug = searchParams.get('tenant') || getTenantSlug();
+      
+      if (!slug) {
+        setTenantValid(false);
+        return;
+      }
+      
+      setTenantSlug(slug);
+      
+      // Validate tenant exists and is active
+      const isValid = await validateTenantExists(slug);
+      setTenantValid(isValid);
+      
+      // Fetch tenant name if valid
+      if (isValid) {
+        fetchTenantName(slug);
+      }
+    };
     
-    // Fetch tenant name if slug exists
-    if (slug) {
-      fetchTenantName(slug);
-    }
+    validateAndFetchTenant();
   }, [searchParams]);
 
   const fetchTenantName = async (slug: string) => {
@@ -72,16 +89,40 @@ const Auth: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate tenant before login
+    if (!tenantSlug || tenantValid === false) {
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
-      await signIn(loginEmail, loginPassword);
+      const { error } = await signIn(loginEmail, loginPassword);
+      
+      if (!error) {
+        // Verify user belongs to this tenant
+        const { data: tenantUser } = await supabase
+          .from('tenant_users')
+          .select('tenant_id, tenants!inner(subdomain)')
+          .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+          .eq('status', 'active')
+          .single();
+        
+        if (tenantUser && (tenantUser.tenants as any).subdomain === tenantSlug) {
+          // User belongs to this tenant, redirect will happen automatically
+        } else {
+          // User doesn't belong to this tenant
+          await supabase.auth.signOut();
+          alert('Você não tem permissão para acessar este tenant.');
+        }
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (loading) {
+  if (loading || tenantValid === null) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -92,7 +133,16 @@ const Auth: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="w-full max-w-md">
-        {tenantName && (
+        {!tenantValid && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Tenant inválido ou inativo. Verifique a URL de acesso.
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {tenantName && tenantValid && (
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               {tenantName}
@@ -149,7 +199,11 @@ const Auth: React.FC = () => {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isLoading || !tenantValid}
+              >
                 {isLoading ? "Entrando..." : "Entrar"}
               </Button>
             </CardFooter>

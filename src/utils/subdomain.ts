@@ -71,6 +71,26 @@ export const getTenantSlug = (): string | null => {
 };
 
 /**
+ * Validates if a tenant exists in the database by subdomain
+ */
+export const validateTenantExists = async (subdomain: string): Promise<boolean> => {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client');
+    const { data, error } = await supabase
+      .from('tenants')
+      .select('id')
+      .eq('subdomain', subdomain)
+      .eq('status', 'active')
+      .single();
+    
+    return !error && !!data;
+  } catch (error) {
+    console.error('Error validating tenant:', error);
+    return false;
+  }
+};
+
+/**
  * Checks if current page is on the main domain (landing page)
  */
 export const isMainDomain = (): boolean => {
