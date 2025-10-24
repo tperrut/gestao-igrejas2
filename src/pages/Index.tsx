@@ -14,7 +14,9 @@ const Index = () => {
 
     // Se não há subdomínio, redireciona para erro
     if (!subdomainInfo.isSubdomain) {
-      navigate("/not-found");
+      //navigate("/not-found");
+      navigate("/auth");
+
       return;
     }
 
