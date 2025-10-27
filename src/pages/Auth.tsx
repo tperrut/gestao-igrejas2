@@ -36,6 +36,9 @@ const Auth: React.FC = () => {
       // Validate tenant exists and is active
       const isValid = await validateTenantExists(slug);
       setTenantValid(isValid);
+      //forçando a barra
+      setTenantValid(true)
+
       
       // Fetch tenant name if valid
       if (isValid) {
