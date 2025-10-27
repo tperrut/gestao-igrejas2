@@ -13,6 +13,7 @@ export interface SubdomainInfo {
  * @returns SubdomainInfo with subdomain detection data
  */
 export const detectSubdomain = (): SubdomainInfo => {
+  // deveria ser uma const
   const host = window.location.hostname;
   const parts = host.split('.');
   
@@ -20,8 +21,12 @@ export const detectSubdomain = (): SubdomainInfo => {
   if (host === 'localhost' || host === '127.0.0.1' || host.includes('localhost:')) {
     // Check for subdomain in URL params for local testing
     const urlParams = new URLSearchParams(window.location.search);
-    const tenantParam = urlParams.get('tenant');
+    let tenantParam = urlParams.get('tenant');
     
+    if(tenantParam === null){
+      tenantParam = "default";
+    }
+
     if (tenantParam) {
       return {
         isSubdomain: true,
@@ -76,13 +81,14 @@ export const getTenantSlug = (): string | null => {
 export const validateTenantExists = async (subdomain: string): Promise<boolean> => {
   try {
     const { supabase } = await import('@/integrations/supabase/client');
+    console.log('Validando tenant:', subdomain);
     const { data, error } = await supabase
       .from('tenants')
       .select('id')
-      .eq('subdomain', subdomain)
+    //.eq('subdomain', subdomain)
       .eq('status', 'active')
       .single();
-    
+    console.log('Resultado da validação:', { data, error });
     return !error && !!data;
   } catch (error) {
     console.error('Error validating tenant:', error);

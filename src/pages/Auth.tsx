@@ -25,7 +25,7 @@ const Auth: React.FC = () => {
   useEffect(() => {
     const validateAndFetchTenant = async () => {
       const slug = searchParams.get('tenant') || getTenantSlug();
-      
+      console.log('Detected tenant slug:', slug);
       if (!slug) {
         setTenantValid(false);
         return;
