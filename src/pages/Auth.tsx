@@ -23,44 +23,35 @@ const Auth: React.FC = () => {
 
   // Detect tenant from subdomain or URL parameter
   useEffect(() => {
-    const validateAndFetchTenant = async () => {
-      const slug = searchParams.get('tenant') || getTenantSlug();
-      console.log('Detected tenant slug:', slug);
-      if (!slug) {
-        setTenantValid(false);
-        return;
-      }
-      
-      setTenantSlug(slug);
-      
-      // Validate tenant exists and is active
-      const isValid = await validateTenantExists(slug);
-      setTenantValid(isValid);
-      //forçando a barra
-      setTenantValid(true)
-
-      
-      // Fetch tenant name if valid
-      if (isValid) {
-        fetchTenantName(slug);
-      }
-    };
-    
-    validateAndFetchTenant();
+    const slug = searchParams.get('tenant') || getTenantSlug();
+    setTenantSlug(slug);
+    if (slug) {
+      fetchTenantName(slug);
+    } else {
+      setTenantValid(false);
+      setTenantName('');
+    }
   }, [searchParams]);
 
   const fetchTenantName = async (slug: string) => {
     try {
       const { data, error } = await supabase
-        .from('tenants')
-        .select('name')
+        .from('tenant_branding')
+        .select('name, subdomain, logo_url')
         .eq('subdomain', slug)
         .single();
-      
-      if (!error && data) {
+
+      if (!error && data ) {
         setTenantName(data.name);
+        // setLogoUrl(data.logo_url); // se quiser usar
+        setTenantValid(true);
+      } else {
+        setTenantName('');
+        setTenantValid(false);
       }
     } catch (error) {
+      setTenantName('');
+      setTenantValid(false);
       console.error('Error fetching tenant:', error);
     }
   };
@@ -72,7 +63,7 @@ const Auth: React.FC = () => {
   // Redirect if already authenticated
   if (user && profile && !loading) {
     const subdomainInfo = detectSubdomain();
-    
+
     // If on subdomain, always redirect to dashboard
     if (subdomainInfo.isSubdomain) {
       if (isAdmin()) {
@@ -92,17 +83,17 @@ const Auth: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate tenant before login
     if (!tenantSlug || tenantValid === false) {
       return;
     }
-    
+
     setIsLoading(true);
 
     try {
       const { error } = await signIn(loginEmail, loginPassword);
-      
+
       if (!error) {
         // Verify user belongs to this tenant
         const { data: tenantUser } = await supabase
@@ -111,7 +102,7 @@ const Auth: React.FC = () => {
           .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
           .eq('status', 'active')
           .single();
-        
+
         if (tenantUser && (tenantUser.tenants as any).subdomain === tenantSlug) {
           // User belongs to this tenant, redirect will happen automatically
         } else {
@@ -144,7 +135,7 @@ const Auth: React.FC = () => {
             </AlertDescription>
           </Alert>
         )}
-        
+
         {tenantName && tenantValid && (
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -153,7 +144,7 @@ const Auth: React.FC = () => {
             <p className="text-sm text-gray-600 dark:text-gray-400">Sistema de Gestão</p>
           </div>
         )}
-        
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -202,9 +193,9 @@ const Auth: React.FC = () => {
               </div>
             </CardContent>
             <CardFooter>
-              <Button 
-                type="submit" 
-                className="w-full" 
+              <Button
+                type="submit"
+                className="w-full"
                 disabled={isLoading || !tenantValid}
               >
                 {isLoading ? "Entrando..." : "Entrar"}
