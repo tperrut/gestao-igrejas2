@@ -36,14 +36,14 @@ const Auth: React.FC = () => {
   const fetchTenantName = async (slug: string) => {
     try {
       const { data, error } = await supabase
-        .from('tenant_branding')
-        .select('name, subdomain, logo_url')
+        .from('tenants')
+        .select('name, subdomain')
         .eq('subdomain', slug)
-        .single();
+        .eq('status', 'active')
+        .maybeSingle();
 
-      if (!error && data ) {
+      if (!error && data) {
         setTenantName(data.name);
-        // setLogoUrl(data.logo_url); // se quiser usar
         setTenantValid(true);
       } else {
         setTenantName('');
