@@ -68,6 +68,13 @@ export type Database = {
             foreignKeyName: "books_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenant_branding"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "books_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -139,6 +146,13 @@ export type Database = {
             foreignKeyName: "courses_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenant_branding"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "courses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -194,6 +208,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_branding"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "events_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -262,6 +283,13 @@ export type Database = {
             foreignKeyName: "loans_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenant_branding"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loans_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -311,6 +339,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "members_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_branding"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "members_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -384,6 +419,13 @@ export type Database = {
             foreignKeyName: "pastoral_appointments_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenant_branding"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pastoral_appointments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -425,6 +467,13 @@ export type Database = {
             foreignKeyName: "pastoral_schedules_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenant_branding"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pastoral_schedules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -456,6 +505,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_branding"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -518,6 +574,13 @@ export type Database = {
             foreignKeyName: "reservations_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenant_branding"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -555,6 +618,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "security_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_branding"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "security_logs_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -617,6 +687,13 @@ export type Database = {
             foreignKeyName: "sunday_school_attendance_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenant_branding"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sunday_school_attendance_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -669,6 +746,13 @@ export type Database = {
             foreignKeyName: "sunday_school_class_teachers_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenant_branding"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sunday_school_class_teachers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -706,6 +790,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sunday_school_classes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_branding"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sunday_school_classes_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -762,6 +853,13 @@ export type Database = {
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sunday_school_enrollments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_branding"
             referencedColumns: ["id"]
           },
           {
@@ -829,6 +927,13 @@ export type Database = {
             foreignKeyName: "sunday_school_lessons_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenant_branding"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sunday_school_lessons_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -876,6 +981,13 @@ export type Database = {
             foreignKeyName: "sunday_school_teachers_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenant_branding"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sunday_school_teachers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -914,6 +1026,13 @@ export type Database = {
             foreignKeyName: "tenant_users_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenant_branding"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_users_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -923,6 +1042,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          logo_url: string | null
           name: string
           plan_type: string
           settings: Json | null
@@ -933,6 +1053,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          logo_url?: string | null
           name: string
           plan_type?: string
           settings?: Json | null
@@ -943,6 +1064,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          logo_url?: string | null
           name?: string
           plan_type?: string
           settings?: Json | null
@@ -982,6 +1104,13 @@ export type Database = {
             foreignKeyName: "user_roles_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenant_branding"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_roles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -989,13 +1118,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      tenant_branding: {
+        Row: {
+          id: string | null
+          logo_url: string | null
+          name: string | null
+          subdomain: string | null
+        }
+        Insert: {
+          id?: string | null
+          logo_url?: string | null
+          name?: string | null
+          subdomain?: string | null
+        }
+        Update: {
+          id?: string | null
+          logo_url?: string | null
+          name?: string | null
+          subdomain?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      belongs_to_tenant: {
-        Args: { check_tenant_id: string }
-        Returns: boolean
-      }
+      belongs_to_tenant: { Args: { check_tenant_id: string }; Returns: boolean }
       can_access_pastoral_appointment: {
         Args: { appointment_user_id: string }
         Returns: boolean
@@ -1010,24 +1156,18 @@ export type Database = {
         }
         Returns: Json
       }
-      expire_reservations: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      get_current_tenant_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      has_role: {
-        Args:
-          | { _role: Database["public"]["Enums"]["app_role"]; _user_id: string }
-          | { required_role: string; user_id: string }
-        Returns: boolean
-      }
+      expire_reservations: { Args: never; Returns: undefined }
+      get_current_tenant_id: { Args: never; Returns: string }
+      get_current_user_role: { Args: never; Returns: string }
+      has_role:
+        | {
+            Args: {
+              _role: Database["public"]["Enums"]["app_role"]
+              _user_id: string
+            }
+            Returns: boolean
+          }
+        | { Args: { required_role: string; user_id: string }; Returns: boolean }
       has_role_in_tenant: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1036,26 +1176,14 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
-      is_owner: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      is_admin: { Args: { user_id: string }; Returns: boolean }
+      is_owner: { Args: { user_id: string }; Returns: boolean }
       is_tenant_admin: {
         Args: { tenant_id: string; user_id: string }
         Returns: boolean
       }
-      is_valid_email: {
-        Args: { email: string }
-        Returns: boolean
-      }
-      is_valid_phone: {
-        Args: { phone: string }
-        Returns: boolean
-      }
+      is_valid_email: { Args: { email: string }; Returns: boolean }
+      is_valid_phone: { Args: { phone: string }; Returns: boolean }
     }
     Enums: {
       app_role: "owner" | "admin" | "member"
