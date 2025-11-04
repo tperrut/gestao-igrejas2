@@ -36,11 +36,10 @@ const Auth: React.FC = () => {
   const fetchTenantName = async (slug: string) => {
     try {
       const { data, error } = await supabase
-        .from('tenants')
-        .select('name, subdomain')
+        .from('tenant_branding')
+        .select('name, subdomain, logo_url')
         .eq('subdomain', slug)
-        .eq('status', 'active')
-        .maybeSingle();
+        .single();
 
       if (!error && data) {
         setTenantName(data.name);

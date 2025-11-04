@@ -24,7 +24,7 @@ export const detectSubdomain = (): SubdomainInfo => {
     let tenantParam = urlParams.get('tenant');
     
     if(tenantParam === null){
-      tenantParam = "default";
+      tenantParam = "imwniteroi";
     }
 
     if (tenantParam) {
