@@ -27,6 +27,7 @@ import NotFound from "./pages/NotFound";
 import OwnerDashboard from "./pages/OwnerDashboard";
 import TenantManagement from "./pages/TenantManagement";
 import NewTenant from "./pages/NewTenant";
+import UserManagement from "./pages/UserManagement";
 import OwnerGuard from "./components/auth/OwnerGuard";
 
 const queryClient = new QueryClient();
@@ -56,6 +57,11 @@ const App = () => (
             <Route path="/owner/tenants/new" element={
               <OwnerGuard>
                 <NewTenant />
+              </OwnerGuard>
+            } />
+            <Route path="/owner/users" element={
+              <OwnerGuard>
+                <UserManagement />
               </OwnerGuard>
             } />
             
