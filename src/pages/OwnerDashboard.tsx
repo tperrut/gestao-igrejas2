@@ -36,10 +36,16 @@ const OwnerDashboard = () => {
             <h1 className="text-3xl font-bold">Owner Dashboard</h1>
             <p className="text-muted-foreground">Gerenciamento da plataforma BetelHub</p>
           </div>
-          <Button onClick={() => navigate('/owner/tenants/new')}>
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Tenant
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate('/owner/users')}>
+              <Users className="mr-2 h-4 w-4" />
+              Usuários
+            </Button>
+            <Button onClick={() => navigate('/owner/tenants/new')}>
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Tenant
+            </Button>
+          </div>
         </div>
 
         {/* Statistics Cards */}
