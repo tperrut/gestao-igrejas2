@@ -1,0 +1,48 @@
+name: PR Preview Deploy
+
+on:
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  preview:
+    name: Build and Deploy Preview
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy preview to Cloudflare Pages
+        # deploys to Pages project configured to create preview deployments for PRs
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          projectName: ${{ secrets.CF_PAGES_PROJECT_NAME_STAGING }}
+          directory: './dist'
+
+      - name: Post preview URL to PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const url = `Preview deployed (check Cloudflare Pages deployments for this commit)`;
+            await github.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body: `🔁 Preview build finished: ${url}`
+            });

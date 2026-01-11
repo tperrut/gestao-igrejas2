@@ -1,0 +1,59 @@
+name: Deploy Staging
+
+on:
+  push:
+    branches: ["staging"]
+
+jobs:
+  build-and-deploy:
+    name: Build, Migrate and Deploy to Staging
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint --if-present
+
+      - name: Run tests
+        run: npm test --if-present
+
+      - name: Build
+        run: npm run build
+
+      - name: Install supabase CLI
+        run: npm i -g supabase@latest
+
+      - name: Apply Supabase migrations (staging)
+        if: env.SUPABASE_SERVICE_ROLE_KEY_STAGING != ''
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL_STAGING }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_STAGING }}
+        run: |
+          # Adjust command below according to your supabase CLI usage/version
+          # This is an example using the supabase CLI to push DB migrations if configured
+          supabase login --service-role $SUPABASE_SERVICE_ROLE_KEY || true
+          # If using psql connection string, run SQL files here instead
+          # Example placeholder (user should adapt to their DB connection):
+          # for f in supabase/migrations/*.sql; do psql "$PG_CONN" -f "$f"; done
+
+      - name: Deploy to Cloudflare Pages (staging)
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          projectName: ${{ secrets.CF_PAGES_PROJECT_NAME_STAGING }}
+          directory: './dist'
+
+      - name: Notify (optional)
+        run: echo "Staging deploy finished"
