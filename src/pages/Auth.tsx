@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
-import { detectSubdomain, getTenantSlug, validateTenantExists } from '@/utils/subdomain';
+import { detectSubdomain, getTenantSlug, fetchTenantBranding, validateTenantExists } from '@/utils/subdomain';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -20,6 +20,7 @@ const Auth: React.FC = () => {
   const [tenantSlug, setTenantSlug] = useState<string | null>(null);
   const [tenantName, setTenantName] = useState<string>('');
   const [tenantValid, setTenantValid] = useState<boolean | null>(null);
+  const [tenantError, setTenantError] = useState<string | null>(null);
 
   // Detect tenant from subdomain or URL parameter
   useEffect(() => {
@@ -34,24 +35,28 @@ const Auth: React.FC = () => {
   }, [searchParams]);
 
   const fetchTenantName = async (slug: string) => {
+    setTenantValid(null);
+    setTenantError(null);
     try {
-      const { data, error } = await supabase
-        .from('tenant_branding')
-        .select('name, subdomain, logo_url')
-        .eq('subdomain', slug)
-        .single();
-
-      if (!error && data) {
-        setTenantName(data.name);
+      const res = await fetchTenantBranding(slug);
+      if (res.status === 'ok') {
+        setTenantName(res.data.name);
         setTenantValid(true);
-      } else {
+      } else if (res.status === 'not_found') {
         setTenantName('');
         setTenantValid(false);
+        setTenantError('not_found');
+      } else {
+        // network / supabase error
+        setTenantName('');
+        setTenantValid(false);
+        setTenantError('connection');
       }
-    } catch (error) {
+    } catch (err) {
+      console.error('Error fetching tenant (unexpected):', err);
       setTenantName('');
       setTenantValid(false);
-      console.error('Error fetching tenant:', error);
+      setTenantError('connection');
     }
   };
 
@@ -127,10 +132,21 @@ const Auth: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="w-full max-w-md">
         {!tenantValid && (
-          <Alert variant="destructive" className="mb-6">
+          <Alert variant={tenantError === 'connection' ? 'warning' : 'destructive'} className="mb-6">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Tenant inválido ou inativo. Verifique a URL de acesso.
+              {tenantError === 'connection' ? (
+                <>
+                  Serviço temporariamente indisponível — estamos tentando reconectar.
+                  <div className="mt-2">
+                    <Button size="sm" onClick={() => tenantSlug && fetchTenantName(tenantSlug)}>Tentar novamente</Button>
+                  </div>
+                </>
+              ) : tenantError === 'not_found' ? (
+                'Tenant inválido ou inativo. Verifique a URL de acesso.'
+              ) : (
+                'Tenant inválido ou inativo. Verifique a URL de acesso.'
+              )}
             </AlertDescription>
           </Alert>
         )}
