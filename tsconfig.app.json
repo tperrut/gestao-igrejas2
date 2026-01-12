@@ -26,5 +26,11 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "supabase/functions/create-tenant-with-admin/index.ts",
+    "supabase/functions/create-user/index.ts",
+    "tailwind.config.ts",
+    "vitest.config.ts"
+  ]
 }
