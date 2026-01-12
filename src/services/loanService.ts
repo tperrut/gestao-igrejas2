@@ -9,7 +9,7 @@ import { getDefaultTenantId } from '@/utils/tenant';
 export const useLoanService = () => {
   const { toast } = useToast();
 
-  const logLoanAction = (action: string, details: any) => {
+  const logLoanAction = (action: string, details?: unknown) => {
     const timestamp = new Date().toLocaleString('pt-BR');
     const logMessage = `[${timestamp}] ${action}`;
     

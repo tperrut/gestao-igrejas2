@@ -8,7 +8,7 @@ import { getDefaultTenantId } from '@/utils/tenant';
 export const useBookService = () => {
   const { toast } = useToast();
 
-  const logBookAction = (action: string, details: any) => {
+  const logBookAction = (action: string, details?: unknown) => {
     const timestamp = new Date().toLocaleString('pt-BR');
     const logMessage = `[${timestamp}] ${action}`;
     
@@ -32,7 +32,7 @@ export const useBookService = () => {
       const books = data || [];
 
       // Log detailed book query results
-      logBookAction('CONSULTA_LIVROS', {
+        logBookAction('CONSULTA_LIVROS', {
         totalLivros: books.length,
         livrosDisponiveis: books.filter(book => book.available_copies > 0).length,
         livrosIndisponiveis: books.filter(book => book.available_copies === 0).length,

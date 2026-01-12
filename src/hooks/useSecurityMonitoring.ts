@@ -56,19 +56,19 @@ export const useSecurityMonitoring = () => {
 
   }, [session, user]);
 
-  const reportSecurityIncident = (incident: string, details: any) => {
+  const reportSecurityIncident = (incident: string, details?: unknown) => {
     // Throttle security logging to prevent noise
     const lastReport = localStorage.getItem(`last_security_report_${incident}`);
     const now = Date.now();
     
     if (!lastReport || (now - parseInt(lastReport)) > 60000) { // Only log once per minute per incident type
-      logger.securityLog(`Security incident: ${incident}`, {
-        userId: user?.id,
-        incident,
-        details,
-        timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent
-      });
+        logger.securityLog(`Security incident: ${incident}`, {
+          userId: user?.id,
+          incident,
+          details,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent
+        });
       
       localStorage.setItem(`last_security_report_${incident}`, now.toString());
 

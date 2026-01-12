@@ -111,40 +111,44 @@ const EventsList: React.FC<EventsListProps> = ({ onEdit, onDelete }) => {
 
     // Filtro por período
     switch (viewFilter) {
-      case 'today':
-        filtered = filtered.filter(event => {
-          const eventDate = new Date(event.date + 'T00:00:00');
-          return eventDate.toDateString() === today.toDateString();
-        });
-        break;
-      case 'day':
-        // Para "day", mostramos eventos do dia atual + próximos 7 dias
-        const nextWeek = new Date(today);
-        nextWeek.setDate(nextWeek.getDate() + 7);
-        filtered = filtered.filter(event => {
-          const eventDate = new Date(event.date + 'T00:00:00');
-          return eventDate >= today && eventDate <= nextWeek;
-        });
-        break;
-      case 'week':
-        const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - today.getDay());
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-        filtered = filtered.filter(event => {
-          const eventDate = new Date(event.date + 'T00:00:00');
-          return eventDate >= startOfWeek && eventDate <= endOfWeek;
-        });
-        break;
-      case 'month':
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        filtered = filtered.filter(event => {
-          const eventDate = new Date(event.date + 'T00:00:00');
-          return eventDate >= startOfMonth && eventDate <= endOfMonth;
-        });
-        break;
-    }
+        case 'today': {
+          filtered = filtered.filter(event => {
+            const eventDate = new Date(event.date + 'T00:00:00');
+            return eventDate.toDateString() === today.toDateString();
+          });
+          break;
+        }
+        case 'day': {
+          // Para "day", mostramos eventos do dia atual + próximos 7 dias
+          const nextWeek = new Date(today);
+          nextWeek.setDate(nextWeek.getDate() + 7);
+          filtered = filtered.filter(event => {
+            const eventDate = new Date(event.date + 'T00:00:00');
+            return eventDate >= today && eventDate <= nextWeek;
+          });
+          break;
+        }
+        case 'week': {
+          const startOfWeek = new Date(today);
+          startOfWeek.setDate(today.getDate() - today.getDay());
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setDate(startOfWeek.getDate() + 6);
+          filtered = filtered.filter(event => {
+            const eventDate = new Date(event.date + 'T00:00:00');
+            return eventDate >= startOfWeek && eventDate <= endOfWeek;
+          });
+          break;
+        }
+        case 'month': {
+          const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+          const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+          filtered = filtered.filter(event => {
+            const eventDate = new Date(event.date + 'T00:00:00');
+            return eventDate >= startOfMonth && eventDate <= endOfMonth;
+          });
+          break;
+        }
+      }
 
     // Filtro por tipo
     if (typeFilter !== 'all') {
@@ -175,7 +179,7 @@ const EventsList: React.FC<EventsListProps> = ({ onEdit, onDelete }) => {
     <>
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
-          <Select value={viewFilter} onValueChange={(value: any) => setViewFilter(value)}>
+          <Select value={viewFilter} onValueChange={(value: 'today' | 'day' | 'week' | 'month') => setViewFilter(value)}>
             <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Filtrar por período" />
             </SelectTrigger>

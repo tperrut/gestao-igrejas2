@@ -19,6 +19,15 @@ export const useSundaySchool = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  const getErrorMessage = (err: unknown): string => {
+    if (err instanceof Error) return err.message;
+    try {
+      return String(err);
+    } catch {
+      return 'Erro desconhecido';
+    }
+  };
+
   // Fetch Teachers
   const fetchTeachers = async () => {
     try {
@@ -29,10 +38,10 @@ export const useSundaySchool = () => {
 
       if (error) throw error;
       setTeachers(data as SundaySchoolTeacher[] || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao carregar professores",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     }
@@ -48,10 +57,10 @@ export const useSundaySchool = () => {
 
       if (error) throw error;
       setClasses(data as SundaySchoolClass[] || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao carregar turmas",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     }
@@ -71,10 +80,10 @@ export const useSundaySchool = () => {
 
       if (error) throw error;
       setEnrollments(data as SundaySchoolEnrollment[] || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao carregar matrículas",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     }
@@ -94,10 +103,10 @@ export const useSundaySchool = () => {
 
       if (error) throw error;
       setLessons(data as SundaySchoolLesson[] || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao carregar aulas",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     }
@@ -120,10 +129,10 @@ export const useSundaySchool = () => {
 
       await fetchTeachers();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao criar professor",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
       return false;
@@ -149,10 +158,10 @@ export const useSundaySchool = () => {
 
       await fetchClasses();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao criar turma",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
       return false;
@@ -178,10 +187,10 @@ export const useSundaySchool = () => {
 
       await fetchEnrollments();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao realizar matrícula",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
       return false;
@@ -207,10 +216,10 @@ export const useSundaySchool = () => {
 
       await fetchLessons();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao criar aula",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
       return false;
@@ -236,10 +245,10 @@ export const useSundaySchool = () => {
 
       await fetchLessons();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao atualizar aula",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
       return false;
@@ -265,10 +274,10 @@ export const useSundaySchool = () => {
 
       await fetchTeachers();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao atualizar professor",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
       return false;
@@ -293,10 +302,10 @@ export const useSundaySchool = () => {
 
       await fetchClasses();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao atualizar turma",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
       return false;
@@ -321,10 +330,10 @@ export const useSundaySchool = () => {
 
       await fetchEnrollments();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao atualizar matrícula",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
       return false;
@@ -350,10 +359,10 @@ export const useSundaySchool = () => {
 
       await fetchTeachers();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao remover professor",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
       return false;
@@ -378,10 +387,10 @@ export const useSundaySchool = () => {
 
       await fetchClasses();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao remover turma",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
       return false;
@@ -429,10 +438,10 @@ export const useSundaySchool = () => {
         visitorsThisMonth: visitorsThisMonth.count || 0,
         recentLessons: lastSundayData.data || []
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao carregar estatísticas",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
       return {

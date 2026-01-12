@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useSundaySchool } from '@/hooks/useSundaySchool';
-import { SundaySchoolClassFormValues } from '@/types/sundaySchoolTypes';
+import { SundaySchoolClassFormValues, SundaySchoolClass } from '@/types/sundaySchoolTypes';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -39,7 +39,7 @@ const formSchema = z.object({
 interface SundaySchoolClassFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  class?: any;
+  class?: SundaySchoolClass | null;
 }
 
 export const SundaySchoolClassForm: React.FC<SundaySchoolClassFormProps> = ({

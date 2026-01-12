@@ -8,7 +8,7 @@ import { getDefaultTenantId } from '@/utils/tenant';
 export const useReservationService = () => {
   const { toast } = useToast();
 
-  const logReservationAction = (action: string, details: any) => {
+  const logReservationAction = (action: string, details?: unknown) => {
     const timestamp = new Date().toLocaleString('pt-BR');
     const logMessage = `[${timestamp}] ${action}`;
     

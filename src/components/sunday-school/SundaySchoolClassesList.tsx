@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/table';
 import { Trash2, Edit, Users } from 'lucide-react';
 import { useSundaySchool } from '@/hooks/useSundaySchool';
+import { SundaySchoolClass } from '@/types/sundaySchoolTypes';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,8 +26,8 @@ import {
 } from '@/components/ui/alert-dialog';
 
 interface SundaySchoolClassesListProps {
-  classes: any[];
-  onEdit: (classData: any) => void;
+  classes: SundaySchoolClass[];
+  onEdit: (classData: SundaySchoolClass) => void;
 }
 
 export const SundaySchoolClassesList: React.FC<SundaySchoolClassesListProps> = ({ classes, onEdit }) => {

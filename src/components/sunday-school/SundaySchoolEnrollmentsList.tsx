@@ -12,10 +12,11 @@ import {
 } from '@/components/ui/table';
 import { Trash2, Edit, User, Calendar } from 'lucide-react';
 import { useSundaySchool } from '@/hooks/useSundaySchool';
+import { SundaySchoolEnrollment } from '@/types/sundaySchoolTypes';
 
 interface SundaySchoolEnrollmentsListProps {
-  enrollments: any[];
-  onEdit: (enrollment: any) => void;
+  enrollments: SundaySchoolEnrollment[];
+  onEdit: (enrollment: SundaySchoolEnrollment) => void;
 }
 
 export const SundaySchoolEnrollmentsList: React.FC<SundaySchoolEnrollmentsListProps> = ({ enrollments, onEdit }) => {

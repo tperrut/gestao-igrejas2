@@ -37,6 +37,15 @@ import {
 } from '@/components/ui/popover';
 import { useSundaySchool } from '@/hooks/useSundaySchool';
 import { supabase } from '@/integrations/supabase/client';
+import { SundaySchoolEnrollment } from '@/types/sundaySchoolTypes';
+
+type EnrollmentFormValues = {
+  member_id: string;
+  class_id: string;
+  enrollment_date: Date;
+  status: 'active' | 'inactive' | 'transferred';
+  notes?: string;
+};
 
 const formSchema = z.object({
   member_id: z.string().min(1, 'Selecione um membro'),
@@ -51,7 +60,7 @@ const formSchema = z.object({
 interface SundaySchoolEnrollmentFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  enrollment?: any;
+  enrollment?: SundaySchoolEnrollment | null;
 }
 
 export const SundaySchoolEnrollmentForm: React.FC<SundaySchoolEnrollmentFormProps> = ({
@@ -60,15 +69,15 @@ export const SundaySchoolEnrollmentForm: React.FC<SundaySchoolEnrollmentFormProp
   enrollment,
 }) => {
   const { createEnrollment, updateEnrollment, classes, loading } = useSundaySchool();
-  const [members, setMembers] = useState<any[]>([]);
+  const [members, setMembers] = useState<Array<{ id: string; name: string; email?: string; birth_date?: string }>>([]);
 
-  const form = useForm({
+  const form = useForm<EnrollmentFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       member_id: enrollment?.member_id || '',
       class_id: enrollment?.class_id || '',
       enrollment_date: enrollment?.enrollment_date ? new Date(enrollment.enrollment_date) : new Date(),
-      status: enrollment?.status || 'active',
+      status: (enrollment?.status as EnrollmentFormValues['status']) || 'active',
       notes: enrollment?.notes || '',
     },
   });
@@ -94,7 +103,7 @@ export const SundaySchoolEnrollmentForm: React.FC<SundaySchoolEnrollmentFormProp
     }
   }, [open]);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: EnrollmentFormValues) => {
     const enrollmentData = {
       ...data,
       enrollment_date: format(data.enrollment_date, 'yyyy-MM-dd'),

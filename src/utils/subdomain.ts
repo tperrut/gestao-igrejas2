@@ -103,7 +103,12 @@ export const validateTenantExists = async (subdomain: string): Promise<boolean> 
  * Fetch tenant branding (with a small localStorage cache and basic error categorization)
  * Returns { status: 'ok'|'not_found'|'error', data?, error? }
  */
-export const fetchTenantBranding = async (subdomain: string): Promise<any> => {
+type FetchTenantBrandingResult =
+  | { status: 'ok'; data: unknown; cached?: boolean }
+  | { status: 'not_found' }
+  | { status: 'error'; error: unknown };
+
+export const fetchTenantBranding = async (subdomain: string): Promise<FetchTenantBrandingResult> => {
   const cacheKey = `tenant_branding_${subdomain}`;
   try {
     const raw = localStorage.getItem(cacheKey);
@@ -129,7 +134,8 @@ export const fetchTenantBranding = async (subdomain: string): Promise<any> => {
       // If Supabase returns 406/500 etc. or network error, bubble as 'error'
       console.error('fetchTenantBranding supabase error:', error);
       // If it's a 406 or no rows, treat as not_found
-      if ((error as any).code === 'PGRST116' || (error as any).status === 406) {
+      const errLike = error as { code?: string; status?: number };
+      if (errLike.code === 'PGRST116' || errLike.status === 406) {
         return { status: 'not_found' };
       }
       return { status: 'error', error };

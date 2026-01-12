@@ -4,7 +4,7 @@ export interface Tenant {
   subdomain: string;
   status: 'active' | 'inactive' | 'suspended';
   plan_type: 'basic' | 'premium' | 'enterprise';
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }

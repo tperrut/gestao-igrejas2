@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlusCircle } from 'lucide-react';
@@ -34,17 +34,8 @@ const Events = () => {
   const [viewMode, setViewMode] = useState('all');
   const { toast } = useToast();
   const { isAdmin } = useAuth();
-
-  // Redirecionar se não for admin
-  if (!isAdmin()) {
-    return <Navigate to="/calendar" replace />;
-  }
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  const fetchEvents = async () => {
+  // fetchEvents needs to be stable for useEffect deps
+  const fetchEvents = useCallback(async () => {
     try {
       console.log('Buscando eventos...');
       const { data, error } = await supabase
@@ -83,7 +74,16 @@ const Events = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
+  // Redirecionar se não for admin
+  if (!isAdmin()) {
+    return <Navigate to="/calendar" replace />;
+  }
 
   const handleCreateEvent = () => {
     console.log('Abrindo modal para criar evento');

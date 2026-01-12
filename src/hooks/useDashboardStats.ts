@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { logger, LogCategory } from '@/utils/logger';
@@ -35,11 +35,7 @@ export const useDashboardStats = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Iniciando carregamento dos dados');
     
     try {
@@ -149,14 +145,22 @@ export const useDashboardStats = () => {
       
       logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Carregamento concluído com sucesso');
 
-    } catch (error: any) {
-      logger.error(LogCategory.BUSINESS_LOGIC, 'Dashboard: Erro crítico durante carregamento', error, {
-        errorMessage: error?.message,
-        errorStack: error?.stack,
-        errorName: error?.name
-      });
-      
-      console.error('Erro ao buscar dados do dashboard:', error);
+    } catch (error: unknown) {
+      const errDetails = ((): { errorMessage?: string; errorStack?: string; errorName?: string } => {
+        if (error && typeof error === 'object') {
+          const e = error as { message?: string; stack?: string; name?: string };
+          return {
+            errorMessage: e.message,
+            errorStack: e.stack,
+            errorName: e.name
+          };
+        }
+        return {};
+      })();
+
+      logger.error(LogCategory.BUSINESS_LOGIC, 'Dashboard: Erro crítico durante carregamento', undefined, errDetails);
+
+      console.error('Erro ao buscar dados do dashboard:', errDetails.errorMessage || error);
       
       // Definir valores padrão em caso de erro
       const fallbackStats = {
@@ -181,11 +185,15 @@ export const useDashboardStats = () => {
         description: "Não foi possível carregar as informações do dashboard.",
         variant: "destructive",
       });
-    } finally {
+  } finally {
       logger.info(LogCategory.BUSINESS_LOGIC, 'Dashboard: Finalizando carregamento (setLoading false)');
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   return {
     stats,

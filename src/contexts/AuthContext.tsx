@@ -23,15 +23,15 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, name: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error?: unknown }>;
+  signUp: (email: string, password: string, name: string) => Promise<{ error?: unknown }>;
   signOut: () => Promise<void>;
   isAdmin: () => boolean;
   isMember: () => boolean;
   securityEvents: Array<{
     type: string;
     timestamp: Date;
-    details: any;
+    details?: unknown;
   }>;
 }
 
@@ -61,10 +61,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [securityEvents, setSecurityEvents] = useState<Array<{
     type: string;
     timestamp: Date;
-    details: any;
+    details?: unknown;
   }>>([]);
 
-  const logSecurityEvent = (type: string, details: any) => {
+  const logSecurityEvent = (type: string, details?: unknown) => {
     const event = {
       type,
       timestamp: new Date(),
@@ -102,8 +102,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
         if (event === 'SIGNED_OUT') {
+          // For SIGNED_OUT we may not have session info; avoid referencing outer `user` state
           logSecurityEvent('sign_out', {
-            userId: user?.id
+            message: 'User signed out'
           });
         }
         

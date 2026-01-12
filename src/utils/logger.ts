@@ -20,7 +20,7 @@ interface LogEntry {
   level: LogLevel;
   category: LogCategory;
   action: string;
-  details?: any;
+  details?: unknown;
   userId?: string;
   sessionId?: string;
   error?: Error;
@@ -66,7 +66,7 @@ class Logger {
     }
   }
 
-  debug(category: LogCategory, action: string, details?: any, userId?: string): void {
+  debug(category: LogCategory, action: string, details?: unknown, userId?: string): void {
     this.addLog({
       timestamp: new Date().toISOString(),
       level: LogLevel.DEBUG,
@@ -77,7 +77,7 @@ class Logger {
     });
   }
 
-  info(category: LogCategory, action: string, details?: any, userId?: string): void {
+  info(category: LogCategory, action: string, details?: unknown, userId?: string): void {
     this.addLog({
       timestamp: new Date().toISOString(),
       level: LogLevel.INFO,
@@ -88,7 +88,7 @@ class Logger {
     });
   }
 
-  warn(category: LogCategory, action: string, details?: any, userId?: string): void {
+  warn(category: LogCategory, action: string, details?: unknown, userId?: string): void {
     this.addLog({
       timestamp: new Date().toISOString(),
       level: LogLevel.WARN,
@@ -99,7 +99,7 @@ class Logger {
     });
   }
 
-  error(category: LogCategory, action: string, error?: Error, details?: any, userId?: string): void {
+  error(category: LogCategory, action: string, error?: Error, details?: unknown, userId?: string): void {
     this.addLog({
       timestamp: new Date().toISOString(),
       level: LogLevel.ERROR,
@@ -112,51 +112,51 @@ class Logger {
   }
 
   // Métodos específicos para diferentes categorias
-  authLog(action: string, userId?: string, details?: any): void {
+  authLog(action: string, userId?: string, details?: unknown): void {
     this.info(LogCategory.AUTH, action, details, userId);
   }
 
-  authError(action: string, error: Error, details?: any, userId?: string): void {
+  authError(action: string, error: Error, details?: unknown, userId?: string): void {
     this.error(LogCategory.AUTH, action, error, details, userId);
   }
 
-  apiLog(action: string, details?: any, userId?: string): void {
+  apiLog(action: string, details?: unknown, userId?: string): void {
     this.info(LogCategory.API, action, details, userId);
   }
 
-  apiError(action: string, error: Error, details?: any, userId?: string): void {
+  apiError(action: string, error: Error, details?: unknown, userId?: string): void {
     this.error(LogCategory.API, action, error, details, userId);
   }
 
-  businessLog(action: string, details?: any, userId?: string): void {
+  businessLog(action: string, details?: unknown, userId?: string): void {
     this.info(LogCategory.BUSINESS_LOGIC, action, details, userId);
   }
 
-  businessError(action: string, error: Error, details?: any, userId?: string): void {
+  businessError(action: string, error: Error, details?: unknown, userId?: string): void {
     this.error(LogCategory.BUSINESS_LOGIC, action, error, details, userId);
   }
 
-  validationLog(action: string, details?: any): void {
+  validationLog(action: string, details?: unknown): void {
     this.info(LogCategory.VALIDATION, action, details);
   }
 
-  validationError(action: string, error: Error, details?: any): void {
+  validationError(action: string, error: Error, details?: unknown): void {
     this.error(LogCategory.VALIDATION, action, error, details, undefined);
   }
 
-  securityLog(action: string, details?: any, userId?: string): void {
+  securityLog(action: string, details?: unknown, userId?: string): void {
     this.warn(LogCategory.SECURITY, action, details, userId);
   }
 
-  securityError(action: string, error: Error, details?: any, userId?: string): void {
+  securityError(action: string, error: Error, details?: unknown, userId?: string): void {
     this.error(LogCategory.SECURITY, action, error, details, userId);
   }
 
-  dbLog(action: string, details?: any, userId?: string): void {
+  dbLog(action: string, details?: unknown, userId?: string): void {
     this.info(LogCategory.DATABASE, action, details, userId);
   }
 
-  dbError(action: string, error: Error, details?: any, userId?: string): void {
+  dbError(action: string, error: Error, details?: unknown, userId?: string): void {
     this.error(LogCategory.DATABASE, action, error, details, userId);
   }
 

@@ -8,7 +8,7 @@ import { getDefaultTenantId } from '@/utils/tenant';
 export const useMemberService = () => {
   const { toast } = useToast();
 
-  const logMemberAction = (action: string, details: any) => {
+  const logMemberAction = (action: string, details?: unknown) => {
     const timestamp = new Date().toLocaleString('pt-BR');
     const logMessage = `[${timestamp}] ${action}`;
     

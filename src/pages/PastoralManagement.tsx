@@ -49,9 +49,9 @@ const PastoralManagement: React.FC = () => {
 
   const updateAppointmentStatus = async (appointmentId: string, status: string, notes?: string) => {
     try {
-      const updateData: any = { status };
+      const updateData: Record<string, unknown> = { status };
       if (notes !== undefined) {
-        updateData.pastor_notes = notes;
+        (updateData as Record<string, unknown>)['pastor_notes'] = notes;
       }
 
       const { error } = await supabase

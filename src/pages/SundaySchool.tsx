@@ -15,6 +15,12 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { useSundaySchool } from '@/hooks/useSundaySchool';
+import {
+  SundaySchoolTeacher,
+  SundaySchoolClass,
+  SundaySchoolEnrollment,
+  SundaySchoolLesson
+} from '@/types/sundaySchoolTypes';
 import { SundaySchoolTeacherForm } from '@/components/sunday-school/SundaySchoolTeacherForm';
 import { SundaySchoolClassForm } from '@/components/sunday-school/SundaySchoolClassForm';
 import { SundaySchoolEnrollmentForm } from '@/components/sunday-school/SundaySchoolEnrollmentForm';
@@ -30,10 +36,19 @@ const SundaySchool: React.FC = () => {
   const [showClassForm, setShowClassForm] = useState(false);
   const [showEnrollmentForm, setShowEnrollmentForm] = useState(false);
   const [showLessonForm, setShowLessonForm] = useState(false);
-  const [editingTeacher, setEditingTeacher] = useState<any>(null);
-  const [editingClass, setEditingClass] = useState<any>(null);
-  const [editingEnrollment, setEditingEnrollment] = useState<any>(null);
-  const [stats, setStats] = useState({
+  const [editingTeacher, setEditingTeacher] = useState<SundaySchoolTeacher | null>(null);
+  const [editingClass, setEditingClass] = useState<SundaySchoolClass | null>(null);
+  const [editingEnrollment, setEditingEnrollment] = useState<SundaySchoolEnrollment | null>(null);
+
+  type SundaySchoolStats = {
+    totalTeachers: number;
+    totalClasses: number;
+    totalStudents: number;
+    visitorsThisMonth?: number;
+    recentLessons: SundaySchoolLesson[];
+  };
+
+  const [stats, setStats] = useState<SundaySchoolStats>({
     totalTeachers: 0,
     totalClasses: 0,
     totalStudents: 0,
@@ -53,15 +68,15 @@ const SundaySchool: React.FC = () => {
   const calculateAttendanceRate = () => {
     if (stats.recentLessons.length === 0) return 0;
     const totalLessons = stats.recentLessons.length;
-    const averageAttendance = stats.recentLessons.reduce((acc: number, lesson: any) => {
-      const presentCount = lesson.attendance?.filter((att: any) => att.present).length || 0;
+    const averageAttendance = stats.recentLessons.reduce((acc: number, lesson: SundaySchoolLesson) => {
+      const presentCount = lesson.attendance?.filter((att) => att.present).length || 0;
       return acc + presentCount;
     }, 0);
     return totalLessons > 0 ? Math.round((averageAttendance / totalLessons)) : 0;
   };
 
   const getTotalOfferings = () => {
-    return stats.recentLessons.reduce((acc: number, lesson: any) => acc + (lesson.offering_amount || 0), 0);
+    return stats.recentLessons.reduce((acc: number, lesson: SundaySchoolLesson) => acc + (lesson.offering_amount || 0), 0);
   };
 
   return (
@@ -143,7 +158,7 @@ const SundaySchool: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {stats.recentLessons.slice(0, 5).map((lesson: any) => (
+                  {stats.recentLessons.slice(0, 5).map((lesson: SundaySchoolLesson) => (
                     <div key={lesson.id} className="flex items-center justify-between p-3 border rounded">
                       <div>
                         <p className="font-medium">{lesson.class?.name}</p>
@@ -156,7 +171,7 @@ const SundaySchool: React.FC = () => {
                       </div>
                       <div className="text-right">
                         <Badge variant="outline">
-                          {lesson.attendance?.filter((att: any) => att.present).length || 0} presentes
+                          {lesson.attendance?.filter((att) => att.present).length || 0} presentes
                         </Badge>
                         {lesson.offering_amount > 0 && (
                           <p className="text-sm font-medium text-green-600">

@@ -86,8 +86,8 @@ describe('Validation Utils', () => {
 
     it('should handle empty and null inputs', () => {
       expect(sanitizeText('')).toBe('')
-      expect(sanitizeText(null as any)).toBe('')
-      expect(sanitizeText(undefined as any)).toBe('')
+  expect(sanitizeText(null)).toBe('')
+  expect(sanitizeText(undefined)).toBe('')
     })
   })
 

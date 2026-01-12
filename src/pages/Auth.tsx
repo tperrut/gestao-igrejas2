@@ -39,8 +39,8 @@ const Auth: React.FC = () => {
     setTenantError(null);
     try {
       const res = await fetchTenantBranding(slug);
-      if (res.status === 'ok') {
-        setTenantName(res.data.name);
+      if (res.status === 'ok' && res.data && typeof res.data === 'object' && 'name' in res.data) {
+        setTenantName((res.data as { name: string }).name);
         setTenantValid(true);
       } else if (res.status === 'not_found') {
         setTenantName('');
@@ -107,7 +107,7 @@ const Auth: React.FC = () => {
           .eq('status', 'active')
           .single();
 
-        if (tenantUser && (tenantUser.tenants as any).subdomain === tenantSlug) {
+        if (tenantUser && ((tenantUser.tenants as { subdomain?: string }).subdomain === tenantSlug)) {
           // User belongs to this tenant, redirect will happen automatically
         } else {
           // User doesn't belong to this tenant
@@ -132,7 +132,7 @@ const Auth: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="w-full max-w-md">
         {!tenantValid && (
-          <Alert variant={tenantError === 'connection' ? 'warning' : 'destructive'} className="mb-6">
+    <Alert variant={tenantError === 'connection' ? 'default' : 'destructive'} className="mb-6">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               {tenantError === 'connection' ? (

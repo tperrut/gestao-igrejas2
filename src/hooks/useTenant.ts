@@ -39,7 +39,7 @@ export const useTenant = () => {
           .eq('id', tenantUserData.tenant_id)
           .single();
 
-        setCurrentTenant(tenantData as any);
+  setCurrentTenant(tenantData as Tenant | null);
       } catch (error) {
         console.error('Error fetching current tenant:', error);
       } finally {

@@ -71,7 +71,7 @@ const NewTenant = () => {
 
     setLoading(true);
 
-    try {
+  try {
       // Chamar edge function para criar tenant + admin
       const { data, error } = await supabase.functions.invoke('create-tenant-with-admin', {
         body: {
@@ -88,11 +88,12 @@ const NewTenant = () => {
       });
 
       navigate('/owner/tenants');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating tenant:', error);
+      const message = error instanceof Error ? error.message : String(error);
       toast({
         title: 'Erro ao criar tenant',
-        description: error.message || 'Ocorreu um erro ao criar o tenant',
+        description: message || 'Ocorreu um erro ao criar o tenant',
         variant: 'destructive',
       });
     } finally {

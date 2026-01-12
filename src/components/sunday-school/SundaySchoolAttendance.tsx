@@ -19,7 +19,14 @@ import { getDefaultTenantId } from '@/utils/tenant';
 
 export const SundaySchoolAttendance: React.FC = () => {
   const [selectedLesson, setSelectedLesson] = useState<string>('');
-  const [lessonStudents, setLessonStudents] = useState<any[]>([]);
+  type LessonStudent = {
+    member_id: string;
+    member?: { id?: string; name?: string; email?: string };
+    attendance?: Record<string, unknown> | null;
+    isVisitor?: boolean;
+  };
+
+  const [lessonStudents, setLessonStudents] = useState<LessonStudent[]>([]);
   const [attendance, setAttendance] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -62,20 +69,26 @@ export const SundaySchoolAttendance: React.FC = () => {
         if (attendanceError) throw attendanceError;
 
         // Combine enrollment data with attendance data, plus visitors
-        const studentsWithAttendance = enrollments?.map(enrollment => ({
+        const studentsWithAttendance: LessonStudent[] = (enrollments || []).map(enrollment => ({
           member_id: enrollment.member_id,
           member: enrollment.member,
-          attendance: existingAttendance?.find(att => att.member_id === enrollment.member_id),
+          attendance: (existingAttendance || []).find((att: unknown) => {
+            const a = att as { member_id?: string };
+            return a.member_id === enrollment.member_id;
+          }) || null,
           isVisitor: false
-        })) || [];
+        }));
 
         // Add visitors to the list
-        const visitors = existingAttendance?.filter(att => !att.member_id && att.visitor_name) || [];
+        const visitors = (existingAttendance || []).filter((att: unknown) => {
+          const a = att as { member_id?: string; visitor_name?: string };
+          return !a.member_id && !!a.visitor_name;
+        }) as Array<{ id?: string; visitor_name?: string }>; 
         visitors.forEach(visitor => {
           studentsWithAttendance.push({
             member_id: `visitor_${visitor.id}`,
-            member: { id: `visitor_${visitor.id}`, name: visitor.visitor_name, email: 'Visitante' },
-            attendance: visitor,
+            member: { id: `visitor_${visitor.id}`, name: visitor.visitor_name || 'Visitante', email: 'Visitante' },
+            attendance: visitor as Record<string, unknown>,
             isVisitor: true
           });
         });
@@ -85,14 +98,15 @@ export const SundaySchoolAttendance: React.FC = () => {
         // Set attendance state
         const attendanceState: Record<string, boolean> = {};
         studentsWithAttendance.forEach(student => {
-          attendanceState[student.member_id] = student.attendance?.present || false;
+          attendanceState[student.member_id] = !!(student.attendance && student.attendance.present);
         });
         setAttendance(attendanceState);
 
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const message = (error && typeof error === 'object' && 'message' in error) ? (error as { message?: string }).message : String(error);
         toast({
           title: "Erro ao carregar alunos",
-          description: error.message,
+          description: message,
           variant: "destructive",
         });
       } finally {
@@ -101,7 +115,7 @@ export const SundaySchoolAttendance: React.FC = () => {
     };
 
     loadLessonStudents();
-  }, [selectedLesson, lessons]);
+  }, [selectedLesson, lessons, toast]);
 
   const handleAttendanceChange = (memberId: string, present: boolean) => {
     setAttendance(prev => ({
@@ -151,10 +165,11 @@ export const SundaySchoolAttendance: React.FC = () => {
         description: "A presença foi registrada para todos os alunos.",
       });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = (error && typeof error === 'object' && 'message' in error) ? (error as { message?: string }).message : String(error);
       toast({
         title: "Erro ao salvar presença",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -162,7 +177,7 @@ export const SundaySchoolAttendance: React.FC = () => {
     }
   };
 
-  const handleAddVisitor = async (visitorData: any) => {
+  const handleAddVisitor = async (visitorData: { visitor_name: string; present?: boolean; arrival_time?: string | null; notes?: string | null }) => {
     if (!selectedLesson) return;
     
     try {
@@ -188,10 +203,11 @@ export const SundaySchoolAttendance: React.FC = () => {
       // Reload the attendance data properly
       setSelectedLesson('');
       setTimeout(() => setSelectedLesson(selectedLesson), 100);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = (error && typeof error === 'object' && 'message' in error) ? (error as { message?: string }).message : String(error);
       toast({
         title: "Erro ao adicionar visitante",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     } finally {

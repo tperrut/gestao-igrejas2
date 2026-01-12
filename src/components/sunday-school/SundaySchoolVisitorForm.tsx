@@ -27,10 +27,17 @@ const formSchema = z.object({
   notes: z.string().optional(),
 });
 
+type VisitorFormValues = {
+  visitor_name: string;
+  present: boolean;
+  arrival_time?: string;
+  notes?: string;
+};
+
 interface SundaySchoolVisitorFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: VisitorFormValues) => void;
   loading?: boolean;
 }
 
@@ -50,7 +57,7 @@ export const SundaySchoolVisitorForm: React.FC<SundaySchoolVisitorFormProps> = (
     },
   });
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: VisitorFormValues) => {
     await onSubmit(data);
     if (!loading) {
       form.reset();

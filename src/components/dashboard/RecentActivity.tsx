@@ -79,15 +79,16 @@ const RecentActivity: React.FC = () => {
       }));
 
       // Mapear empréstimos para atividades
-      const loanActivities: Activity[] = (loans || []).map((loan: any) => ({
-        id: `loan-${loan.id}`,
-        type: 'loan',
-        title: loan.status === 'active' ? 'Livro emprestado' : loan.status === 'returned' ? 'Livro devolvido' : 'Reserva de livro',
-        description: loan.book?.title 
-          ? `${loan.book.title} - ${loan.member?.name || 'Membro desconhecido'}` 
-          : 'Livro desconhecido',
-        timestamp: loan.created_at
-      }));
+      const loanActivities: Activity[] = (loans || []).map((loan: unknown) => {
+        const l = loan as { id?: string; status?: string; created_at?: string; book?: { title?: string }; member?: { name?: string } };
+        return {
+          id: `loan-${l.id}`,
+          type: 'loan' as const,
+          title: l.status === 'active' ? 'Livro emprestado' : l.status === 'returned' ? 'Livro devolvido' : 'Reserva de livro',
+          description: l.book?.title ? `${l.book.title} - ${l.member?.name || 'Membro desconhecido'}` : 'Livro desconhecido',
+          timestamp: l.created_at || ''
+        } as Activity;
+      });
 
       // Mapear eventos para atividades
       const eventActivities: Activity[] = (events || []).map((event: Event) => ({
@@ -120,7 +121,7 @@ const RecentActivity: React.FC = () => {
 
       setActivities(allActivities);
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Erro ao buscar atividades recentes:", error);
     } finally {
       setIsLoading(false);
@@ -141,7 +142,7 @@ const RecentActivity: React.FC = () => {
       } else {
         return format(date, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       return isoString;
     }
   };

@@ -36,7 +36,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useSundaySchool } from '@/hooks/useSundaySchool';
-import { SundaySchoolLessonFormValues } from '@/types/sundaySchoolTypes';
+import { SundaySchoolLessonFormValues, SundaySchoolLesson } from '@/types/sundaySchoolTypes';
 
 const formSchema = z.object({
   class_id: z.string().min(1, 'Selecione uma turma'),
@@ -52,7 +52,7 @@ const formSchema = z.object({
 interface SundaySchoolLessonFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  lesson?: any;
+  lesson?: SundaySchoolLesson | null;
 }
 
 export const SundaySchoolLessonForm: React.FC<SundaySchoolLessonFormProps> = ({
@@ -62,7 +62,7 @@ export const SundaySchoolLessonForm: React.FC<SundaySchoolLessonFormProps> = ({
 }) => {
   const { createLesson, updateLesson, classes, teachers, loading } = useSundaySchool();
 
-  const form = useForm({
+  const form = useForm<SundaySchoolLessonFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       class_id: lesson?.class_id || '',
@@ -74,7 +74,7 @@ export const SundaySchoolLessonForm: React.FC<SundaySchoolLessonFormProps> = ({
     },
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: SundaySchoolLessonFormValues) => {
     const lessonData = {
       ...data,
       lesson_date: format(data.lesson_date, 'yyyy-MM-dd'),

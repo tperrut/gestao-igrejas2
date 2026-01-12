@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/table';
 import { Mail, Phone, Trash2, Edit } from 'lucide-react';
 import { useSundaySchool } from '@/hooks/useSundaySchool';
+import { SundaySchoolTeacher } from '@/types/sundaySchoolTypes';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,8 +26,8 @@ import {
 } from '@/components/ui/alert-dialog';
 
 interface SundaySchoolTeachersListProps {
-  teachers: any[];
-  onEdit: (teacher: any) => void;
+  teachers: SundaySchoolTeacher[];
+  onEdit: (teacher: SundaySchoolTeacher) => void;
 }
 
 export const SundaySchoolTeachersList: React.FC<SundaySchoolTeachersListProps> = ({ teachers, onEdit }) => {

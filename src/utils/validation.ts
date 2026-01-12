@@ -7,7 +7,7 @@ export const validateEmail = (email: string): boolean => {
 
 export const validatePhone = (phone: string): boolean => {
   if (!phone) return true; // Phone is optional
-  const phoneRegex = /^\+?[0-9\s\-\(\)]{10,15}$/;
+  const phoneRegex = /^\+?[0-9\s\-()]{10,15}$/;
   return phoneRegex.test(phone);
 };
 
@@ -27,9 +27,9 @@ export const validatePassword = (password: string): { valid: boolean; message?: 
   return { valid: true };
 };
 
-export const sanitizeText = (text: string): string => {
+export const sanitizeText = (text?: string | null): string => {
   if (!text) return '';
-  
+
   // Remove HTML tags and special characters that could be used for XSS
   return text
     .replace(/<[^>]*>/g, '') // Remove HTML tags
