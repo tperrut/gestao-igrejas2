@@ -207,7 +207,7 @@ const Auth: React.FC = () => {
                 </div>
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex flex-col gap-3">
               <Button
                 type="submit"
                 className="w-full"
@@ -215,6 +215,17 @@ const Auth: React.FC = () => {
               >
                 {isLoading ? "Entrando..." : "Entrar"}
               </Button>
+              <p className="text-sm text-muted-foreground text-center">
+                Não tem uma conta?{' '}
+                <Button
+                  type="button"
+                  variant="link"
+                  className="p-0 h-auto font-semibold"
+                  onClick={() => navigate('/register')}
+                >
+                  Cadastre-se
+                </Button>
+              </p>
             </CardFooter>
           </form>
         </Card>
