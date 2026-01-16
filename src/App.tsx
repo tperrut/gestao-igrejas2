@@ -9,6 +9,7 @@ import AuthGuard from "./components/auth/AuthGuard";
 import Layout from "./components/Layout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import MemberDashboard from "./pages/MemberDashboard";
 import Library from "./pages/Library";
@@ -42,6 +43,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/register" element={<Register />} />
             
             {/* Owner Routes */}
             <Route path="/owner/dashboard" element={
