@@ -12,6 +12,10 @@ import { Book, Calendar, FileText, Hash, Building, Users } from 'lucide-react';
 import { Book as BookType } from '@/types/libraryTypes';
 import { useReservationService } from '@/services/reservationService';
 import { useAuth } from '@/contexts/AuthContext';
+import { getDefaultTenantId } from '@/utils/tenant';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
+
 
 interface BookDetailModalProps {
   isOpen: boolean;
@@ -28,13 +32,28 @@ const BookDetailModal: React.FC<BookDetailModalProps> = ({
 }) => {
   const { createReservation } = useReservationService();
   const { user } = useAuth();
-
+  const { toast } = useToast();
+  
   if (!book) return null;
 
   const handleReserve = async () => {
     if (!user) return;
-    console.log("Reservando livro:", book.id, "para usuário:", user.id);
-    const success = await createReservation(book.id, user.id);
+    
+    const { data: member } = await supabase
+    .from('members')
+    .select('id')
+    .eq('email', user.email)
+    .eq('tenant_id', getDefaultTenantId()) // Using default tenant ID, em produção devemos usar o tenant correto, vamos buscar pelo subdmain ou outro método
+    .single();
+
+    if (!member) {
+      console.error("Membro não relacionado ao usuário logado. O email do membro deve ser igual ao email do usuário.");
+      toast({ title: "Erro", description: "Membro não encontrado para este usuário.", variant: "destructive" });
+      return;
+    }
+
+    console.log("Reservando livro:", book.id, "para o membro:", member.id);
+    const success = await createReservation(book.id, member.id);
     if (success) {
       onReservationSuccess?.();
       onClose();

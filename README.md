@@ -139,12 +139,4 @@
   - Backups automáticos: certifique-se que o Supabase tem backups regulares habilitados.
   - Cache de branding: o frontend já tem cache local curto (5 minutos). Para maior resiliência, considere um service worker ou CDN para assets de branding.
 
-  ## Próximos passos sugeridos (opcionais)
-
-  - Implementar endpoint `/health` no backend (se houver) para health checks centralizados.
-  - Criar testes e2e que rodem com `?tenant=` e simulem a ausência temporária do Supabase.
-  - Automatizar alertas no Supabase para manutenção/downs.
-
   ---
-
-  Se quiser, eu adiciono uma seção curta com comandos PowerShell para rodar testes automatizados ou posso criar um arquivo `docs/LOCAL-DEV.md` com prints e passos detalhados — diga qual formato prefere e eu crio aqui no repo.
