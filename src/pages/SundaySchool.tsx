@@ -122,15 +122,15 @@ const SundaySchool: React.FC = () => {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="dashboard" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="teachers">Professores</TabsTrigger>
-          <TabsTrigger value="classes">Turmas</TabsTrigger>
-          <TabsTrigger value="enrollments">Matrículas</TabsTrigger>
-          <TabsTrigger value="lessons">Aulas</TabsTrigger>
-          <TabsTrigger value="attendance">Presença</TabsTrigger>
-        </TabsList>
 
+        <TabsList className="flex flex-col sm:flex-row w-full gap-2">
+          <TabsTrigger className="w-full sm:w-auto" value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger className="w-full sm:w-auto" value="teachers">Professores</TabsTrigger>
+          <TabsTrigger className="w-full sm:w-auto" value="classes">Turmas</TabsTrigger>
+          <TabsTrigger className="w-full sm:w-auto" value="enrollments">Matrículas</TabsTrigger>
+          <TabsTrigger className="w-full sm:w-auto" value="lessons">Aulas</TabsTrigger>
+          <TabsTrigger className="w-full sm:w-auto" value="attendance">Presença</TabsTrigger>
+        </TabsList>
         <TabsContent value="dashboard" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
