@@ -45,7 +45,8 @@ const formSchema = z.object({
     required_error: 'Data da aula é obrigatória',
   }),
   topic: z.string().optional(),
-  offering_amount: z.number().min(0, 'Valor deve ser positivo'),
+  // ✅ Aceita string vazia durante digitação; valida como número no submit
+  offering_amount: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -69,7 +70,8 @@ export const SundaySchoolLessonForm: React.FC<SundaySchoolLessonFormProps> = ({
       teacher_id: lesson?.teacher_id || '',
       lesson_date: lesson?.lesson_date ? new Date(lesson.lesson_date) : new Date(),
       topic: lesson?.topic || '',
-      offering_amount: lesson?.offering_amount || 0,
+      // ✅ Começa vazio — placeholder "0.00" já comunica o formato esperado
+      offering_amount: lesson?.offering_amount != null ? String(lesson.offering_amount) : '',
       notes: lesson?.notes || '',
     },
   });
@@ -78,12 +80,14 @@ export const SundaySchoolLessonForm: React.FC<SundaySchoolLessonFormProps> = ({
     const lessonData = {
       ...data,
       lesson_date: format(data.lesson_date, 'yyyy-MM-dd'),
+      // ✅ Converte para número no submit; campo vazio vira 0
+      offering_amount: parseFloat(data.offering_amount) || 0,
     };
 
-    const success = lesson 
+    const success = lesson
       ? await updateLesson(lesson.id, lessonData)
       : await createLesson(lessonData);
-    
+
     if (success) {
       form.reset();
       onOpenChange(false);
@@ -188,7 +192,7 @@ export const SundaySchoolLessonForm: React.FC<SundaySchoolLessonFormProps> = ({
                         onSelect={field.onChange}
                         disabled={(date) => {
                           const day = date.getDay();
-                          return day !== 0; // Only allow Sundays (0)
+                          return day !== 0;
                         }}
                         initialFocus
                         className={cn("p-3 pointer-events-auto")}
@@ -221,13 +225,20 @@ export const SundaySchoolLessonForm: React.FC<SundaySchoolLessonFormProps> = ({
                 <FormItem>
                   <FormLabel>Valor da Oferta (R$)</FormLabel>
                   <FormControl>
-                    <Input 
+                    <Input
                       type="number"
                       step="0.01"
                       min="0"
                       placeholder="0.00"
-                      {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      // ✅ value controlado como string — campo começa vazio
+                      value={field.value}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      // ✅ Ao sair do campo, formata para 2 casas decimais se tiver valor
+                      onBlur={(e) => {
+                        const val = parseFloat(e.target.value);
+                        field.onChange(isNaN(val) ? '' : val.toFixed(2));
+                        field.onBlur();
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -242,10 +253,10 @@ export const SundaySchoolLessonForm: React.FC<SundaySchoolLessonFormProps> = ({
                 <FormItem>
                   <FormLabel>Observações</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Observações sobre a aula"
                       className="resize-none"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
