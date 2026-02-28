@@ -9,11 +9,16 @@ import { Eye, EyeOff, UserPlus, AlertCircle, ArrowLeft } from 'lucide-react';
 import { getTenantSlug, fetchTenantBranding } from '@/utils/subdomain';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { z } from 'zod';
+import { useToast } from '@/components/ui/use-toast';
+
+
 
 const registerSchema = z.object({
   name: z.string().trim().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100, 'Nome muito longo'),
   email: z.string().trim().email('Email inválido').max(255, 'Email muito longo'),
-  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres').max(72, 'Senha muito longa'),
+  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres').max(72, 'Senha muito longa').refine((val) => /[A-Z]/.test(val), {
+      message: 'A senha deve conter pelo menos uma letra maiúscula',
+    }),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'As senhas não coincidem',
@@ -32,6 +37,7 @@ const Register: React.FC = () => {
   const [tenantValid, setTenantValid] = useState<boolean | null>(null);
   const [tenantError, setTenantError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const { toast } = useToast();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -121,6 +127,12 @@ const Register: React.FC = () => {
       if (!error) {
         // Success - user will see toast from signUp function
         navigate('/auth');
+      }else{
+        toast({
+          title: "Erro no cadastro",
+          description: error.message,
+          variant: "destructive",
+        });
       }
     } finally {
       setIsLoading(false);

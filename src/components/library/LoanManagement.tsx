@@ -11,6 +11,8 @@ import { useLoanService } from '@/services/loanService';
 import LoanTable from './loans/LoanTable';
 import LoanStats from './loans/LoanStats';
 import LoanSearch from './loans/LoanSearch';
+import { useReservationService } from '@/services/reservationService'; // importe o serviço
+import { Reservation } from '@/types/reservationTypes';
 
 const LoanManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -19,17 +21,23 @@ const LoanManagement: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
   const { fetchLoans, saveLoan, returnLoan, cancelLoan } = useLoanService();
+const [reservations, setReservations] = useState<Reservation[]>([]);
+const { fetchReservations } = useReservationService();
+useEffect(() => {
+  loadLoansAndReservations();
+}, []);
 
-  useEffect(() => {
-    loadLoans();
-  }, []);
-
-  const loadLoans = async () => {
-    setLoading(true);
-    const loansData = await fetchLoans();
-    setLoans(loansData);
-    setLoading(false);
-  };
+const loadLoansAndReservations = async () => {
+  setLoading(true);
+  const [loansData, reservationsData] = await Promise.all([
+    fetchLoans(),
+    fetchReservations()
+  ]);
+  setLoans(loansData);
+  // Filtra apenas reservas ativas
+  setReservations(reservationsData.filter(r => r.status === 'active'));
+  setLoading(false);
+};
 
   const filteredLoans = loans.filter(loan => 
     loan.book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -39,8 +47,8 @@ const LoanManagement: React.FC = () => {
   const activeLoans = filteredLoans.filter(loan => loan.status === 'active');
   const overdueLoans = filteredLoans.filter(loan => loan.status === 'overdue');
   const returnedLoans = filteredLoans.filter(loan => loan.status === 'returned');
-  const reservedBooks = filteredLoans.filter(loan => loan.status === 'reserved');
-
+ // const reservedBooks = filteredLoans.filter(loan => loan.status === 'reserved');
+  const reservationsData = reservations;
   const handleOpenCreateModal = () => {
     setIsModalOpen(true);
   };
@@ -48,7 +56,7 @@ const LoanManagement: React.FC = () => {
   const handleSaveLoan = async (loanData) => {
     const success = await saveLoan(loanData);
     if (success) {
-      await loadLoans();
+      await loadLoansAndReservations();
       setIsModalOpen(false);
     }
   };
@@ -56,7 +64,7 @@ const LoanManagement: React.FC = () => {
   const handleReturnBook = async (loan) => {
     const success = await returnLoan(loan.id);
     if (success) {
-      await loadLoans();
+      await loadLoansAndReservations();
     }
   };
 
@@ -70,7 +78,7 @@ const LoanManagement: React.FC = () => {
   const handleCancelLoan = async (loan) => {
     const success = await cancelLoan(loan.id);
     if (success) {
-      await loadLoans();
+      await loadLoansAndReservations();
     }
   };
 
@@ -108,7 +116,7 @@ const LoanManagement: React.FC = () => {
                 </TabsTrigger>
                 <TabsTrigger value="reserved" className="flex-grow sm:flex-grow-0">
                   Reservados
-                  <Badge variant="secondary" className="ml-2">{reservedBooks.length}</Badge>
+                  <Badge variant="secondary" className="ml-2">{reservationsData.length}</Badge>
                 </TabsTrigger>
               </TabsList>
 
@@ -129,11 +137,12 @@ const LoanManagement: React.FC = () => {
                 loans={returnedLoans} 
                 type="returned" 
               />
+            {/* TODO Refatorar o componente para tratar reservas como reserva e não como emprestimo
               <LoanTable 
-                loans={reservedBooks} 
+                loans={reservationsData} 
                 type="reserved" 
                 onCancel={handleCancelLoan}
-              />
+              /> */}
             </Tabs>
           </div>
         </>
