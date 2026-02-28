@@ -44,6 +44,7 @@ export const SundaySchoolLessonsList: React.FC = () => {
   }
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>Lista de Aulas</CardTitle>
@@ -134,17 +135,19 @@ export const SundaySchoolLessonsList: React.FC = () => {
         </div>
       </CardContent>
 
-      <SundaySchoolLessonViewModal
-        lesson={selectedLesson}
-        open={viewModalOpen}
-        onOpenChange={setViewModalOpen}
-      />
-
-      <SundaySchoolLessonForm
-        lesson={selectedLesson}
-        open={editModalOpen}
-        onOpenChange={setEditModalOpen}
-      />
     </Card>
+
+    <SundaySchoolLessonViewModal
+      lesson={selectedLesson}
+      open={viewModalOpen}
+      onOpenChange={setViewModalOpen}
+    />
+
+    <SundaySchoolLessonForm
+      lesson={selectedLesson}
+      open={editModalOpen}
+      onOpenChange={setEditModalOpen}
+    />
+    </>
   );
 };
