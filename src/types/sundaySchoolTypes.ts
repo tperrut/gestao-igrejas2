@@ -49,21 +49,6 @@ export interface SundaySchoolEnrollment {
   class?: SundaySchoolClass;
 }
 
-export interface SundaySchoolLesson {
-  id: string;
-  class_id: string;
-  teacher_id: string;
-  lesson_date: string;
-  topic?: string;
-  offering_amount: number;
-  notes?: string;
-  created_at: string;
-  updated_at: string;
-  teacher?: SundaySchoolTeacher;
-  class?: SundaySchoolClass;
-  attendance?: SundaySchoolAttendance[];
-}
-
 export interface SundaySchoolAttendance {
   id: string;
   lesson_id: string;
@@ -80,6 +65,34 @@ export interface SundaySchoolAttendance {
   };
 }
 
+export interface SundaySchoolLesson {
+  id: string;
+  class_id: string;
+  teacher_id: string;
+  lesson_date: string;
+  topic?: string;
+  offering_pix: number;
+  offering_cash: number;
+  /** soma calculada para compatibilidade */
+  offering_amount?: number;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  teacher?: SundaySchoolTeacher;
+  class?: SundaySchoolClass;
+  attendance?: SundaySchoolAttendance[];
+}
+
+export type SundaySchoolLessonFormValues = {
+  class_id: string;
+  teacher_id: string;
+  lesson_date: string;
+  topic?: string;
+  offering_pix: number;
+  offering_cash: number;
+  notes?: string;
+};
+
 export type SundaySchoolTeacherFormValues = {
   name: string;
   email?: string;
@@ -94,13 +107,4 @@ export type SundaySchoolClassFormValues = {
   age_group: string;
   description?: string;
   status: 'active' | 'inactive';
-};
-
-export type SundaySchoolLessonFormValues = {
-  class_id: string;
-  teacher_id: string;
-  lesson_date: string;
-  topic?: string;
-  offering_amount: number;
-  notes?: string;
 };

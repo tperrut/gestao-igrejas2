@@ -92,13 +92,18 @@ export const SundaySchoolLessonViewModal: React.FC<SundaySchoolLessonViewModalPr
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <DollarSign className="h-4 w-4" />
-                  Oferta
+                  Ofertas
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-lg font-semibold text-green-600">
-                  R$ {lesson.offering_amount?.toFixed(2) || '0,00'}
-                </p>
+                    Ofertas:{' '}
+                    R${' '}
+                    {(
+                      (lesson.offering_pix || 0) +
+                      (lesson.offering_cash || 0)
+                    ).toFixed(2)}
+                  </p>
               </CardContent>
             </Card>
           </div>
