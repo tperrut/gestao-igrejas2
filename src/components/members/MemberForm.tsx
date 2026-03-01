@@ -1,17 +1,18 @@
 
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Member } from '@/types/libraryTypes';
 import { validateEmail, validatePhone, sanitizeText } from '@/utils/validation';
 import SecurityAlert from '@/components/security/SecurityAlert';
-import SecureImageUpload from '@/components/security/SecureImageUpload';
+import { Upload, X } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const memberSchema = z.object({
   name: z.string()
@@ -64,7 +65,55 @@ const MemberForm: React.FC<MemberFormProps> = ({
     }
   });
 
-  const [avatarFile, setAvatarFile] = React.useState<File | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState(defaultValues?.avatar_url || '');
+  const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({ title: "Tipo inválido", description: "Use JPEG, PNG ou WebP.", variant: "destructive" });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Arquivo muito grande", description: "Máximo 2MB.", variant: "destructive" });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `members/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('member-avatars')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('member-avatars')
+        .getPublicUrl(data.path);
+
+      setAvatarUrl(publicUrl);
+      setValue('avatar_url', publicUrl);
+      toast({ title: "Imagem enviada com sucesso!" });
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({ title: "Erro no upload", description: "Não foi possível enviar a imagem.", variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setAvatarUrl('');
+    setValue('avatar_url', '');
+  };
 
   const onFormSubmit = (data: MemberFormValues) => {
     // Sanitize text inputs before submission
@@ -183,12 +232,26 @@ const MemberForm: React.FC<MemberFormProps> = ({
         </div>
       </div>
 
-      <SecureImageUpload
-        onImageSelect={setAvatarFile}
-        currentImageUrl={defaultValues?.avatar_url}
-        maxSizeMB={2}
-        className="md:col-span-2"
-      />
+      <div className="space-y-4">
+        <Label>Foto do Membro</Label>
+        {avatarUrl ? (
+          <div className="relative inline-block">
+            <img src={avatarUrl} alt="Avatar" className="w-32 h-32 object-cover rounded-lg border" />
+            <Button type="button" variant="destructive" size="sm" className="absolute -top-2 -right-2 w-6 h-6 rounded-full p-0" onClick={handleRemoveImage}>
+              <X className="w-3 h-3" />
+            </Button>
+          </div>
+        ) : (
+          <div className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-6 text-center">
+            <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-sm text-muted-foreground">JPEG, PNG ou WebP. Máximo 2MB.</p>
+            <Input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageUpload} disabled={uploading} className="hidden" id="member-avatar-upload" />
+            <Label htmlFor="member-avatar-upload" className="inline-block mt-2 cursor-pointer">
+              <Button type="button" variant="outline" size="sm" asChild><span>{uploading ? 'Enviando...' : 'Selecionar Arquivo'}</span></Button>
+            </Label>
+          </div>
+        )}
+      </div>
 
       <div className="flex gap-3 pt-4">
         <Button type="submit" disabled={isSubmitting} className="flex-1">
