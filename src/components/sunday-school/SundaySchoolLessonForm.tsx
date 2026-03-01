@@ -66,15 +66,39 @@ export const SundaySchoolLessonForm: React.FC<SundaySchoolLessonFormProps> = ({
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      class_id: lesson?.class_id || '',
-      teacher_id: lesson?.teacher_id || '',
-      lesson_date: lesson?.lesson_date || '',
-      topic: lesson?.topic || '',
-      offering_pix: lesson ? String(lesson.offering_pix ?? 0) : '',
-      offering_cash: lesson ? String(lesson.offering_cash ?? 0) : '',
-      notes: lesson?.notes || '',
+      class_id: '',
+      teacher_id: '',
+      lesson_date: '' as any,
+      topic: '',
+      offering_pix: '',
+      offering_cash: '',
+      notes: '',
     },
   });
+
+  React.useEffect(() => {
+    if (open && lesson) {
+      form.reset({
+        class_id: lesson.class_id || '',
+        teacher_id: lesson.teacher_id || '',
+        lesson_date: lesson.lesson_date ? new Date(lesson.lesson_date + 'T00:00:00') : ('' as any),
+        topic: lesson.topic || '',
+        offering_pix: lesson.offering_pix != null ? String(lesson.offering_pix) : '',
+        offering_cash: lesson.offering_cash != null ? String(lesson.offering_cash) : '',
+        notes: lesson.notes || '',
+      });
+    } else if (open && !lesson) {
+      form.reset({
+        class_id: '',
+        teacher_id: '',
+        lesson_date: '' as any,
+        topic: '',
+        offering_pix: '',
+        offering_cash: '',
+        notes: '',
+      });
+    }
+  }, [open, lesson]);
 
   const onSubmit = async (data: any) => {
     const lessonData = {
@@ -97,7 +121,7 @@ export const SundaySchoolLessonForm: React.FC<SundaySchoolLessonFormProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {lesson ? 'Editar Aula' : 'Nova Aula'}
