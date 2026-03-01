@@ -61,7 +61,12 @@ const SundaySchool: React.FC = () => {
   };
 
   const getTotalOfferings = () => {
-    return stats.recentLessons.reduce((acc: number, lesson: any) => acc + (lesson.offering_amount || 0), 0);
+    return stats.recentLessons.reduce(
+      (acc: number, lesson: any) =>
+        acc +
+        ((lesson.offering_pix ?? 0) + (lesson.offering_cash ?? 0)),
+      0
+    );
   };
 
   return (
@@ -158,10 +163,14 @@ const SundaySchool: React.FC = () => {
                         <Badge variant="outline">
                           {lesson.attendance?.filter((att: any) => att.present).length || 0} presentes
                         </Badge>
-                        {lesson.offering_amount > 0 && (
-                          <p className="text-sm font-medium text-green-600">
-                            R$ {lesson.offering_amount.toFixed(2)}
-                          </p>
+                        {(lesson.offering_pix || 0) + (lesson.offering_cash || 0) > 0 && (
+                        <p className="text-sm font-medium text-green-600">
+                          R${' '}
+                          {(
+                            (lesson.offering_pix || 0) +
+                            (lesson.offering_cash || 0)
+                          ).toFixed(2)}
+                        </p>
                         )}
                       </div>
                     </div>

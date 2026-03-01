@@ -93,7 +93,16 @@ export const useSundaySchool = () => {
         .order('lesson_date', { ascending: false });
 
       if (error) throw error;
-      setLessons(data as SundaySchoolLesson[] || []);
+      const lessonsWithTotal = (data || []).map((l: any) => {
+        const pix = l.offering_pix ?? 0;
+        const cash = l.offering_cash ?? 0;
+        return {
+          ...l,
+          offering_amount: pix + cash,
+        };
+      });
+      setLessons(lessonsWithTotal as SundaySchoolLesson[]);
+
     } catch (error: any) {
       toast({
         title: "Erro ao carregar aulas",
@@ -191,28 +200,24 @@ export const useSundaySchool = () => {
   };
 
   // Create Lesson
-  const createLesson = async (lessonData: Omit<SundaySchoolLesson, 'id' | 'created_at' | 'updated_at' | 'tenant_id'>) => {
+  const createLesson = async (
+    lessonData: Omit<SundaySchoolLesson, 'id' | 'created_at' | 'updated_at' | 'tenant_id'>
+  ) => {
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from('sunday_school_lessons')
-        .insert([{ ...lessonData, tenant_id: getDefaultTenantId() }]);
-
+      const payload = {
+        ...lessonData,
+        offering_pix: lessonData.offering_pix ?? 0,
+        offering_cash: lessonData.offering_cash ?? 0,
+        tenant_id: getDefaultTenantId(),
+      };
+      const { error } = await supabase.from('sunday_school_lessons').insert(payload);
       if (error) throw error;
-
-      toast({
-        title: "Aula criada com sucesso!",
-        description: "Nova aula registrada no sistema.",
-      });
-
       await fetchLessons();
+      toast({ title: 'Aula criada', description: 'Nova aula registrada no sistema.' });
       return true;
     } catch (error: any) {
-      toast({
-        title: "Erro ao criar aula",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: 'Erro ao criar aula', description: error.message, variant: "destructive"});
       return false;
     } finally {
       setLoading(false);
@@ -223,30 +228,24 @@ export const useSundaySchool = () => {
   const updateLesson = async (id: string, lessonData: Partial<SundaySchoolLesson>) => {
     try {
       setLoading(true);
+      const payload: any = { ...lessonData };
+      delete payload.offering_amount;
       const { error } = await supabase
         .from('sunday_school_lessons')
-        .update(lessonData)
+        .update(payload)
         .eq('id', id);
-
       if (error) throw error;
-
-      toast({
-        title: "Aula atualizada com sucesso!",
-      });
-
       await fetchLessons();
+      toast({ title: 'Aula atualizada'});
       return true;
     } catch (error: any) {
-      toast({
-        title: "Erro ao atualizar aula",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: 'Erro ao atualizar aula', description: error.message, variant: "destructive" });
       return false;
     } finally {
       setLoading(false);
     }
   };
+
 
   // Update functions
   const updateTeacher = async (id: string, teacherData: Partial<SundaySchoolTeacher>) => {
