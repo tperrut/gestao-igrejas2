@@ -40,7 +40,7 @@ const SundaySchool: React.FC = () => {
     recentLessons: []
   });
 
-  const { teachers, classes, enrollments, getDashboardStats } = useSundaySchool();
+  const { teachers, classes, enrollments, getDashboardStats, fetchTeachers, fetchClasses, fetchEnrollments, fetchLessons } = useSundaySchool();
 
   useEffect(() => {
     const loadStats = async () => {
@@ -126,7 +126,19 @@ const SundaySchool: React.FC = () => {
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="dashboard" className="space-y-4">
+      <Tabs defaultValue="dashboard" className="space-y-4" onValueChange={(tab) => {
+        if (tab === 'teachers') fetchTeachers();
+        else if (tab === 'classes') fetchClasses();
+        else if (tab === 'enrollments') fetchEnrollments();
+        else if (tab === 'lessons') fetchLessons();
+        else if (tab === 'dashboard') {
+          const loadStats = async () => {
+            const dashboardStats = await getDashboardStats();
+            setStats(dashboardStats);
+          };
+          loadStats();
+        }
+      }}>
 
         <TabsList className="flex flex-col sm:flex-row w-full gap-2">
           <TabsTrigger className="w-full sm:w-auto" value="dashboard">Dashboard</TabsTrigger>
