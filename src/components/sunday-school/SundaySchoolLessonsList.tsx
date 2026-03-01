@@ -51,7 +51,7 @@ export const SundaySchoolLessonsList: React.FC = () => {
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          <Table>
+          <Table className="min-w-[700px]">
             <TableHeader>
               <TableRow>
                 <TableHead>Data</TableHead>
@@ -106,7 +106,11 @@ export const SundaySchoolLessonsList: React.FC = () => {
                     <div className="flex items-center gap-1">
                       <DollarSign className="h-4 w-4 text-green-600" />
                       <span className="font-medium text-green-600">
-                        R$ {lesson.offering_amount.toFixed(2)}
+                        R${' '}
+                          {(
+                            (lesson.offering_pix || 0) +
+                            (lesson.offering_cash || 0)
+                          ).toFixed(2)}
                       </span>
                     </div>
                   </TableCell>

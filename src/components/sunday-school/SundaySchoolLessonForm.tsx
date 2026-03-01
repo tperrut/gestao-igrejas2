@@ -45,8 +45,8 @@ const formSchema = z.object({
     required_error: 'Data da aula é obrigatória',
   }),
   topic: z.string().optional(),
-  // ✅ Aceita string vazia durante digitação; valida como número no submit
-  offering_amount: z.string().optional(),
+  offering_pix: z.string().optional(),
+  offering_cash: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -68,10 +68,10 @@ export const SundaySchoolLessonForm: React.FC<SundaySchoolLessonFormProps> = ({
     defaultValues: {
       class_id: lesson?.class_id || '',
       teacher_id: lesson?.teacher_id || '',
-      lesson_date: lesson?.lesson_date ? new Date(lesson.lesson_date) : new Date(),
+      lesson_date: lesson?.lesson_date || '',
       topic: lesson?.topic || '',
-      // ✅ Começa vazio — placeholder "0.00" já comunica o formato esperado
-      offering_amount: lesson?.offering_amount != null ? String(lesson.offering_amount) : '',
+      offering_pix: lesson ? String(lesson.offering_pix ?? 0) : '',
+      offering_cash: lesson ? String(lesson.offering_cash ?? 0) : '',
       notes: lesson?.notes || '',
     },
   });
@@ -81,7 +81,8 @@ export const SundaySchoolLessonForm: React.FC<SundaySchoolLessonFormProps> = ({
       ...data,
       lesson_date: format(data.lesson_date, 'yyyy-MM-dd'),
       // ✅ Converte para número no submit; campo vazio vira 0
-      offering_amount: parseFloat(data.offering_amount) || 0,
+      offering_pix: parseFloat(data.offering_pix) || 0,
+      offering_cash: parseFloat(data.offering_cash) || 0,
     };
 
     const success = lesson
@@ -220,31 +221,30 @@ export const SundaySchoolLessonForm: React.FC<SundaySchoolLessonFormProps> = ({
 
             <FormField
               control={form.control}
-              name="offering_amount"
+              name="offering_pix"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Valor da Oferta (R$)</FormLabel>
+                  <FormLabel>Oferta (Pix)</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                      // ✅ value controlado como string — campo começa vazio
-                      value={field.value}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      // ✅ Ao sair do campo, formata para 2 casas decimais se tiver valor
-                      onBlur={(e) => {
-                        const val = parseFloat(e.target.value);
-                        field.onChange(isNaN(val) ? '' : val.toFixed(2));
-                        field.onBlur();
-                      }}
-                    />
+                    <Input {...field} type="number" placeholder="0.00"  />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
-            />
+             />
+            <FormField
+              control={form.control}
+              name="offering_cash"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Oferta (Dinheiro)</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="number" placeholder="0.00"  />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+           />
 
             <FormField
               control={form.control}
