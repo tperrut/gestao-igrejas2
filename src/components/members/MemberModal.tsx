@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Member } from '@/types/libraryTypes';
 import MemberForm, { MemberFormValues } from './MemberForm';
@@ -54,9 +55,12 @@ const MemberModal: React.FC<MemberModalProps> = ({
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            {member ? 'Edite as informações do membro.' : 'Preencha os dados para cadastrar um novo membro.'}
+          </DialogDescription>
         </DialogHeader>
-        <MemberForm 
-          onSubmit={handleSave} 
+        <MemberForm
+          onSubmit={handleSave}
           defaultValues={defaultValues}
           onCancel={() => onClose(false)}
         />

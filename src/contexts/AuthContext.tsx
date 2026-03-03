@@ -63,6 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     timestamp: Date;
     details: any;
   }>>([]);
+  const fetchingProfileId = React.useRef<string | null>(null);
 
   const logSecurityEvent = (type: string, details: any) => {
     const event = {
@@ -70,7 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       timestamp: new Date(),
       details
     };
-    
+
     setSecurityEvents(prev => [...prev.slice(-10), event]); // Keep last 10 events
     logger.securityLog(type, details);
   };
@@ -78,40 +79,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('Auth state changed:', event, session);
-        
+
         // Log authentication events for security monitoring
         logSecurityEvent('auth_state_change', {
           event,
           userId: session?.user?.id,
           timestamp: new Date().toISOString()
         });
-        
+
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         // Security: Reset failed attempts on successful auth
-        if (event === 'SIGNED_IN') {
-          setFailedAttempts(0);
-          setLastFailedAttempt(null);
-          logSecurityEvent('successful_sign_in', {
-            userId: session?.user?.id,
-            email: session?.user?.email
-          });
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          if (event === 'SIGNED_IN') {
+            setFailedAttempts(0);
+            setLastFailedAttempt(null);
+            logSecurityEvent('successful_sign_in', {
+              userId: session?.user?.id,
+              email: session?.user?.email
+            });
+          }
         }
-        
+
         if (event === 'SIGNED_OUT') {
           logSecurityEvent('sign_out', {
             userId: user?.id
           });
+          setProfile(null);
+          setUserRole(null);
         }
-        
+
         if (session?.user) {
-          // Defer profile fetching to avoid auth state callback issues
-          setTimeout(async () => {
-            await fetchUserProfile(session.user.id);
-          }, 0);
+          await fetchUserProfile(session.user.id);
         } else {
           setProfile(null);
           setUserRole(null);
@@ -120,26 +122,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
-        logSecurityEvent('session_restored', {
-          userId: session.user.id
-        });
-      }
-      setLoading(false);
-    });
-
     return () => subscription.unsubscribe();
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
+    // Prevent redundant fetches if we already have the profile or are currently fetching
+    if ((profile?.id === userId && userRole) || fetchingProfileId.current === userId) {
+      return;
+    }
+
     try {
+      fetchingProfileId.current = userId;
       logger.dbLog('Fetching user profile', { userId });
-      
+
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -164,7 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (roleError) {
         logger.dbError('Failed to fetch user role', roleError, { userId });
       }
-      
+
       setUserRole(roleData as UserRole | null);
       logger.authLog('User profile fetched successfully', userId, { role: roleData?.role });
     } catch (error) {
@@ -172,6 +167,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Error fetching user profile:', error);
       setProfile(null);
       setUserRole(null);
+    } finally {
+      fetchingProfileId.current = null;
     }
   };
 
@@ -180,7 +177,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (failedAttempts >= 5 && lastFailedAttempt) {
       const timeSinceLastAttempt = Date.now() - lastFailedAttempt.getTime();
       const lockoutDuration = 15 * 60 * 1000; // 15 minutes
-      
+
       if (timeSinceLastAttempt < lockoutDuration) {
         logSecurityEvent('rate_limit_active', {
           failedAttempts,
@@ -194,10 +191,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     const loginAttemptId = `login_${Date.now()}`;
-    
+
     try {
       logger.authLog('Sign in attempt started', undefined, { email, attemptId: loginAttemptId });
-      
+
       // Security: Input validation
       if (!validateEmail(email)) {
         const error = new Error('Email inválido');
@@ -214,10 +211,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Security: Rate limiting
       if (isRateLimited()) {
         const error = new Error('Muitas tentativas de login. Tente novamente em 15 minutos.');
-        logSecurityEvent('rate_limit_triggered', { 
-          email, 
-          failedAttempts, 
-          lastFailedAttempt: lastFailedAttempt?.toISOString() 
+        logSecurityEvent('rate_limit_triggered', {
+          email,
+          failedAttempts,
+          lastFailedAttempt: lastFailedAttempt?.toISOString()
         });
         toast({
           title: "Acesso bloqueado",
@@ -236,31 +233,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Security: Track failed attempts
         setFailedAttempts(prev => prev + 1);
         setLastFailedAttempt(new Date());
-        
+
         logSecurityEvent('sign_in_failed', {
           email,
           attemptId: loginAttemptId,
           failedAttempts: failedAttempts + 1,
           errorMessage: error.message
         });
-        
-        logger.authError('Sign in failed', error, { 
-          email, 
+
+        logger.authError('Sign in failed', error, {
+          email,
           attemptId: loginAttemptId,
           failedAttempts: failedAttempts + 1
         }, undefined);
-        
+
         toast({
           title: "Erro no login",
           description: error.message,
           variant: "destructive",
         });
       } else {
-        logger.authLog('Sign in successful', undefined, { 
-          email, 
-          attemptId: loginAttemptId 
+        logger.authLog('Sign in successful', undefined, {
+          email,
+          attemptId: loginAttemptId
         });
-        
+
         toast({
           title: "Login realizado",
           description: "Bem-vindo de volta!",
@@ -269,9 +266,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { error };
     } catch (error) {
-      logger.authError('Unexpected error during sign in', error instanceof Error ? error : new Error(String(error)), { 
-        email, 
-        attemptId: loginAttemptId 
+      logger.authError('Unexpected error during sign in', error instanceof Error ? error : new Error(String(error)), {
+        email,
+        attemptId: loginAttemptId
       }, undefined);
       console.error('Error signing in:', error);
       return { error };
@@ -313,7 +310,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const redirectUrl = `${window.location.origin}/`;
-      
+
       const { error } = await supabase.auth.signUp({
         email: email.toLowerCase().trim(),
         password,
@@ -358,7 +355,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Security: Clear sensitive data
         setFailedAttempts(0);
         setLastFailedAttempt(null);
-        
+
         toast({
           title: "Logout realizado",
           description: "Você foi desconectado com sucesso.",
