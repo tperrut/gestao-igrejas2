@@ -90,13 +90,13 @@ const MemberForm: React.FC<MemberFormProps> = ({
       const filePath = `members/${fileName}`;
 
       const { data, error } = await supabase.storage
-        .from('member-avatars')
+        .from('members')
         .upload(filePath, file);
 
       if (error) throw error;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('member-avatars')
+        .from('members')
         .getPublicUrl(data.path);
 
       setAvatarUrl(publicUrl);
@@ -214,8 +214,8 @@ const MemberForm: React.FC<MemberFormProps> = ({
 
         <div className="space-y-2">
           <Label htmlFor="status">Status *</Label>
-          <Select 
-            value={watch('status')} 
+          <Select
+            value={watch('status')}
             onValueChange={(value) => setValue('status', value as 'active' | 'inactive')}
           >
             <SelectTrigger className={errors.status ? 'border-red-500' : ''}>

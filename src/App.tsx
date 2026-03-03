@@ -39,12 +39,12 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/register" element={<Register />} />
-            
+
             {/* Owner Routes */}
             <Route path="/owner/dashboard" element={
               <OwnerGuard>
@@ -66,7 +66,7 @@ const App = () => (
                 <UserManagement />
               </OwnerGuard>
             } />
-            
+
             {/* Protected Tenant Routes */}
             <Route element={
               <AuthGuard>

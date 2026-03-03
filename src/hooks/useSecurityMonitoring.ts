@@ -13,12 +13,12 @@ export const useSecurityMonitoring = () => {
 
     // Monitor for suspicious session activities
     const now = new Date();
-    const sessionStart = new Date(session.expires_at! - (session.expires_in || 3600) * 1000);
-    
+    const sessionStart = new Date((session.expires_at! * 1000) - ((session.expires_in || 3600) * 1000));
+
     // Check if session is unusually long (potential security issue)
     const sessionDuration = now.getTime() - sessionStart.getTime();
     const maxSessionDuration = 24 * 60 * 60 * 1000; // 24 hours
-    
+
     if (sessionDuration > maxSessionDuration) {
       logger.securityLog('Long session detected', {
         userId: user.id,
@@ -31,7 +31,7 @@ export const useSecurityMonitoring = () => {
     // Monitor for multiple rapid authentication state changes
     const authStateChangeTime = Date.now();
     const lastChangeTime = localStorage.getItem('lastAuthStateChange');
-    
+
     if (lastChangeTime) {
       const timeDiff = authStateChangeTime - parseInt(lastChangeTime);
       if (timeDiff < 1000) { // Less than 1 second between changes
@@ -41,7 +41,7 @@ export const useSecurityMonitoring = () => {
         });
       }
     }
-    
+
     localStorage.setItem('lastAuthStateChange', authStateChangeTime.toString());
 
     // Monitor for unusual login patterns
@@ -60,7 +60,7 @@ export const useSecurityMonitoring = () => {
     // Throttle security logging to prevent noise
     const lastReport = localStorage.getItem(`last_security_report_${incident}`);
     const now = Date.now();
-    
+
     if (!lastReport || (now - parseInt(lastReport)) > 60000) { // Only log once per minute per incident type
       logger.securityLog(`Security incident: ${incident}`, {
         userId: user?.id,
@@ -69,7 +69,7 @@ export const useSecurityMonitoring = () => {
         timestamp: new Date().toISOString(),
         userAgent: navigator.userAgent
       });
-      
+
       localStorage.setItem(`last_security_report_${incident}`, now.toString());
 
       toast({
