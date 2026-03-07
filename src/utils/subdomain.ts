@@ -47,7 +47,7 @@ export const detectSubdomain = (): SubdomainInfo => {
   // For production (betelhub.com.br or subdomains like imwniteroi.betelhub.com.br)
   // Assuming format: [subdomain.]betelhub.com.br
   const mainDomain = 'betelhub';
-  const reservedSubdomains = ['www', 'staging', 'admin', 'api', 'auth', 'dev', 'test'];
+  const reservedSubdomains = ['www', 'admin', 'api', 'auth', 'dev', 'test'];
 
   if (parts.length >= 3) {
     // Has subdomain (e.g., imwniteroi.betelhub.com.br)
