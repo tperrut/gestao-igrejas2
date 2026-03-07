@@ -16,7 +16,7 @@ export const detectSubdomain = (): SubdomainInfo => {
   // deveria ser uma const
   const host = window.location.hostname;
   const parts = host.split('.');
-  
+
   // For local development (localhost, 127.0.0.1, etc.)
   if (host === 'localhost' || host === '127.0.0.1') {
     // Check for subdomain in URL params for local testing
@@ -43,16 +43,17 @@ export const detectSubdomain = (): SubdomainInfo => {
       isMainDomain: true,
     };
   }
-  
+
   // For production (betelhub.com.br or subdomains like imwniteroi.betelhub.com.br)
   // Assuming format: [subdomain.]betelhub.com.br
   const mainDomain = 'betelhub';
-  
+  const reservedSubdomains = ['www', 'staging', 'admin', 'api', 'auth', 'dev', 'test'];
+
   if (parts.length >= 3) {
     // Has subdomain (e.g., imwniteroi.betelhub.com.br)
     const subdomain = parts[0];
-    
-    if (subdomain !== mainDomain && subdomain !== 'www') {
+
+    if (subdomain !== mainDomain && !reservedSubdomains.includes(subdomain)) {
       return {
         isSubdomain: true,
         subdomain,
@@ -60,7 +61,7 @@ export const detectSubdomain = (): SubdomainInfo => {
       };
     }
   }
-  
+
   // Main domain (betelhub.com.br or www.betelhub.com.br)
   return {
     isSubdomain: false,
