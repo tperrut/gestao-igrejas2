@@ -79,10 +79,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state changed:', event, session);
 
-        // Log authentication events for security monitoring
         logSecurityEvent('auth_state_change', {
           event,
           userId: session?.user?.id,
@@ -92,35 +91,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
 
-        // Security: Reset failed attempts on successful auth
-        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-          if (event === 'SIGNED_IN') {
-            setFailedAttempts(0);
-            setLastFailedAttempt(null);
-            logSecurityEvent('successful_sign_in', {
-              userId: session?.user?.id,
-              email: session?.user?.email
-            });
-          }
+        if (event === 'SIGNED_IN') {
+          setFailedAttempts(0);
+          setLastFailedAttempt(null);
+          logSecurityEvent('successful_sign_in', {
+            userId: session?.user?.id,
+            email: session?.user?.email
+          });
         }
 
         if (event === 'SIGNED_OUT') {
-          logSecurityEvent('sign_out', {
-            userId: user?.id
-          });
+          logSecurityEvent('sign_out', { userId: user?.id });
           setProfile(null);
           setUserRole(null);
         }
 
         if (session?.user) {
-          await fetchUserProfile(session.user.id);
+          // Use setTimeout to avoid blocking the auth state update
+          setTimeout(() => {
+            fetchUserProfile(session.user.id);
+          }, 0);
         } else {
           setProfile(null);
           setUserRole(null);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
+
+    // Explicitly check for session to ensure app doesn't hang
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchUserProfile(session.user.id);
+      } else {
+        setLoading(false);
+      }
+    }).catch(() => {
+      setLoading(false);
+    });
 
     return () => subscription.unsubscribe();
   }, []);
@@ -169,6 +179,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserRole(null);
     } finally {
       fetchingProfileId.current = null;
+      setLoading(false);
     }
   };
 
