@@ -23,9 +23,11 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  roleLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, name: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  isOwner: () => boolean;
   isAdmin: () => boolean;
   isMember: () => boolean;
   securityEvents: Array<{
@@ -50,7 +52,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);   // session presence check
+  const [roleLoading, setRoleLoading] = useState(false); // profile + role fetch
   const { toast } = useToast();
 
   // Security: Track failed login attempts
@@ -64,6 +67,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     details: any;
   }>>([]);
   const fetchingProfileId = React.useRef<string | null>(null);
+  // Shared promise so INITIAL_SESSION + SIGNED_IN both await the same fetch.
+  const fetchProfilePromise = React.useRef<Promise<void> | null>(null);
 
   const logSecurityEvent = (type: string, details: any) => {
     const event = {
@@ -77,12 +82,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session);
 
-        // Log authentication events for security monitoring
         logSecurityEvent('auth_state_change', {
           event,
           userId: session?.user?.id,
@@ -92,84 +95,108 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
 
-        // Security: Reset failed attempts on successful auth
-        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-          if (event === 'SIGNED_IN') {
-            setFailedAttempts(0);
-            setLastFailedAttempt(null);
-            logSecurityEvent('successful_sign_in', {
-              userId: session?.user?.id,
-              email: session?.user?.email
-            });
-          }
+        if (event === 'SIGNED_IN') {
+          setFailedAttempts(0);
+          setLastFailedAttempt(null);
+          logSecurityEvent('successful_sign_in', {
+            userId: session?.user?.id,
+            email: session?.user?.email
+          });
         }
 
         if (event === 'SIGNED_OUT') {
-          logSecurityEvent('sign_out', {
-            userId: user?.id
-          });
+          logSecurityEvent('sign_out', { userId: user?.id });
           setProfile(null);
           setUserRole(null);
+          setLoading(false);
+          return;
         }
 
+        // Session confirmed — mark auth check done; role fetch starts next.
+        setLoading(false);
+
         if (session?.user) {
+          // Security: If role fetch doesn't resolve in 15s, force sign-out.
+          // This prevents the user from being stuck in an indeterminate state
+          // and avoids wrong redirects when Supabase queries hang.
+          const timeoutId = setTimeout(async () => {
+            console.warn('Role fetch timed out (15s). Forcing sign-out for security.');
+            logSecurityEvent('session_timeout', { userId: session.user.id });
+            toast({
+              title: 'Sessão expirada',
+              description: 'Não foi possível verificar suas permissões. Por favor, faça login novamente.',
+              variant: 'destructive',
+            });
+            await supabase.auth.signOut();
+          }, 15_000);
+
           await fetchUserProfile(session.user.id);
+          clearTimeout(timeoutId);
         } else {
           setProfile(null);
           setUserRole(null);
         }
-        setLoading(false);
       }
     );
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchUserProfile = async (userId: string) => {
-    // Prevent redundant fetches if we already have the profile or are currently fetching
-    if ((profile?.id === userId && userRole) || fetchingProfileId.current === userId) {
-      return;
+  const fetchUserProfile = async (userId: string): Promise<void> => {
+    // If a fetch is already in progress for this user, return the SAME promise
+    // so concurrent auth events (INITIAL_SESSION + SIGNED_IN) both await the
+    // real DB call and roleLoading is cleared only after the fetch completes.
+    if (fetchingProfileId.current === userId && fetchProfilePromise.current) {
+      return fetchProfilePromise.current;
     }
 
-    try {
-      fetchingProfileId.current = userId;
-      logger.dbLog('Fetching user profile', { userId });
+    const promise = (async () => {
+      setRoleLoading(true);
+      try {
+        fetchingProfileId.current = userId;
+        logger.dbLog('Fetching user profile', { userId });
 
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
 
-      if (profileError) {
-        logger.dbError('Failed to fetch user profile', profileError, { userId });
-        console.error('Error fetching profile:', profileError);
-        return;
+        if (profileError) {
+          logger.dbError('Failed to fetch user profile', profileError, { userId });
+          console.error('Error fetching profile:', profileError);
+          setProfile(null);
+          return;
+        }
+
+        setProfile(profileData as Profile);
+
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role, tenant_id')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (roleError) {
+          logger.dbError('Failed to fetch user role', roleError, { userId });
+        }
+
+        setUserRole(roleData as UserRole | null);
+        logger.authLog('User profile fetched successfully', userId, { role: roleData?.role });
+      } catch (error) {
+        logger.authError('Error fetching user profile', error instanceof Error ? error : new Error(String(error)), { userId }, userId);
+        console.error('Error fetching user profile:', error);
+        setProfile(null);
+        setUserRole(null);
+      } finally {
+        setRoleLoading(false);
+        fetchingProfileId.current = null;
+        fetchProfilePromise.current = null;
       }
+    })();
 
-      setProfile(profileData as Profile);
-
-      // Fetch user role from user_roles table
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role, tenant_id')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (roleError) {
-        logger.dbError('Failed to fetch user role', roleError, { userId });
-      }
-
-      setUserRole(roleData as UserRole | null);
-      logger.authLog('User profile fetched successfully', userId, { role: roleData?.role });
-    } catch (error) {
-      logger.authError('Error fetching user profile', error instanceof Error ? error : new Error(String(error)), { userId }, userId);
-      console.error('Error fetching user profile:', error);
-      setProfile(null);
-      setUserRole(null);
-    } finally {
-      fetchingProfileId.current = null;
-    }
+    fetchProfilePromise.current = promise;
+    return promise;
   };
 
   // Enhanced security: Check if user should be rate limited
@@ -366,10 +393,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const isOwner = () => {
+    return userRole?.role === 'owner';
+  };
+
   const isAdmin = () => {
-    const adminCheck = userRole?.role === 'admin' || userRole?.role === 'owner';
-    // Reduced logging: Only log admin access during critical operations
-    return adminCheck;
+    // owner is NOT an admin of a specific tenant — they have their own global scope
+    return userRole?.role === 'admin';
   };
 
   const isMember = () => {
@@ -384,9 +414,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signUp,
     signOut,
+    isOwner,
     isAdmin,
     isMember,
-    securityEvents, // Expose security events for monitoring
+    roleLoading,
+    securityEvents,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

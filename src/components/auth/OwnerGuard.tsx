@@ -1,6 +1,5 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useOwner } from '@/hooks/useOwner';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface OwnerGuardProps {
@@ -8,10 +7,9 @@ interface OwnerGuardProps {
 }
 
 const OwnerGuard: React.FC<OwnerGuardProps> = ({ children }) => {
-  const { user, loading: authLoading } = useAuth();
-  const { isOwner, loading: ownerLoading } = useOwner();
+  const { user, loading, isOwner } = useAuth();
 
-  if (authLoading || ownerLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -23,7 +21,7 @@ const OwnerGuard: React.FC<OwnerGuardProps> = ({ children }) => {
     return <Navigate to="/auth" replace />;
   }
 
-  if (!isOwner) {
+  if (!isOwner()) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

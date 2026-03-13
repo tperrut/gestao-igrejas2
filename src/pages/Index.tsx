@@ -5,10 +5,10 @@ import { detectSubdomain } from "@/utils/subdomain";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, loading, isAdmin, isMember } = useAuth();
+  const { user, loading, roleLoading, isOwner, isAdmin } = useAuth();
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || roleLoading) return;
 
     const subdomainInfo = detectSubdomain();
 
@@ -27,14 +27,14 @@ const Index = () => {
     }
 
     // Se está autenticado, redireciona para o dashboard apropriado
-    if (isAdmin && isAdmin()) {
+    if (isOwner && isOwner()) {
+      navigate("/owner/dashboard");
+    } else if (isAdmin && isAdmin()) {
       navigate("/dashboard");
-    } else if (isMember && isMember()) {
-      navigate("/member-dashboard");
     } else {
       navigate("/member-dashboard");
     }
-  }, [user, loading, navigate, isAdmin, isMember]);
+  }, [user, loading, roleLoading, navigate, isOwner, isAdmin]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">

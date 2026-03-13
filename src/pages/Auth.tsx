@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Auth: React.FC = () => {
-  const { user, profile, signIn, loading, isAdmin, isMember } = useAuth();
+  const { user, profile, signIn, loading, roleLoading, isOwner, isAdmin } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -65,21 +65,26 @@ const Auth: React.FC = () => {
   const [loginPassword, setLoginPassword] = useState('');
 
   // Redirect if already authenticated
-  if (user && profile && !loading) {
+  if (user && profile && !loading && !roleLoading) {
     const subdomainInfo = detectSubdomain();
 
-    // If on subdomain, always redirect to dashboard
+    // Owner always goes to the global admin panel, regardless of subdomain
+    if (isOwner()) {
+      return <Navigate to="/owner/dashboard" replace />;
+    }
+
+    // If on subdomain, redirect to tenant dashboard
     if (subdomainInfo.isSubdomain) {
       if (isAdmin()) {
         return <Navigate to="/dashboard" replace />;
-      } else if (isMember()) {
+      } else {
         return <Navigate to="/member-dashboard" replace />;
       }
     } else {
-      // On main domain, redirect to dashboard
+      // On main domain, redirect to appropriate dashboard
       if (isAdmin()) {
         return <Navigate to="/dashboard" replace />;
-      } else if (isMember()) {
+      } else {
         return <Navigate to="/member-dashboard" replace />;
       }
     }
