@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Auth: React.FC = () => {
-  const { user, profile, signIn, loading, roleLoading, isOwner, isAdmin } = useAuth();
+  const { user, profile, signIn, loading, roleLoading, isOwner, isAdmin, isMember } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -37,8 +37,23 @@ const Auth: React.FC = () => {
   const fetchTenantName = async (slug: string) => {
     setTenantValid(null);
     setTenantError(null);
+
+    // Safety timeout: don't stay in loading state forever if tenant fetch hangs
+    const timeoutId = setTimeout(() => {
+      setTenantValid(prev => {
+        if (prev === null) {
+          console.warn('Tenant branding fetch timed out (10s)');
+          setTenantError('connection');
+          return false;
+        }
+        return prev;
+      });
+    }, 10_000);
+
     try {
       const res = await fetchTenantBranding(slug);
+      clearTimeout(timeoutId);
+
       if (res.status === 'ok') {
         setTenantName(res.data.name);
         setTenantValid(true);
@@ -53,6 +68,7 @@ const Auth: React.FC = () => {
         setTenantError('connection');
       }
     } catch (err) {
+      clearTimeout(timeoutId);
       console.error('Error fetching tenant (unexpected):', err);
       setTenantName('');
       setTenantValid(false);
@@ -77,14 +93,14 @@ const Auth: React.FC = () => {
     if (subdomainInfo.isSubdomain) {
       if (isAdmin()) {
         return <Navigate to="/dashboard" replace />;
-      } else {
+      } else if (isMember()) {
         return <Navigate to="/member-dashboard" replace />;
       }
     } else {
       // On main domain, redirect to appropriate dashboard
       if (isAdmin()) {
         return <Navigate to="/dashboard" replace />;
-      } else {
+      } else if (isMember()) {
         return <Navigate to="/member-dashboard" replace />;
       }
     }
@@ -94,7 +110,7 @@ const Auth: React.FC = () => {
     e.preventDefault();
 
     // Validate tenant before login
-    if (!tenantSlug || tenantValid === false) {
+    if (!tenantSlug || (tenantValid === false && tenantError !== 'connection')) {
       return;
     }
 
@@ -125,7 +141,9 @@ const Auth: React.FC = () => {
     }
   };
 
-  if (loading || tenantValid === null) {
+  // Show full-screen loading ONLY for auth/session check.
+  // Tenant validation happens inside the layout to avoid infinite spinners.
+  if (loading || roleLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -133,36 +151,47 @@ const Auth: React.FC = () => {
     );
   }
 
+  const isTenantValidating = tenantValid === null;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="w-full max-w-md">
-        {!tenantValid && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {tenantError === 'connection' ? (
-                <>
-                  Serviço temporariamente indisponível — estamos tentando reconectar.
-                  <div className="mt-2">
-                    <Button size="sm" onClick={() => tenantSlug && fetchTenantName(tenantSlug)}>Tentar novamente</Button>
-                  </div>
-                </>
-              ) : tenantError === 'not_found' ? (
-                'Tenant inválido ou inativo. Verifique a URL de acesso.'
-              ) : (
-                'Tenant inválido ou inativo. Verifique a URL de acesso.'
-              )}
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {tenantName && tenantValid && (
+        {isTenantValidating ? (
+          <div className="text-center mb-6 animate-pulse">
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 w-48 mx-auto rounded mb-2"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 w-32 mx-auto rounded"></div>
+          </div>
+        ) : tenantName && tenantValid && (
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               {tenantName}
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">Sistema de Gestão</p>
           </div>
+        )}
+
+        {!tenantValid && !isTenantValidating && (
+          <Alert variant="destructive" className="mb-6 opacity-90">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {tenantError === 'connection' ? (
+                <div className="flex flex-col gap-2">
+                  <p className="font-medium">Conexão lenta detectada</p>
+                  <p className="text-sm">Não conseguimos carregar os dados da igreja, mas você pode tentar entrar mesmo assim.</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-fit h-7 text-xs border-destructive/20 hover:bg-destructive/10"
+                    onClick={() => tenantSlug && fetchTenantName(tenantSlug)}
+                  >
+                    Recarregar dados da igreja
+                  </Button>
+                </div>
+              ) : (
+                'Esta igreja não foi encontrada ou está inativa.'
+              )}
+            </AlertDescription>
+          </Alert>
         )}
 
         <Card>
@@ -216,7 +245,7 @@ const Auth: React.FC = () => {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isLoading || !tenantValid}
+                disabled={isLoading || isTenantValidating}
               >
                 {isLoading ? "Entrando..." : "Entrar"}
               </Button>

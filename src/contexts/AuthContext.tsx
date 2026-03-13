@@ -109,32 +109,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setProfile(null);
           setUserRole(null);
           setLoading(false);
+          setRoleLoading(false);
           return;
         }
 
-        // Session confirmed — mark auth check done; role fetch starts next.
+        if (session?.user) {
+          // Bloquear o app enquanto o role/profile é buscado para evitar race conditions
+          setRoleLoading(true);
+        }
+
+        // Confirm session existence immediately to unlock the app shell (but roleLoading might be true)
         setLoading(false);
 
         if (session?.user) {
-          // Security: If role fetch doesn't resolve in 15s, force sign-out.
-          // This prevents the user from being stuck in an indeterminate state
-          // and avoids wrong redirects when Supabase queries hang.
-          const timeoutId = setTimeout(async () => {
-            console.warn('Role fetch timed out (15s). Forcing sign-out for security.');
-            logSecurityEvent('session_timeout', { userId: session.user.id });
-            toast({
-              title: 'Sessão expirada',
-              description: 'Não foi possível verificar suas permissões. Por favor, faça login novamente.',
-              variant: 'destructive',
-            });
-            await supabase.auth.signOut();
-          }, 15_000);
+          const userId = session.user.id;
 
-          await fetchUserProfile(session.user.id);
-          clearTimeout(timeoutId);
+          // Safety timeout for the ROLE loading specifically
+          const timeoutId = setTimeout(async () => {
+            // Use ref check to avoid closure issues with state
+            if (fetchingProfileId.current === userId) {
+              console.warn('Role fetch timed out (12s). Forcing sign-out for security.');
+              toast({
+                title: 'Sessão instável',
+                description: 'A verificação de perfil demorou demais. Por favor, tente novamente.',
+                variant: 'destructive',
+              });
+              setRoleLoading(false);
+              await supabase.auth.signOut();
+            }
+          }, 12_000);
+
+          fetchUserProfile(userId).finally(() => clearTimeout(timeoutId));
         } else {
           setProfile(null);
           setUserRole(null);
+          setRoleLoading(false);
         }
       }
     );

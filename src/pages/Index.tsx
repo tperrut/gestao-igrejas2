@@ -5,7 +5,7 @@ import { detectSubdomain } from "@/utils/subdomain";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, loading, roleLoading, isOwner, isAdmin } = useAuth();
+  const { user, loading, roleLoading, isOwner, isAdmin, isMember } = useAuth();
 
   useEffect(() => {
     if (loading || roleLoading) return;
@@ -31,10 +31,13 @@ const Index = () => {
       navigate("/owner/dashboard");
     } else if (isAdmin && isAdmin()) {
       navigate("/dashboard");
-    } else {
+    } else if (isMember && isMember()) {
       navigate("/member-dashboard");
+    } else {
+      // Role não identificado ou fetch falhou, volta para auth
+      navigate("/auth");
     }
-  }, [user, loading, roleLoading, navigate, isOwner, isAdmin]);
+  }, [user, loading, roleLoading, navigate, isOwner, isAdmin, isMember]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
