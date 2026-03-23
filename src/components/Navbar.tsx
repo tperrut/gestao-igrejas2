@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -10,11 +10,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { 
-  Menu, 
-  User, 
-  LogOut, 
-  Settings, 
+import {
+  Menu,
+  User,
+  LogOut,
+  Settings,
   Home,
   Book,
   Calendar,
@@ -89,13 +89,13 @@ const Navbar: React.FC = () => {
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
-          
-          
+
+
           <Link to="/" className="flex items-center gap-2">
-            <img 
-              src="https://images.seeklogo.com/logo-png/27/1/imw-igreja-metodista-wesleyana-logo-png_seeklogo-275760.png?v=1962823770704272104" 
-              alt="Igreja Metodista Wesleyana Logo" 
-              className="h-10 w-auto" 
+            <img
+              src="https://images.seeklogo.com/logo-png/27/1/imw-igreja-metodista-wesleyana-logo-png_seeklogo-275760.png?v=1962823770704272104"
+              alt="Igreja Metodista Wesleyana Logo"
+              className="h-10 w-auto"
             />
             <span className="hidden font-montserrat font-bold text-xl text-church-blue sm:inline-block">
               Igreja Metodista Wesleyana
@@ -105,10 +105,10 @@ const Navbar: React.FC = () => {
             </span>
           </Link>
         </div>
-       </div> 
+      </div>
       <div className="flex h-14 items-center px-4 lg:px-6">
         <div className="mr-4 flex">
-         {/*  <button 
+          {/*  <button 
             onClick={handleLogoClick}
             className="mr-6 flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
@@ -176,14 +176,14 @@ const Navbar: React.FC = () => {
               </SheetTrigger>
               <SheetContent side="left" className="pr-0">
                 <div className="px-4">
-                  <button 
+                  <button
                     onClick={handleLogoClick}
                     className="flex items-center space-x-2 hover:opacity-80 transition-opacity mb-6"
                   >
                     <div className="h-6 w-6 bg-primary rounded" />
                     <span className="font-bold">Igreja</span>
                   </button>
-                  
+
                   <div className="space-y-3">
                     {menuItems.map((item) => {
                       const Icon = item.icon;
@@ -230,7 +230,7 @@ const Navbar: React.FC = () => {
 
           <div className="flex items-center space-x-2">
             <ThemeToggle />
-            
+
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

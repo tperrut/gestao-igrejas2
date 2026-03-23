@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { validateEmail, validatePassword } from '@/utils/validation';
 import { logger, LogCategory } from '@/utils/logger';
+import { getTenantSlug } from '@/utils/subdomain';
 
 interface Profile {
   id: string;
@@ -180,18 +181,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         setProfile(profileData as Profile);
 
-        const { data: roleData, error: roleError } = await supabase
+        const { data: rolesData, error: roleError } = await supabase
           .from('user_roles')
-          .select('role, tenant_id')
-          .eq('user_id', userId)
-          .maybeSingle();
+          .select('role, tenant_id, tenants!inner(subdomain)')
+          .eq('user_id', userId);
+
+        let activeRole = null;
 
         if (roleError) {
-          logger.dbError('Failed to fetch user role', roleError, { userId });
+          logger.dbError('Failed to fetch user roles', roleError, { userId });
+        } else if (rolesData && rolesData.length > 0) {
+          const tenantSlug = getTenantSlug();
+
+          if (tenantSlug) {
+            // Find role matching current subdomain
+            const tenantRole = rolesData.find((r: any) => r.tenants?.subdomain === tenantSlug);
+
+            // Fallback to first role if weird state, though shouldn't happen
+            activeRole = tenantRole || rolesData[0];
+          } else {
+            // On main domain context, prioritize owner role or fallback
+            activeRole = rolesData.find((r: any) => r.role === 'owner') || rolesData[0];
+          }
         }
 
-        setUserRole(roleData as UserRole | null);
-        logger.authLog('User profile fetched successfully', userId, { role: roleData?.role });
+        setUserRole(activeRole as UserRole | null);
+        logger.authLog('User profile fetched successfully', userId, { role: activeRole?.role });
       } catch (error) {
         logger.authError('Error fetching user profile', error instanceof Error ? error : new Error(String(error)), { userId }, userId);
         console.error('Error fetching user profile:', error);
